@@ -11,15 +11,12 @@ const getAPIBaseURL = () => {
     }
 
     // Priority 2: Production - use absolute URL
-    if (
-        import.meta.env.PROD) {
-        const prodURL =
-            import.meta.env.VITE_API_PROD_URL || 'https://api.lunest.com/v1';
+    if (import.meta.env.PROD) {
+        const prodURL = import.meta.env.VITE_API_PROD_URL || 'https://api.lunest.app/v1';
         console.log('[API] Using production URL:', prodURL);
         return prodURL;
     }
 
-    // Priority 3: Development - direct backend URL
     const devURL = 'http://localhost:3000/v1';
     console.log('[API] Using development URL:', devURL);
     return devURL;
