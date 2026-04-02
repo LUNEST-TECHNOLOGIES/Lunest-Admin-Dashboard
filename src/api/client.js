@@ -10,10 +10,10 @@ const getAPIBaseURL = () => {
         return import.meta.env.VITE_API_URL;
     }
 
-    // Priority 2: Production - use absolute URL
+    // Priority 2: Production - use Netlify proxy
     if (import.meta.env.PROD) {
-        const prodURL = import.meta.env.VITE_API_PROD_URL || 'https://api.lunest.app/v1';
-        console.log('[API] Using production URL:', prodURL);
+        const prodURL = '/api';
+        console.log('[API] Using production proxy URL:', prodURL);
         return prodURL;
     }
 
