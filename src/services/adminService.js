@@ -5,7 +5,7 @@ import apiClient from '../api/client';
 // ============================================
 
 export const loginUser = async(emailAddress, password) => {
-    const response = await apiClient.post('/users/login', {
+    const response = await apiClient.post('users/login', {
         emailAddress,
         password,
     });
