@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { getListings, getBookings, getAdminTransactions, getDashboardStats } from '../services/adminService';
 import { useEffect, useState } from 'react';
-import SideBar from '../components/layout/sideBar';
+import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
 import { 
   StatsCard, 
@@ -98,7 +98,7 @@ export default function Dashboard() {
     return (
         <div className="flex min-h-screen bg-gray-50">
             {/* Sidebar */}
-            <SideBar activeMenu={activeMenu} onMenuSelect={setActiveMenu} />
+            <Sidebar activeMenu={activeMenu} onMenuSelect={setActiveMenu} />
             
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
