@@ -6,8 +6,14 @@ const getAPIBaseURL = () => {
     if (!import.meta.env.PROD) {
         return 'http://localhost:3000/v1';
     }
-    // Production: use Netlify proxy to avoid CORS
-    return '/api';
+    
+    // Production: use env var if set, otherwise use Netlify proxy
+    const envUrl = import.meta.env.VITE_API_URL;
+    if (envUrl) {
+        // Ensure /v1 suffix exists
+        return envUrl.endsWith('/v1') ? envUrl : `${envUrl}/v1`;
+    }
+    return '/api';  // Netlify proxy adds /v1
 };
 
 const API_BASE_URL = getAPIBaseURL();
