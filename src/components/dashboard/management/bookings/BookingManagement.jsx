@@ -3,12 +3,92 @@ import { MdSearch, MdArrowBack, MdArrowForward, MdTune } from 'react-icons/md';
 import BookingActionButton from './BookingActionButton';
 import { getBookings } from '../../../../services/adminService';
 
+// Helper functions moved outside component to prevent re-renders
+const formatCurrency = (price, currency = 'NGN') => {
+  if (!price) return '₦0';
+  const symbol = currency === 'USD' ? '$' : currency === 'GHC' ? '₵' : '₦';
+  return `${symbol}${price.toLocaleString()}`;
+};
+
+const openAddressInMaps = (address) => {
+  if (!address) return;
+  const encodedAddress = encodeURIComponent(address);
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+  window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+};
+
+const formatAddress = (listing) => {
+  if (!listing) return 'N/A';
+  const addressParts = [
+    listing.address?.streetAddress,
+    listing.address?.city,
+    listing.address?.state,
+    listing.address?.country
+  ].filter(Boolean);
+  return addressParts.length > 0 ? addressParts.join(', ') : 'Address not available';
+};
+
+const formatDateRange = (checkIn, checkOut) => {
+  if (!checkIn || !checkOut) return 'N/A';
+  const startDate = new Date(checkIn);
+  const endDate = new Date(checkOut);
+  const diffTime = Math.abs(endDate - startDate);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays <= 7) {
+    return `${startDate.getDate()} - ${endDate.getDate()}, ${startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+  }
+  return `${diffDays} days`;
+};
+
+const mapBookingStatus = (status) => {
+  const statusMap = {
+    'CONFIRMED': 'Confirmed',
+    'RESERVED': 'Reserved',
+    'PENDING': 'Pending',
+    'CANCELLED': 'Canceled',
+    'COMPLETED': 'Completed',
+    'ONGOING': 'Active',
+    'EXPIRED': 'Expired',
+    'REFUND_REQUESTED': 'Refund Requested',
+    'REFUNDED': 'Refunded',
+  };
+  return statusMap[status] || status || 'Pending';
+};
+
+const getStatusBg = (status) => {
+  const bgMap = {
+    'CONFIRMED': 'bg-blue-200/40',
+    'RESERVED': 'bg-blue-200/40',
+    'PENDING': 'bg-amber-400/30',
+    'CANCELLED': 'bg-red-300/30',
+    'COMPLETED': 'bg-green-200',
+    'ONGOING': 'bg-indigo-100',
+    'REFUND_REQUESTED': 'bg-purple-100',
+    'REFUNDED': 'bg-stone-200',
+  };
+  return bgMap[status] || 'bg-gray-200/40';
+};
+
+const getStatusText = (status) => {
+  const textMap = {
+    'CONFIRMED': 'text-blue-800',
+    'RESERVED': 'text-blue-800',
+    'PENDING': 'text-orange-600',
+    'CANCELLED': 'text-red-600',
+    'COMPLETED': 'text-green-700',
+    'ONGOING': 'text-indigo-800',
+  };
+  return textMap[status] || 'text-gray-800';
+};
+
 const BookingManagement = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const isFetchingRef = useRef(false);
 
   const tabs = ['all', 'confirmed', 'active', 'complete', 'canceled', 'refund'];
   const tabLabels = {
@@ -20,86 +100,16 @@ const BookingManagement = () => {
     refund: 'Refunded'
   };
 
-  // Helper functions
-  const formatCurrency = (price, currency = 'NGN') => {
-    if (!price) return '₦0';
-    const symbol = currency === 'USD' ? '$' : currency === 'GHC' ? '₵' : '₦';
-    return `${symbol}${price.toLocaleString()}`;
-  };
-
-  const openAddressInMaps = (address) => {
-    if (!address) return;
-    const encodedAddress = encodeURIComponent(address);
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-    window.open(mapsUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  const formatAddress = (listing) => {
-    if (!listing) return 'N/A';
-    const addressParts = [
-      listing.address?.streetAddress,
-      listing.address?.city,
-      listing.address?.state,
-      listing.address?.country
-    ].filter(Boolean);
-    return addressParts.length > 0 ? addressParts.join(', ') : 'Address not available';
-  };
-
-  const formatDateRange = (checkIn, checkOut) => {
-    if (!checkIn || !checkOut) return 'N/A';
-    const startDate = new Date(checkIn);
-    const endDate = new Date(checkOut);
-    const diffTime = Math.abs(endDate - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays <= 7) {
-      return `${startDate.getDate()} - ${endDate.getDate()}, ${startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+  const fetchBookings = useCallback(async (isBackground = false) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    
+    if (!isBackground && bookings.length === 0) {
+      setIsInitialLoad(true);
+    } else {
+      setIsRefreshing(true);
     }
-    return `${diffDays} days`;
-  };
 
-  const mapBookingStatus = (status) => {
-    const statusMap = {
-      'CONFIRMED': 'Confirmed',
-      'RESERVED': 'Reserved',
-      'PENDING': 'Pending',
-      'CANCELLED': 'Canceled',
-      'COMPLETED': 'Completed',
-      'ONGOING': 'Active',
-      'EXPIRED': 'Expired',
-      'REFUND_REQUESTED': 'Refund Requested',
-      'REFUNDED': 'Refunded',
-    };
-    return statusMap[status] || status || 'Pending';
-  };
-
-  const getStatusBg = (status) => {
-    const bgMap = {
-      'CONFIRMED': 'bg-blue-200/40',
-      'RESERVED': 'bg-blue-200/40',
-      'PENDING': 'bg-amber-400/30',
-      'CANCELLED': 'bg-red-300/30',
-      'COMPLETED': 'bg-green-200',
-      'ONGOING': 'bg-indigo-100',
-      'REFUND_REQUESTED': 'bg-purple-100',
-      'REFUNDED': 'bg-stone-200',
-    };
-    return bgMap[status] || 'bg-gray-200/40';
-  };
-
-  const getStatusText = (status) => {
-    const textMap = {
-      'CONFIRMED': 'text-blue-800',
-      'RESERVED': 'text-blue-800',
-      'PENDING': 'text-orange-600',
-      'CANCELLED': 'text-red-600',
-      'COMPLETED': 'text-green-700',
-      'ONGOING': 'text-indigo-800',
-    };
-    return textMap[status] || 'text-gray-800';
-  };
-
-  const fetchBookings = useCallback(async () => {
-    setLoading(true);
     try {
       const response = await getBookings();
       const backendBookings = response.body || response.data || [];
@@ -128,11 +138,13 @@ const BookingManagement = () => {
       setBookings(transformedBookings);
     } catch (err) {
       console.error('Error fetching bookings:', err);
-      setBookings([]);
+      if (!isBackground) setBookings([]);
     } finally {
-      setLoading(false);
+      setIsInitialLoad(false);
+      setIsRefreshing(false);
+      isFetchingRef.current = false;
     }
-  }, [formatAddress, formatDateRange]);
+  }, [bookings.length]); 
 
   useEffect(() => {
     fetchBookings();
@@ -161,7 +173,7 @@ const BookingManagement = () => {
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedBookings = filteredBookings.slice(startIdx, startIdx + itemsPerPage);
 
-  if (loading) {
+  if (isInitialLoad && bookings.length === 0) {
     return (
       <div className="w-full h-auto min-h-screen px-6 py-6 bg-gray-50 flex justify-center items-center">
         <div className="text-center">
@@ -193,7 +205,11 @@ const BookingManagement = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col relative overflow-visible">
-        <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center relative">
+          {/* Subtle Refresh Indicator */}
+          {isRefreshing && (
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500 animate-pulse z-10"></div>
+          )}
           <div className="relative w-full md:max-w-md">
             <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input

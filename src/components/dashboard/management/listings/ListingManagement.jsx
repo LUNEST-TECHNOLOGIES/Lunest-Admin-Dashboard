@@ -6,6 +6,7 @@ import ListingTooltip from './ListingTooltip';
 import ListingFiltersDropdown from './ListingFiltersDropdown';
 import MassApprovalModal from './MassApprovalModal';
 import { getListings, massApproveListing, massRejectListing } from '../../../../services/adminService';
+import apiClient from '../../../../api/client';
 
 const ListingManagement = () => {
   console.log('🔍 ListingManagement component mounted');
@@ -159,11 +160,11 @@ const ListingManagement = () => {
       } else if (err.response?.status === 403) {
         finalError = '❌ Forbidden (403) - Your account does not have admin privileges';
       } else if (err.response?.status === 404) {
-        finalError = '❌ Not Found (404) - Backend endpoint /admin/listings unavailable. Verify backend is running at http://localhost:3000';
+        finalError = `❌ Not Found (404) - Backend endpoint /admin/listings unavailable. Verify backend is running at ${apiClient.defaults.baseURL}`;
       } else if (err.message && err.message.includes('No auth token')) {
         finalError = '❌ Missing Auth Token - Please log in first with admin@lunest.app';
       } else if (err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK' || !err.response) {
-        finalError = '⚠️ Network Error - Backend unreachable at http://localhost:3000. Retrying...';
+        finalError = `⚠️ Network Error - Backend unreachable at ${apiClient.defaults.baseURL}. Retrying...`;
         shouldRetry = true;
       }
       
