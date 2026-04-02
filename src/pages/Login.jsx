@@ -195,9 +195,6 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            <div className="text-center text-slate-400 text-base font-medium">
-              Admin: admin@lunest.app / Admin@123456
-            </div>
           </div>
         </form>
       </div>

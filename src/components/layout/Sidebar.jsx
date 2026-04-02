@@ -22,7 +22,7 @@ import {
 
 import { getCurrentUser } from '../../services/adminService';
 
-const SideBar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
+const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
   const [isOpen, setIsOpen] = useState(true)
   const [expandedSubmenu, setExpandedSubmenu] = useState(null)
 
@@ -213,4 +213,4 @@ const SideBar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
   )
 }
 
-export default SideBar
+export default Sidebar
