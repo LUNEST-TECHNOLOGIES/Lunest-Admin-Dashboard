@@ -9,7 +9,7 @@ export default defineConfig({
         port: 5174,
         proxy: {
             '/v1': {
-                target: 'http://192.168.0.198:3000',
+                target: 'http://localhost:3000',
                 changeOrigin: true,
                 logLevel: 'debug',
                 // Handle connection errors gracefully
@@ -31,7 +31,7 @@ export default defineConfig({
                     res.end(JSON.stringify({
                         error: 'Backend server is not responding',
                         details: err.message,
-                        backend: 'http://192.168.0.198:3000',
+                        backend: 'http://localhost:3000',
                         retryAfter: 5,
                     }));
                 },

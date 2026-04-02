@@ -1,28 +1,9 @@
 import axios from 'axios';
 
-// Determine API base URL based on environment
-const getAPIBaseURL = () => {
-    // Priority 1: Explicit VITE_API_URL environment variable
-    if (
-        import.meta.env.VITE_API_URL) {
-        console.log('[API] Using VITE_API_URL:',
-            import.meta.env.VITE_API_URL);
-        return import.meta.env.VITE_API_URL;
-    }
+// Single environment variable for API URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/v1';
 
-    // Priority 2: Production - use Netlify proxy
-    if (import.meta.env.PROD) {
-        const prodURL = '/api';
-        console.log('[API] Using production proxy URL:', prodURL);
-        return prodURL;
-    }
-
-    const devURL = 'http://localhost:3000/v1';
-    console.log('[API] Using development URL:', devURL);
-    return devURL;
-};
-
-const API_BASE_URL = getAPIBaseURL();
+console.log('[API] Using:', API_BASE_URL);
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,

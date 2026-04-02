@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getAdminTransactions, getAdminTransactionSummary, exportAdminTransactions, manualWalletAdjustment, resolveCautionFee } from '../services/adminService';
 import ResolveCautionModal from '../components/dashboard/management/bookings/ResolveCautionModal';
 
@@ -6,6 +6,10 @@ const FinancialManagement = () => {
   const [activeMenu, setActiveMenu] = useState('Financial Management');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const abortControllerRef = useRef(null);
+  const isMountedRef = useRef(true);
+  const lastFetchRef = useRef(0);
+  const DEBOUNCE_MS = 300;
   const [summary, setSummary] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 1 });
@@ -104,9 +108,24 @@ const FinancialManagement = () => {
     return filters;
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    // Prevent rapid re-fetching (debounce)
+    const now = Date.now();
+    if (now - lastFetchRef.current < DEBOUNCE_MS) {
+      console.log('[FinancialManagement] Fetch debounced');
+      return;
+    }
+    lastFetchRef.current = now;
+    
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    
     setLoading(true);
     setError(null);
+    
     try {
       const filters = {
         startDate: dateRange.startDate,
@@ -129,9 +148,12 @@ const FinancialManagement = () => {
       console.log('[FinancialManagement] Fetching with filters:', filters);
 
       const [summaryRes, transRes] = await Promise.all([
-        getAdminTransactionSummary({ startDate: filters.startDate, endDate: filters.endDate }),
-        getAdminTransactions({ ...filters, page: pagination.page, limit: pagination.limit })
+        getAdminTransactionSummary({ startDate: filters.startDate, endDate: filters.endDate }, abortControllerRef.current.signal),
+        getAdminTransactions({ ...filters, page: pagination.page, limit: pagination.limit }, abortControllerRef.current.signal)
       ]);
+      
+      // Check if component is still mounted before updating state
+      if (!isMountedRef.current) return;
 
       console.log('[FinancialManagement] Summary response:', summaryRes);
       console.log('[FinancialManagement] Transactions response:', transRes);
@@ -251,20 +273,45 @@ const FinancialManagement = () => {
         setError(transRes.message || 'Failed to load transactions');
       }
     } catch (err) {
-      console.error('Error fetching financial data:', err);
-      setError(err.message || 'Failed to load financial data. Please try again.');
+      // Don't update state if request was aborted
+      if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') {
+        console.log('[FinancialManagement] Fetch aborted');
+        return;
+      }
+      
+      // Only update error state if component is mounted
+      if (isMountedRef.current) {
+        console.error('Error fetching financial data:', err);
+        setError(err.message || 'Failed to load financial data. Please try again.');
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [pagination.page, activeTab, dateRange, search, statusFilter]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     setPagination(prev => ({ ...prev, page: 1 }));
   }, [activeTab]);
 
   useEffect(() => {
-    fetchData();
-  }, [pagination.page, activeTab, dateRange]);
+    const timeoutId = setTimeout(() => {
+      fetchData();
+    }, DEBOUNCE_MS);
+    
+    return () => clearTimeout(timeoutId);
+  }, [fetchData]);
 
   const handleSearch = (e) => {
     if (e.key === 'Enter') {
