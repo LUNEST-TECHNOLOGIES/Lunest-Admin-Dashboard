@@ -1,9 +1,19 @@
 import axios from 'axios';
 
-// Single environment variable for API URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/v1';
+// Determine API base URL based on environment
+const getAPIBaseURL = () => {
+    // Development: use localhost directly
+    if (!import.meta.env.PROD) {
+        return 'http://localhost:3000/v1';
+    }
+    // Production: use Netlify proxy to avoid CORS
+    return '/api';
+};
 
-console.log('[API] Using:', API_BASE_URL);
+const API_BASE_URL = getAPIBaseURL();
+
+console.log('[API] Environment:', import.meta.env.PROD ? 'production' : 'development');
+console.log('[API] Base URL:', API_BASE_URL);
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
@@ -42,7 +52,7 @@ apiClient.interceptors.response.use(
     (response) => {
         const key = `${response.config.method}-${response.config.url}`;
         delete retryCount[key];
-        console.log(`[API Response] ✅ ${response.status} ${response.config.url}`);
+        console.log(`[API Response] ${response.status} ${response.config.url}`);
         return response;
     },
     async(error) => {
