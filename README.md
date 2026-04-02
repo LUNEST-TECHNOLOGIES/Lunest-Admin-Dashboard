@@ -1,16 +1,32 @@
-# React + Vite
+# Lunest Admin Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Standardized Administration Panel for Lunest Platform**
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📘 Documentation
 
-## React Compiler
+To ensure a single Source of Truth (SoT) and eliminate document fragmentation, all developer and administrator guides have been consolidated into:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 👉 **[ADMIN_GUIDE.md](./ADMIN_GUIDE.md)**
 
-## Expanding the ESLint configuration
+**This guide covers:**
+- [x] Project Overview & Tech Stack
+- [x] Getting Started (Local & Network Setup)
+- [x] Architecture & Security
+- [x] User Management (KYC, Host Apps, Bans)
+- [x] Listing Management Lifecycle
+- [x] Financial Systems & Reporting
+- [x] Compliance Framework (GDPR/AML)
+- [x] Troubleshooting & FAQ
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🚀 Quick Start
+
+1. Install dependencies: `npm install`
+2. Start dev server: `npm run dev`
+3. Access at: `http://localhost:5174` (local) or `http://192.168.0.200:5174` (network)
+
+---
+© 2026 Lunest Technologies. All Rights Reserved.
