@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL of your backend
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://192.168.0.199:3000/v1';
+const API_BASE_URL = process.env.VITE_PROD_API_URL || 'https://api.lunest.app/v1';
 
 // Create axios instance
 const apiClient = axios.create({
