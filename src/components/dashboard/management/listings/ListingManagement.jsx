@@ -23,6 +23,7 @@ const ListingManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
   const itemsPerPage = 8;
   const MAX_RETRIES = 3;
   const hasFetched = useRef(false);
@@ -292,11 +293,11 @@ const ListingManagement = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedListings = filteredListings.slice(startIndex, startIndex + itemsPerPage);
 
-  // Handle mass approve/reject
   const handleMassAction = async () => {
     const selectedIds = Array.from(selectedRows);
     console.log(`${massActionType === 'approve' ? 'Approving' : 'Rejecting'} listings:`, selectedIds);
     
+    setIsProcessing(true);
     try {
       if (massActionType === 'approve') {
         await massApproveListing(selectedIds);
@@ -314,6 +315,8 @@ const ListingManagement = () => {
       setMassActionType(null);
     } catch (err) {
       console.error('Error performing mass action:', err);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -459,7 +462,7 @@ const ListingManagement = () => {
                     key={listing.id}
                     listing={listing}
                     isSelected={selectedRows.has(listing.id)}
-                    isLastItem={index >= paginatedListings.length - 2}
+                    isLastItem={index >= paginatedListings.length - 2 && index >= 3}
                     onSelect={(id) => {
                       const newSelected = new Set(selectedRows);
                       if (newSelected.has(id)) {

@@ -297,11 +297,11 @@ const UsersManagement = () => {
             {/* Table Rows */}
             <div className="w-full flex flex-col pb-24">
               {paginatedUsers.map((user, index) => {
-                const isLastItems = index >= paginatedUsers.length - 2;
+                const isLastItems = index >= paginatedUsers.length - 2 && index >= 3;
                 return (
                 <div
                   key={user.id}
-                  className="w-full px-6 py-4 border-b border-slate-100 flex items-center hover:bg-slate-50/80 transition-all gap-4"
+                  className="relative w-full px-6 py-4 border-b border-slate-100 flex items-center hover:bg-slate-50/80 hover:z-50 transition-all gap-4 group"
                 >
                   {/* Avatar */}
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-200">

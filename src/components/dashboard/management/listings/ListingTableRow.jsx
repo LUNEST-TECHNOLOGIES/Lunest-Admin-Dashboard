@@ -30,7 +30,7 @@ const ListingTableRow = ({ listing, isSelected, onSelect, showSelectMode, onList
   };
 
   return (
-    <div className="w-full px-6 py-4 border-b border-slate-100 flex items-center hover:bg-slate-50/80 transition-colors gap-6">
+    <div className="relative w-full px-6 py-4 border-b border-slate-100 flex items-center hover:bg-slate-50/80 hover:z-50 transition-all gap-6 group">
       {/* Checkbox */}
       {showSelectMode && (
         <div 

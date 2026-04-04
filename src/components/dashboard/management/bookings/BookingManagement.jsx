@@ -247,9 +247,9 @@ const BookingManagement = () => {
             <div className="w-full flex flex-col pb-24">
               {paginatedBookings.length > 0 ? (
                 paginatedBookings.map((booking, idx) => {
-                  const isLastItems = idx >= paginatedBookings.length - 2;
+                  const isLastItems = idx >= paginatedBookings.length - 2 && idx >= 3;
                   return (
-                    <div key={idx} className="w-full px-6 py-5 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_40px] items-center hover:bg-slate-50/80 transition-all gap-8">
+                    <div key={idx} className="relative w-full px-6 py-5 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_40px] items-center hover:bg-slate-50/80 hover:z-50 transition-all gap-8 group">
                       {/* Booking ID */}
                       <div className="pl-2">
                         <div className="text-slate-900 text-xs font-black tracking-tight uppercase select-all">{booking.id}</div>
