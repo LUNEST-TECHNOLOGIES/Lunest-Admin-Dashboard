@@ -6,6 +6,12 @@ import AddNoteModal from './AddNoteModal';
 import ApplyPenaltyModal from './ApplyPenaltyModal';
 import CheckoutWithDisputeModal from './CheckoutWithDisputeModal';
 import ResolveCautionModal from './ResolveCautionModal';
+import { 
+  approveRefund, 
+  updateBookingInternalNote, 
+  manualWalletAdjustment,
+  updateBooking
+} from '../../../../services/adminService';
 
 
 const BookingActionButton = ({ booking, refresh, isLastItems }) => {
@@ -58,10 +64,67 @@ const BookingActionButton = ({ booking, refresh, isLastItems }) => {
     setIsMenuOpen(false);
   };
 
+  const handleRefundApproval = async (amount) => {
+    try {
+      await approveRefund(booking.bookingId, amount);
+      notify.success('Refund Approved', `Successfully approved refund of ${booking.currency}${amount}`);
+      setShowRefundModal(false);
+      if (refresh) refresh();
+    } catch (error) {
+      console.error('Refund approval failed:', error);
+      notify.error('Refund Failed', error.response?.data?.message || error.message);
+    }
+  };
+
+  const handleAddNoteSubmit = async (note) => {
+    try {
+      await updateBookingInternalNote(booking.referenceCode, note);
+      notify.success('Note Added', 'Staff note has been saved to this booking');
+      setShowAddNoteModal(false);
+      if (refresh) refresh();
+    } catch (error) {
+      console.error('Adding note failed:', error);
+      notify.error('Failed to Add Note', error.response?.data?.message || error.message);
+    }
+  };
+
+  const handlePenaltySubmit = async (data) => {
+    try {
+      // Use manual wallet adjustment to apply penalty
+      await manualWalletAdjustment({
+        userId: booking.listing?.host?._id,
+        amount: -Math.abs(data.amount),
+        type: 'DEBIT',
+        description: `Penalty for booking ${booking.id}: ${data.reason}`
+      });
+      
+      notify.success('Penalty Applied', `Host has been penalized ${booking.currency}${data.amount}`);
+      setShowPenaltyModal(false);
+      if (refresh) refresh();
+    } catch (error) {
+      console.error('Applying penalty failed:', error);
+      notify.error('Penalty Failed', error.response?.data?.message || error.message);
+    }
+  };
+
   const handleCheckoutConfirm = async (checkoutData) => {
     try {
       console.log('Checkout confirmed with data:', checkoutData);
+      
+      // If there's a dispute, we might need to update the booking status or resolve caution
+      if (checkoutData.disputeRaised) {
+        await updateBooking(booking.bookingId, { 
+          status: 'COMPLETED',
+          disputeRaised: true,
+          disputeReason: checkoutData.disputeReason 
+        });
+      } else {
+        await updateBooking(booking.bookingId, { status: 'COMPLETED' });
+      }
+
       notify.success('Checkout Confirmed', 'Booking has been marked as completed');
+      setShowCheckoutModal(false);
+      if (refresh) refresh();
     } catch (error) {
       console.error('Checkout confirmation failed:', error);
       notify.error('Checkout Failed', 'Failed to confirm checkout. Please try again.');

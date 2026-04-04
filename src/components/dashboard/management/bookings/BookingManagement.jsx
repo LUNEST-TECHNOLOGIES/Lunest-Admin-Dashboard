@@ -229,100 +229,105 @@ const BookingManagement = () => {
           </button>
         </div>
 
-        {/* Table Header */}
-        <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_40px] items-center gap-8">
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Booking ID</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Stakeholders</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Amount</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Stay Period</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Address / Destination</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Caution Fee</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</div>
-          <div className="text-right"></div>
-        </div>
-
-        <div className="w-full flex flex-col">
-          {paginatedBookings.length > 0 ? (
-            paginatedBookings.map((booking, idx) => {
-              const isLastItems = idx >= paginatedBookings.length - 2;
-              return (
-                <div key={idx} className="w-full px-6 py-5 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_40px] items-center hover:bg-slate-50/80 transition-all gap-8">
-                  {/* Booking ID */}
-                  <div className="pl-2">
-                    <div className="text-slate-900 text-xs font-black tracking-tight uppercase select-all">{booking.id}</div>
-                    <div className="text-slate-400 text-[9px] font-bold mt-0.5 uppercase tracking-tighter">Reference</div>
-                  </div>
-
-                  <div className="pl-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-slate-900 text-sm font-bold truncate">{booking.guestName}</span>
-                      <span className="px-1 py-0.5 bg-slate-100 text-slate-500 text-[8px] font-black uppercase rounded">GUEST</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-slate-500 text-xs font-medium truncate">{booking.hostName}</span>
-                      <span className="px-1 py-0.5 bg-indigo-50 text-indigo-400 text-[8px] font-black uppercase rounded">HOST</span>
-                    </div>
-                  </div>
-
-                  {/* Amount */}
-                  <div className="text-center">
-                    <div className="text-slate-900 text-sm font-black tabular-nums">{booking.amount}</div>
-                    <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Value</div>
-                  </div>
-
-                  {/* Dates */}
-                  <div className="text-center">
-                    <div className="text-slate-700 text-xs font-bold tracking-tight">{booking.dateRange}</div>
-                    <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Period</div>
-                  </div>
-
-                  {/* Address */}
-                  <div className="pl-2">
-                    {booking.isAddressClickable ? (
-                      <button
-                        onClick={() => openAddressInMaps(booking.fullAddress)}
-                        className="text-indigo-600 hover:text-indigo-800 text-xs font-bold text-left line-clamp-1 transition-all flex items-center gap-1 group cursor-pointer"
-                      >
-                        <span className="truncate">{booking.fullAddress}</span>
-                      </button>
-                    ) : (
-                      <span className="text-slate-400 text-xs font-medium line-clamp-1 italic">{booking.fullAddress}</span>
-                    )}
-                    <div className="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-0.5">Location</div>
-                  </div>
-
-                  {/* Caution Status Badge */}
-                  <div className="flex justify-center">
-                    <div className={`px-3 py-1 rounded-full border flex justify-center items-center whitespace-nowrap ${
-                      booking.cautionFeeStatus?.includes('RELEASED') ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                      booking.disputeRaised ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-amber-50 text-amber-700 border-amber-100'
-                    }`}>
-                      <span className="text-[10px] font-black uppercase tracking-wider">{booking.cautionFeeStatus?.replace(/_/g, ' ')}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-center">
-                    <div className={`px-3 py-1 rounded-full border flex justify-center items-center whitespace-nowrap ${
-                      booking.rawStatus === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                      booking.rawStatus === 'CANCELLED' ? 'bg-rose-50 text-rose-700 border-rose-100' :
-                      booking.rawStatus === 'ONGOING' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-amber-50 text-amber-700 border-amber-100'
-                    }`}>
-                      <span className="text-[10px] font-black uppercase tracking-wider">{booking.status}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pr-2">
-                    <BookingActionButton booking={booking} refresh={fetchBookings} isLastItems={isLastItems} />
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="w-full py-20 text-center">
-              <div className="text-slate-300 font-black text-lg uppercase tracking-widest mb-2">Null Data</div>
-              <p className="text-slate-400 text-sm font-bold">No synchronization records match your criteria.</p>
+        {/* Table Content with Horizontal Scroll */}
+        <div className="w-full overflow-x-auto scrollbar-hide">
+          <div className="min-w-[1100px]">
+            {/* Table Header */}
+            <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_40px] items-center gap-8">
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Booking ID</div>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Stakeholders</div>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Amount</div>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Stay Period</div>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Address / Destination</div>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Caution Fee</div>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</div>
+              <div className="text-right"></div>
             </div>
-          )}
+
+            <div className="w-full flex flex-col pb-24">
+              {paginatedBookings.length > 0 ? (
+                paginatedBookings.map((booking, idx) => {
+                  const isLastItems = idx >= paginatedBookings.length - 2;
+                  return (
+                    <div key={idx} className="w-full px-6 py-5 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_40px] items-center hover:bg-slate-50/80 transition-all gap-8">
+                      {/* Booking ID */}
+                      <div className="pl-2">
+                        <div className="text-slate-900 text-xs font-black tracking-tight uppercase select-all">{booking.id}</div>
+                        <div className="text-slate-400 text-[9px] font-bold mt-0.5 uppercase tracking-tighter">Reference</div>
+                      </div>
+
+                      <div className="pl-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-slate-900 text-sm font-bold truncate">{booking.guestName}</span>
+                          <span className="px-1 py-0.5 bg-slate-100 text-slate-500 text-[8px] font-black uppercase rounded">GUEST</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-slate-500 text-xs font-medium truncate">{booking.hostName}</span>
+                          <span className="px-1 py-0.5 bg-indigo-50 text-indigo-400 text-[8px] font-black uppercase rounded">HOST</span>
+                        </div>
+                      </div>
+
+                      {/* Amount */}
+                      <div className="text-center">
+                        <div className="text-slate-900 text-sm font-black tabular-nums">{booking.amount}</div>
+                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Value</div>
+                      </div>
+
+                      {/* Dates */}
+                      <div className="text-center">
+                        <div className="text-slate-700 text-xs font-bold tracking-tight">{booking.dateRange}</div>
+                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Period</div>
+                      </div>
+
+                      {/* Address */}
+                      <div className="pl-2">
+                        {booking.isAddressClickable ? (
+                          <button
+                            onClick={() => openAddressInMaps(booking.fullAddress)}
+                            className="text-indigo-600 hover:text-indigo-800 text-xs font-bold text-left line-clamp-1 transition-all flex items-center gap-1 group cursor-pointer"
+                          >
+                            <span className="truncate">{booking.fullAddress}</span>
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 text-xs font-medium line-clamp-1 italic">{booking.fullAddress}</span>
+                        )}
+                        <div className="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-0.5">Location</div>
+                      </div>
+
+                      {/* Caution Status Badge */}
+                      <div className="flex justify-center">
+                        <div className={`px-3 py-1 rounded-full border flex justify-center items-center whitespace-nowrap ${
+                          booking.cautionFeeStatus?.includes('RELEASED') ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                          booking.disputeRaised ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-amber-50 text-amber-700 border-amber-100'
+                        }`}>
+                          <span className="text-[10px] font-black uppercase tracking-wider">{booking.cautionFeeStatus?.replace(/_/g, ' ')}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-center">
+                        <div className={`px-3 py-1 rounded-full border flex justify-center items-center whitespace-nowrap ${
+                          booking.rawStatus === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                          booking.rawStatus === 'CANCELLED' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                          booking.rawStatus === 'ONGOING' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-amber-50 text-amber-700 border-amber-100'
+                        }`}>
+                          <span className="text-[10px] font-black uppercase tracking-wider">{booking.status}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pr-2">
+                        <BookingActionButton booking={booking} refresh={fetchBookings} isLastItems={isLastItems} />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="w-full py-20 text-center">
+                  <div className="text-slate-300 font-black text-lg uppercase tracking-widest mb-2">Null Data</div>
+                  <p className="text-slate-400 text-sm font-bold">No synchronization records match your criteria.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="p-6 border-t border-slate-100 flex items-center justify-between font-inter bg-slate-50/50">

@@ -278,260 +278,265 @@ const UsersManagement = () => {
           </button>
         </div>
 
-        {/* Table Header */}
-        <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 flex justify-between items-center gap-4">
-          <div className="w-10 flex-shrink-0"></div>
-          <div className="flex-1 min-w-[200px] text-xs font-bold text-slate-600 uppercase tracking-wider">User Details</div>
-          <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Role</div>
-          <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Subscription</div>
-          <div className="w-20 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Bookings</div>
-          <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Wallet</div>
-          <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Status</div>
-          <div className="w-40 text-xs font-bold text-slate-600 uppercase tracking-wider">Last Activity</div>
-          <div className="w-12 text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Actions</div>
-        </div>
+        {/* Table Content with Horizontal Scroll */}
+        <div className="w-full overflow-x-auto scrollbar-hide">
+          <div className="min-w-[1200px]">
+            {/* Table Header */}
+            <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 flex justify-between items-center gap-4">
+              <div className="w-10 flex-shrink-0"></div>
+              <div className="flex-1 min-w-[200px] text-xs font-bold text-slate-600 uppercase tracking-wider">User Details</div>
+              <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Role</div>
+              <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Subscription</div>
+              <div className="w-20 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Bookings</div>
+              <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Wallet</div>
+              <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Status</div>
+              <div className="w-40 text-xs font-bold text-slate-600 uppercase tracking-wider">Last Activity</div>
+              <div className="w-12 text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Actions</div>
+            </div>
 
-        {/* Table Rows */}
-        <div className="w-full flex flex-col">
-          {paginatedUsers.map((user, index) => {
-            const isLastItems = index >= paginatedUsers.length - 2;
-            return (
-            <div
-              key={user.id}
-              className="w-full px-6 py-4 border-b border-slate-100 flex items-center hover:bg-slate-50/80 transition-all gap-4"
-            >
-              {/* Avatar */}
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-200">
-                {user.avatar ? (
-                  <img src={resolveImageUrl(user.avatar)} alt={user.name} className="w-full h-full object-cover" />
-                ) : (
-                  <MdPerson className="w-6 h-6 text-slate-400" />
-                )}
-              </div>
-
-              {/* User Details */}
-              <div className="flex-1 min-w-[200px]">
-                <div className="flex items-center gap-2">
-                  <div className="text-slate-900 text-sm font-bold truncate">
-                    {user.name}
-                  </div>
-                  {user.hostApplicationStatus === 'PENDING' && (
-                    <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full border border-amber-100">
-                      Pending
-                    </span>
-                  )}
-                </div>
-                <div className="text-slate-500 text-[11px] font-medium truncate max-w-[180px]" title={user.email}>
-                  {user.email}
-                </div>
-                <div className="text-slate-400 text-[10px] font-medium mt-0.5">
-                  ID: {user.walletId}
-                </div>
-              </div>
-
-              {/* Role */}
-              <div className="w-24 flex-shrink-0 flex justify-center">
-                <div className={`px-3 py-[5px] rounded-[20px] border flex justify-center items-center ${getRoleColor(user.role)}`}>
-                  <span className="text-[10px] font-bold uppercase tracking-wider">{user.role}</span>
-                </div>
-              </div>
-
-              {/* Subscription */}
-              <div className="w-28 flex-shrink-0 flex justify-center">
-                <div className={`px-3 py-[5px] rounded-[20px] bg-slate-50 border border-slate-200 flex justify-center items-center ${user.subscription === 'Free' ? 'text-slate-400' : 'text-indigo-600'}`}>
-                  <span className="text-[10px] font-bold uppercase tracking-wider">{user.subscription}</span>
-                </div>
-              </div>
-
-              {/* No. of Bookings */}
-              <div className="w-20 text-slate-700 text-xs font-bold flex-shrink-0 flex justify-center">
-                {user.bookings}
-              </div>
-
-              {/* Wallet Balance */}
-              <div className="w-32 text-slate-900 text-xs font-bold flex-shrink-0 flex justify-center tabular-nums">
-                {formatCurrency(user.walletBalance.toString())}
-              </div>
-
-              {/* Status */}
-              <div className="w-24 flex-shrink-0 flex justify-center">
-                <div className={`px-3 py-[5px] rounded-[20px] border flex justify-center items-center ${
-                  user.status === 'Active' 
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                    : 'bg-rose-50 text-rose-700 border-rose-200'
-                }`}>
-                  <span className="text-[10px] font-bold uppercase tracking-wider">{user.status}</span>
-                </div>
-              </div>
-
-              {/* Last Activity */}
-              <div className="w-40 flex-shrink-0">
-                <div className="text-slate-500 text-[10px] font-medium truncate">
-                  {user.lastActivity}
-                </div>
-              </div>
-
-              {/* Action Menu */}
-              <div className={`w-8 h-8 flex-shrink-0 relative ${openMenuId === user.id ? 'z-[60]' : 'z-50'}`}>
-                <button
-                  onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
-                  className={`w-full h-full flex items-center justify-center rounded-lg border transition-all cursor-pointer shadow-sm ${
-                    openMenuId === user.id 
-                      ? 'bg-indigo-50 border-indigo-200 text-indigo-700' 
-                      : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
+            {/* Table Rows */}
+            <div className="w-full flex flex-col pb-24">
+              {paginatedUsers.map((user, index) => {
+                const isLastItems = index >= paginatedUsers.length - 2;
+                return (
+                <div
+                  key={user.id}
+                  className="w-full px-6 py-4 border-b border-slate-100 flex items-center hover:bg-slate-50/80 transition-all gap-4"
                 >
-                  <MdMoreVert className="w-5 h-5 text-current" />
-                </button>
+                  {/* Avatar */}
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-200">
+                    {user.avatar ? (
+                      <img src={resolveImageUrl(user.avatar)} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <MdPerson className="w-6 h-6 text-slate-400" />
+                    )}
+                  </div>
 
-                {/* Dropdown Menu */}
-                {openMenuId === user.id && (
-                  <div className={`absolute ${isLastItems ? 'bottom-full mb-2' : 'top-full mt-2'} right-0 bg-white rounded-xl border border-slate-100 shadow-2xl shadow-slate-200/60 z-50 p-1.5 w-48 animate-in fade-in zoom-in duration-200`}>
-                    <div className="flex flex-col gap-0.5">
-                      {/* View User Button */}
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowViewUserModal(true);
-                          setOpenMenuId(null);
-                        }}
-                        className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-indigo-50 hover:text-indigo-700 transition-all group cursor-pointer"
-                      >
-                        <MdPerson className="w-4.5 h-4.5 text-indigo-600 transition-colors" />
-                        <div className="text-xs font-bold">View User</div>
-                      </button>
-
-                      {/* Ban/Unban User Button */}
-                      {user.status === 'Active' ? (
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowBanModal(true);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-rose-50 hover:text-rose-700 transition-all group cursor-pointer"
-                        >
-                          <img src="/assets/icons/action-menu/close-x.svg" alt="Ban" className="w-4.5 h-4.5 opacity-70 group-hover:opacity-100 transition-all" />
-                          <div className="text-xs font-bold">Ban User</div>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`Are you sure you want to unban ${user.name}?`)) {
-                                handleUnbanUser(user.id);
-                            }
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-emerald-50 hover:text-emerald-700 transition-all group cursor-pointer"
-                        >
-                          <svg className="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <div className="text-xs font-bold">Unban User</div>
-                        </button>
-                      )}
-
-                      {/* Flag User Button */}
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowFlagModal(true);
-                          setOpenMenuId(null);
-                        }}
-                        className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-slate-50 hover:text-slate-900 transition-all group cursor-pointer"
-                      >
-                        <img src="/assets/icons/action-menu/vuesax/linear/vuesax/linear/refresh-2.svg" alt="Flag" className="w-4.5 h-4.5 opacity-70 group-hover:opacity-100 transition-all" />
-                        <div className="text-xs font-bold">Flag User</div>
-                      </button>
-
-                      <div className="my-1 border-t border-slate-50"></div>
-
-                      {/* Host Application Button */}
-                      {(user.role === 'Host' || user.hostApplicationStatus === 'PENDING') && (
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowViewApplicationModal(true);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-indigo-50 hover:text-indigo-700 transition-all group cursor-pointer"
-                        >
-                          <svg className="w-4.5 h-4.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          <div className="text-xs font-bold">Host Application</div>
-                        </button>
-                      )}
-
-                      {/* Approve Host Button */}
+                  {/* User Details */}
+                  <div className="flex-1 min-w-[200px]">
+                    <div className="flex items-center gap-2">
+                      <div className="text-slate-900 text-sm font-bold truncate">
+                        {user.name}
+                      </div>
                       {user.hostApplicationStatus === 'PENDING' && (
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowApproveHostModal(true);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-emerald-50 hover:text-emerald-700 transition-all group cursor-pointer"
-                        >
-                          <svg className="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <div className="text-xs font-bold">Approve Host</div>
-                        </button>
+                        <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full border border-amber-100">
+                          Pending
+                        </span>
                       )}
-
-                      {/* Reject Host Button */}
-                      {user.hostApplicationStatus === 'PENDING' && (
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowRejectHostModal(true);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-rose-50 hover:text-rose-700 transition-all group cursor-pointer"
-                        >
-                          <svg className="w-4.5 h-4.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                          <div className="text-xs font-bold">Reject Host</div>
-                        </button>
-                      )}
-
-                      {/* Deactivate/Activate User Button */}
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowDeactivateModal(true);
-                          setOpenMenuId(null);
-                        }}
-                        className={`w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 transition-all group cursor-pointer ${
-                          user.status === 'Active' ? 'hover:bg-rose-50 hover:text-rose-700' : 'hover:bg-emerald-50 hover:text-emerald-700'
-                        }`}
-                      >
-                        {user.status === 'Active' ? (
-                          <>
-                            <svg className="w-4.5 h-4.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                            </svg>
-                            <div className="text-xs font-bold">Deactivate User</div>
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4.5 h-4.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <div className="text-xs font-bold">Activate User</div>
-                          </>
-                        )}
-                      </button>
+                    </div>
+                    <div className="text-slate-500 text-[11px] font-medium truncate max-w-[180px]" title={user.email}>
+                      {user.email}
+                    </div>
+                    <div className="text-slate-400 text-[10px] font-medium mt-0.5">
+                      ID: {user.walletId}
                     </div>
                   </div>
-                )}
-              </div>
+
+                  {/* Role */}
+                  <div className="w-24 flex-shrink-0 flex justify-center">
+                    <div className={`px-3 py-[5px] rounded-[20px] border flex justify-center items-center ${getRoleColor(user.role)}`}>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{user.role}</span>
+                    </div>
+                  </div>
+
+                  {/* Subscription */}
+                  <div className="w-28 flex-shrink-0 flex justify-center">
+                    <div className={`px-3 py-[5px] rounded-[20px] bg-slate-50 border border-slate-200 flex justify-center items-center ${user.subscription === 'Free' ? 'text-slate-400' : 'text-indigo-600'}`}>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{user.subscription}</span>
+                    </div>
+                  </div>
+
+                  {/* No. of Bookings */}
+                  <div className="w-20 text-slate-700 text-xs font-bold flex-shrink-0 flex justify-center">
+                    {user.bookings}
+                  </div>
+
+                  {/* Wallet Balance */}
+                  <div className="w-32 text-slate-900 text-xs font-bold flex-shrink-0 flex justify-center tabular-nums">
+                    {formatCurrency(user.walletBalance.toString())}
+                  </div>
+
+                  {/* Status */}
+                  <div className="w-24 flex-shrink-0 flex justify-center">
+                    <div className={`px-3 py-[5px] rounded-[20px] border flex justify-center items-center ${
+                      user.status === 'Active' 
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                        : 'bg-rose-50 text-rose-700 border-rose-200'
+                    }`}>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">{user.status}</span>
+                    </div>
+                  </div>
+
+                  {/* Last Activity */}
+                  <div className="w-40 flex-shrink-0">
+                    <div className="text-slate-500 text-[10px] font-medium truncate">
+                      {user.lastActivity}
+                    </div>
+                  </div>
+
+                  {/* Action Menu */}
+                  <div className={`w-8 h-8 flex-shrink-0 relative ${openMenuId === user.id ? 'z-[60]' : 'z-50'}`}>
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                      className={`w-full h-full flex items-center justify-center rounded-lg border transition-all cursor-pointer shadow-sm ${
+                        openMenuId === user.id 
+                          ? 'bg-indigo-50 border-indigo-200 text-indigo-700' 
+                          : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <MdMoreVert className="w-5 h-5 text-current" />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {openMenuId === user.id && (
+                      <div className={`absolute ${isLastItems ? 'bottom-full mb-2' : 'top-full mt-2'} right-0 bg-white rounded-xl border border-slate-100 shadow-2xl shadow-slate-200/60 z-50 p-1.5 w-48 animate-in fade-in zoom-in duration-200`}>
+                        <div className="flex flex-col gap-0.5">
+                          {/* View User Button */}
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowViewUserModal(true);
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-indigo-50 hover:text-indigo-700 transition-all group cursor-pointer"
+                          >
+                            <MdPerson className="w-4.5 h-4.5 text-indigo-600 transition-colors" />
+                            <div className="text-xs font-bold">View User</div>
+                          </button>
+
+                          {/* Ban/Unban User Button */}
+                          {user.status === 'Active' ? (
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowBanModal(true);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-rose-50 hover:text-rose-700 transition-all group cursor-pointer"
+                            >
+                              <img src="/assets/icons/action-menu/close-x.svg" alt="Ban" className="w-4.5 h-4.5 opacity-70 group-hover:opacity-100 transition-all" />
+                              <div className="text-xs font-bold">Ban User</div>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to unban ${user.name}?`)) {
+                                    handleUnbanUser(user.id);
+                                }
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-emerald-50 hover:text-emerald-700 transition-all group cursor-pointer"
+                            >
+                              <svg className="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <div className="text-xs font-bold">Unban User</div>
+                            </button>
+                          )}
+
+                          {/* Flag User Button */}
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowFlagModal(true);
+                              setOpenMenuId(null);
+                            }}
+                            className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-slate-50 hover:text-slate-900 transition-all group cursor-pointer"
+                          >
+                            <img src="/assets/icons/action-menu/vuesax/linear/vuesax/linear/refresh-2.svg" alt="Flag" className="w-4.5 h-4.5 opacity-70 group-hover:opacity-100 transition-all" />
+                            <div className="text-xs font-bold">Flag User</div>
+                          </button>
+
+                          <div className="my-1 border-t border-slate-50"></div>
+
+                          {/* Host Application Button */}
+                          {(user.role === 'Host' || user.hostApplicationStatus === 'PENDING') && (
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowViewApplicationModal(true);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-indigo-50 hover:text-indigo-700 transition-all group cursor-pointer"
+                            >
+                              <svg className="w-4.5 h-4.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              <div className="text-xs font-bold">Host Application</div>
+                            </button>
+                          )}
+
+                          {/* Approve Host Button */}
+                          {user.hostApplicationStatus === 'PENDING' && (
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowApproveHostModal(true);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-emerald-50 hover:text-emerald-700 transition-all group cursor-pointer"
+                            >
+                              <svg className="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <div className="text-xs font-bold">Approve Host</div>
+                            </button>
+                          )}
+
+                          {/* Reject Host Button */}
+                          {user.hostApplicationStatus === 'PENDING' && (
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowRejectHostModal(true);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-rose-50 hover:text-rose-700 transition-all group cursor-pointer"
+                            >
+                              <svg className="w-4.5 h-4.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              <div className="text-xs font-bold">Reject Host</div>
+                            </button>
+                          )}
+
+                          {/* Deactivate/Activate User Button */}
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowDeactivateModal(true);
+                              setOpenMenuId(null);
+                            }}
+                            className={`w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 transition-all group cursor-pointer ${
+                              user.status === 'Active' ? 'hover:bg-rose-50 hover:text-rose-700' : 'hover:bg-emerald-50 hover:text-emerald-700'
+                            }`}
+                          >
+                            {user.status === 'Active' ? (
+                              <>
+                                <svg className="w-4.5 h-4.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                </svg>
+                                <div className="text-xs font-bold">Deactivate User</div>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4.5 h-4.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div className="text-xs font-bold">Activate User</div>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                );
+              })}
             </div>
-            );
-          })}
+          </div>
         </div>
 
         {/* Empty State */}

@@ -103,7 +103,7 @@ const ListingTableRow = ({ listing, isSelected, onSelect, showSelectMode, onList
 
       {/* Actions */}
       <div className="w-14 flex-shrink-0 flex justify-end">
-        <ActionMenu listing={listing} onListingUpdated={onListingUpdated} />
+        <ActionMenu listing={listing} onListingUpdated={onListingUpdated} isLastItem={isLastItem} />
       </div>
     </div>
   );

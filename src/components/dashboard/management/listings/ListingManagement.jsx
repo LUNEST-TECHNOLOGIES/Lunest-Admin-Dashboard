@@ -433,49 +433,55 @@ const ListingManagement = () => {
           </div>
         )}
 
-        {/* Table Header */}
-        <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 flex justify-start items-center gap-6">
-          {showSelectMode && (
-            <div className="w-6 h-6 flex-shrink-0"></div>
-          )}
-          <div className="w-44 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">Listing Details</div>
-          <div className="w-48 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">Host</div>
-          <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">Submitted</div>
-          <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Status</div>
-          <div className="w-16 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Plan</div>
-          <div className="w-16 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Boosted</div>
-          <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">Exp. Date</div>
-          <div className="w-14 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-right">Actions</div>
-        </div>
-
-        {/* Table Body */}
-        <div className="w-full flex flex-col">
-          {paginatedListings.length > 0 ? (
-            paginatedListings.map((listing) => (
-              <ListingTableRow
-                key={listing.id}
-                listing={listing}
-                isSelected={selectedRows.has(listing.id)}
-                onSelect={(id) => {
-                  const newSelected = new Set(selectedRows);
-                  if (newSelected.has(id)) {
-                    newSelected.delete(id);
-                  } else {
-                    newSelected.add(id);
-                  }
-                  setSelectedRows(newSelected);
-                }}
-                showSelectMode={showSelectMode}
-                onListingUpdated={fetchListings}
-              />
-            ))
-          ) : (
-            <div className="w-full h-32 flex items-center justify-center text-slate-400 font-aeonik">
-              <p className="text-slate-600 font-aeonik">
-                {loading ? 'Loading listings...' : 'No listings found'}
-              </p>
+        {/* Table Content with Horizontal Scroll */}
+        <div className="w-full overflow-x-auto scrollbar-hide">
+          <div className="min-w-[1000px]">
+            {/* Table Header */}
+            <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 flex justify-start items-center gap-6">
+              {showSelectMode && (
+                <div className="w-6 h-6 flex-shrink-0"></div>
+              )}
+              <div className="w-44 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">Listing Details</div>
+              <div className="w-48 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">Host</div>
+              <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">Submitted</div>
+              <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Status</div>
+              <div className="w-16 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Plan</div>
+              <div className="w-16 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Boosted</div>
+              <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">Exp. Date</div>
+              <div className="w-14 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-right">Actions</div>
             </div>
-          )}
+
+            {/* Table Body */}
+            <div className="w-full flex flex-col pb-32">
+              {paginatedListings.length > 0 ? (
+                paginatedListings.map((listing, index) => (
+                  <ListingTableRow
+                    key={listing.id}
+                    listing={listing}
+                    isSelected={selectedRows.has(listing.id)}
+                    isLastItem={index >= paginatedListings.length - 2}
+                    onSelect={(id) => {
+                      const newSelected = new Set(selectedRows);
+                      if (newSelected.has(id)) {
+                        newSelected.delete(id);
+                      } else {
+                        newSelected.add(id);
+                      }
+                      setSelectedRows(newSelected);
+                    }}
+                    showSelectMode={showSelectMode}
+                    onListingUpdated={fetchListings}
+                  />
+                ))
+              ) : (
+                <div className="w-full h-32 flex items-center justify-center text-slate-400 font-aeonik">
+                  <p className="text-slate-600 font-aeonik">
+                    {loading ? 'Loading listings...' : 'No listings found'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Pagination */}

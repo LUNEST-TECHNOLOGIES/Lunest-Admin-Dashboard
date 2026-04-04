@@ -50,7 +50,7 @@ const ActionMenu = ({ listing, onListingUpdated }) => {
 
         {/* Action Menu Dropdown - Overlay below, content left-aligned */}
         {isMenuOpen && (
-          <div className="absolute right-0 top-full mt-2 bg-white rounded-xl border border-slate-100 shadow-2xl shadow-slate-200/60 z-50 p-1.5 w-44 animate-in fade-in zoom-in duration-200">
+          <div className={`absolute right-0 ${isLastItem ? 'bottom-full mb-2' : 'top-full mt-2'} bg-white rounded-xl border border-slate-100 shadow-2xl shadow-slate-200/60 z-50 p-1.5 w-44 animate-in fade-in zoom-in duration-200`}>
             <div className="flex flex-col gap-0.5">
               {/* View */}
               <button 

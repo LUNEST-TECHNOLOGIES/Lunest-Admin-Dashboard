@@ -227,37 +227,37 @@ export const getListings = async(filters = {}) => {
 };
 
 export const getListing = async(listingId) => {
-    const response = await apiClient.post('/listings/listing/single', { id: listingId });
+    const response = await apiClient.post('/listings/single', { id: listingId });
     return response.data;
 };
 
 export const getListingById = async(listingId) => {
-    const response = await apiClient.get('/listings/listing/' + listingId);
+    const response = await apiClient.get('/listings/' + listingId);
     return response.data;
 };
 
 export const updateListing = async(listingId, data) => {
-    const response = await apiClient.patch('/listings/listing/update/' + listingId, data);
+    const response = await apiClient.patch('/listings/update/' + listingId, data);
     return response.data;
 };
 
 export const approveListing = async(listingId) => {
-    const response = await apiClient.post('/listings/listing/' + listingId + '/approve');
+    const response = await apiClient.post('/listings/' + listingId + '/approve');
     return response.data;
 };
 
 export const rejectListing = async(listingId, reason) => {
-    const response = await apiClient.post('/listings/listing/' + listingId + '/reject', { reason });
+    const response = await apiClient.post('/listings/' + listingId + '/reject', { reason });
     return response.data;
 };
 
 export const suspendListing = async(listingId, reason) => {
-    const response = await apiClient.post('/listings/listing/' + listingId + '/suspend', { reason });
+    const response = await apiClient.post('/listings/' + listingId + '/suspend', { reason });
     return response.data;
 };
 
 export const deleteListing = async(listingId) => {
-    const response = await apiClient.delete('/listings/listing/delete/' + listingId);
+    const response = await apiClient.delete('/listings/delete/' + listingId);
     return response.data;
 };
 
