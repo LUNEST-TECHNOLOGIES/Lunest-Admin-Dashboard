@@ -81,7 +81,6 @@ const FinancialTransactionActions = ({ transaction, onActionComplete }) => {
 
     if (category.includes('topup') || category.includes('top_up') || category.includes('adjustment')) {
       return [
-        { label: 'Reverse', icon: <Icons.Undo />, styleClass: 'bg-red-50 text-red-700 hover:bg-red-100', action: 'REVERSE_TRANSACTION' },
         { label: 'Wallet', icon: <Icons.Wallet />, styleClass: 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100', action: 'VIEW_WALLET' }
       ];
     }
