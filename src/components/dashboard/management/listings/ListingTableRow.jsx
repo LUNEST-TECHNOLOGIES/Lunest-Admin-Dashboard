@@ -2,7 +2,7 @@ import React from 'react';
 import { MdCheckCircle } from 'react-icons/md';
 import ActionMenu from '../shared/ActionMenu';
 
-const ListingTableRow = ({ listing, isSelected, onSelect, showSelectMode, onListingUpdated }) => {
+const ListingTableRow = ({ listing, isSelected, onSelect, showSelectMode, onListingUpdated, isLastItem }) => {
   // Safeguard against missing listing
   if (!listing) {
     return null;

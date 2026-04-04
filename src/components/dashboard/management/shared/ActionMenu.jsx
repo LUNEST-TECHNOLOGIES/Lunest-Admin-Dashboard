@@ -9,7 +9,7 @@ import AlertNotification from './AlertNotification';
 import { useNotification } from '../../../ui/NotificationProvider';
 import { approveListing, rejectListing, updateListing, deleteListing } from '../../../../services/adminService';
 
-const ActionMenu = ({ listing, onListingUpdated }) => {
+const ActionMenu = ({ listing, onListingUpdated, isLastItem }) => {
   const notify = useNotification();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDetailsPopup, setShowDetailsPopup] = useState(false);
