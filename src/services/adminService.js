@@ -173,7 +173,8 @@ export const getListings = async(filters = {}) => {
             response = await apiClient.post('/admin/listings', filters);
         } catch (adminError) {
             console.warn('⚠️ Admin endpoint (POST /admin/listings) failed, using fallback endpoint...');
-            response = await apiClient.post('/listings/listing', filters);
+            // Corrected fallback: The backend route is /v1/listings (POST), not /v1/listings/listing
+            response = await apiClient.post('/listings', filters);
         }
 
         // Verify response structure
@@ -587,7 +588,8 @@ const formatTimeAgo = (dateString) => {
 // ============================================
 
 export const getNotifications = async() => {
-    const response = await apiClient.post('/notifications');
+    // Backend AdminRoute mounts getNotifications at /admin/notifications (POST)
+    const response = await apiClient.post('/admin/notifications');
     return response.data;
 };
 

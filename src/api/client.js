@@ -92,12 +92,12 @@ apiClient.interceptors.response.use(
         }
 
         // Handle network errors with retry
-        if ((error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || !error.response) && config) {
+        if ((error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || error.code === 'ERR_NAME_NOT_RESOLVED' || !error.response) && config) {
             retryCount[key] = (retryCount[key] || 0) + 1;
 
             if (retryCount[key] <= MAX_RETRIES) {
                 console.warn(`[Retry] Attempt ${retryCount[key]}/${MAX_RETRIES} for ${key}`);
-                console.warn(`[Diagnostic] Backend at ${apiClient.defaults.baseURL} may not be running`);
+                console.warn(`[Diagnostic] Backend at ${apiClient.defaults.baseURL} may not be running or domain is unreachable`);
                 // Wait before retrying (exponential backoff)
                 await new Promise(resolve => setTimeout(resolve, 1000 * retryCount[key]));
                 return apiClient(config);
@@ -106,7 +106,8 @@ apiClient.interceptors.response.use(
                 console.error('[Final Error] Failed to connect to backend after retries:', {
                     backend: apiClient.defaults.baseURL,
                     endpoint: `${apiClient.defaults.baseURL}${config.url}`,
-                    suggestion: 'Check if backend is running: npm run dev (in backend folder)',
+                    code: error.code,
+                    suggestion: 'Check if backend is running: npm run dev (in backend folder) or check your internet connection/DNS.',
                 });
             }
         }

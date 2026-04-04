@@ -92,7 +92,7 @@ const ListingManagement = () => {
           
           try {
             return {
-              id: listing._id || listing.id || `temp-${index}`,
+              id: listing._id?.toString() || listing.id?.toString() || listing.id || `temp-${index}`,
               title: listing.propertyName || listing.propertyTitle || listing.title || 'Untitled Listing',
               hostName: listing.host?.fullName || listing.host?.name || listing.hostName || 'Unknown Host',
               hostId: listing.host?._id || listing.hostId,
