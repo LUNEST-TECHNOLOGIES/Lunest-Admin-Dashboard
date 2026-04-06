@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { loginUser } from "../services/adminService";
 
@@ -187,12 +187,12 @@ export default function Login() {
           <div className="self-stretch flex flex-col justify-start items-center gap-5">
             <div className="h-6 inline-flex justify-between items-center">
               <div className="py-1.5 flex justify-center items-center gap-2.5">
-                <button
-                  type="button"
+                <Link
+                  to="/forgot-password"
                   className="text-sky-800 text-lg font-semibold font-aeonik hover:underline"
                 >
                   Forgot password?
-                </button>
+                </Link>
               </div>
             </div>
           </div>

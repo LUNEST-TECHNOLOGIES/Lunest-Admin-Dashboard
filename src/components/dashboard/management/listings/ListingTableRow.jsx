@@ -69,7 +69,12 @@ const ListingTableRow = ({ listing, isSelected, onSelect, showSelectMode, onList
       {/* Submitted Date */}
       <div className="w-28 flex-shrink-0">
         <div className="text-slate-500 text-[11px] font-bold font-aeonik">
-          {listing?.createdAt ? new Date(listing.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
+          {listing?.createdAt ? (
+            <>
+              <div>{new Date(listing.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+              <div className="text-[10px] text-slate-400 font-medium mt-0.5">{new Date(listing.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
+            </>
+          ) : 'N/A'}
         </div>
       </div>
 

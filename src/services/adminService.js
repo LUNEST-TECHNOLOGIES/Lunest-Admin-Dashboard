@@ -12,6 +12,21 @@ export const loginUser = async(emailAddress, password) => {
     return response.data;
 };
 
+export const forgotPassword = async(emailAddress) => {
+    const response = await apiClient.post('/users/forgot-password', { emailAddress });
+    return response.data;
+};
+
+export const verifyResetCode = async(emailAddress, code) => {
+    const response = await apiClient.post('/users/verify-reset-code', { emailAddress, code });
+    return response.data;
+};
+
+export const resetPassword = async(token, newPassword) => {
+    const response = await apiClient.post('/users/reset-password', { token, newPassword });
+    return response.data;
+};
+
 export const refreshToken = async(refreshToken) => {
     const response = await apiClient.post('/users/refresh', { refreshToken });
     return response.data;

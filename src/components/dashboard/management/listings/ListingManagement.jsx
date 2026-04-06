@@ -14,7 +14,7 @@ const ListingManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [showFiltersPopup, setShowFiltersPopup] = useState(false);
-  const [activeFilters, setActiveFilters] = useState({ status: null, type: null, plan: null });
+  const [activeFilters, setActiveFilters] = useState({ status: null, type: null, plan: null, hostName: null });
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [showSelectMode, setShowSelectMode] = useState(false);
   const [massActionType, setMassActionType] = useState(null); // 'approve' or 'reject'
@@ -254,7 +254,10 @@ const ListingManagement = () => {
       
       const searchTerms = searchQuery.toLowerCase();
       const matchesSearch = (listing.title || '').toLowerCase().includes(searchTerms) ||
-                            (listing.hostName || '').toLowerCase().includes(searchTerms);
+                            (listing.hostName || '').toLowerCase().includes(searchTerms) ||
+                            (listing.hostUserId || '').toLowerCase().includes(searchTerms) ||
+                            (listing.hostId || '').toLowerCase().includes(searchTerms) ||
+                            (listing.id || '').toLowerCase().includes(searchTerms);
       
       // Use original raw status for precise matching
       const rawStatus = listing.rawData?.status || '';
@@ -265,7 +268,9 @@ const ListingManagement = () => {
       
       const matchesPlan = !activeFilters.plan || activeFilters.plan === 'All' || listing.planTier === activeFilters.plan;
       
-      return matchesSearch && matchesStatus && matchesType && matchesPlan;
+      const matchesHost = !activeFilters.hostName || activeFilters.hostName === 'All' || listing.hostName === activeFilters.hostName;
+      
+      return matchesSearch && matchesStatus && matchesType && matchesPlan && matchesHost;
     } catch (filterErr) {
       console.error('Error filtering listing:', filterErr, listing);
       return false;
@@ -348,7 +353,7 @@ const ListingManagement = () => {
             <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search listings by title or host name…"
+              placeholder="Search by title, host, User ID or Listing ID..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -430,6 +435,7 @@ const ListingManagement = () => {
           <div className="w-full px-7">
             <ListingFiltersDropdown
               activeFilters={activeFilters}
+              hostOptions={['All', ...new Set(listings.map(l => l.hostName).filter(Boolean))].sort()}
               onApplyFilters={handleApplyFilters}
               onClose={() => setShowFiltersPopup(false)}
             />
