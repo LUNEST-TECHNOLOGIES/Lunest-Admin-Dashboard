@@ -194,24 +194,47 @@ const ViewHostApplicationModal = ({ isOpen, onClose, user, onApprove, onReject }
 
                     <div className="grid grid-cols-2 gap-4 pt-2">
                        {(() => {
-                          const owns = applicationData?.applicationData?.ownsProperty ?? applicationData?.ownsProperty;
-                          const occupied = applicationData?.applicationData?.propertyOccupied ?? applicationData?.propertyOccupied;
-                          return (
-                            <>
-                              <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ownership</p>
-                                <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${owns ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
-                                   {owns ? 'Owner' : 'Manager'}
-                                </span>
-                              </div>
-                              <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Occupancy</p>
-                                <span className="text-slate-900 font-bold text-xs flex items-center gap-1">
-                                   {occupied ? 'Currently Occupied' : 'Vacant/Ready'}
-                                </span>
-                              </div>
-                            </>
-                          );
+                           const appData = applicationData?.applicationData || {};
+                           const hostRole = appData.hostRole || 'landlord';
+                           const companyName = appData.companyName;
+                           const propertyCount = appData.numberOfProperties;
+                           const occupied = appData.propertyOccupied ?? applicationData?.propertyOccupied;
+                           
+                           const getRoleLabel = (role) => {
+                             if (role === 'landlord') return 'Landlord';
+                             if (role === 'manager') return 'Property Manager';
+                             if (role === 'realtor') return 'Developer / Realtor';
+                             return 'Host';
+                           };
+
+                           return (
+                             <>
+                               <div>
+                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Host Identity</p>
+                                 <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-indigo-50 text-indigo-700 border-indigo-100`}>
+                                    {getRoleLabel(hostRole)}
+                                 </span>
+                               </div>
+                               <div>
+                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Portfolio Size</p>
+                                 <span className="text-slate-900 font-bold text-xs">
+                                    {propertyCount || '1+'} Properties
+                                 </span>
+                               </div>
+                               {companyName && (
+                                 <div className="col-span-2">
+                                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Affiliated Company</p>
+                                   <p className="text-slate-900 font-bold text-sm tracking-tight">{companyName}</p>
+                                 </div>
+                               )}
+                               <div className="col-span-2 pt-1">
+                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Occupancy Status</p>
+                                 <span className="text-slate-900 font-bold text-xs flex items-center gap-1">
+                                    {occupied ? 'Currently Occupied' : 'Vacant / Ready to Host'}
+                                 </span>
+                               </div>
+                             </>
+                           );
                        })()}
                     </div>
 

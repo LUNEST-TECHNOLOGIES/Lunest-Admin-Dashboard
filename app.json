@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "01a6ca1a-3fcb-4cd7-868a-310c40acdc8e"
+      }
+    },
+    "android": {
+      "package": "com.geminiking2.lunestadmin"
+    }
+  }
+}
