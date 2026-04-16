@@ -120,6 +120,7 @@ const ListingManagement = () => {
               bedrooms: listing.bedrooms || 0,
               bathrooms: listing.bathrooms || 0,
               guests: listing.guests || 1,
+              viewCount: listing.viewCount || 0,
               createdAt: listing.createdAt,
               // Raw backend object for details popup
               rawData: listing,
@@ -456,6 +457,7 @@ const ListingManagement = () => {
               <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Status</div>
               <div className="w-16 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Plan</div>
               <div className="w-16 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Boosted</div>
+              <div className="w-16 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-center">Views</div>
               <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">Exp. Date</div>
               <div className="w-14 text-xs font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 text-right">Actions</div>
             </div>

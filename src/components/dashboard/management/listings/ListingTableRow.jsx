@@ -99,6 +99,13 @@ const ListingTableRow = ({ listing, isSelected, onSelect, showSelectMode, onList
         </span>
       </div>
 
+      {/* Views */}
+      <div className="w-16 text-slate-700 text-sm font-bold font-aeonik flex-shrink-0 flex justify-center">
+        <span className="text-slate-900">
+          {listing?.viewCount || 0}
+        </span>
+      </div>
+
       {/* Expiry Date */}
       <div className="w-28 flex-shrink-0">
         <div className="text-slate-600 text-xs font-bold font-aeonik whitespace-nowrap overflow-hidden text-ellipsis">
