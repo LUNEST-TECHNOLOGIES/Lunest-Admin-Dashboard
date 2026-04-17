@@ -50,11 +50,13 @@ const DisputesReports = () => {
                 // Fetch bookings with disputed caution fee
                 let filters = {};
                 if (activeTab === 'Pending') {
-                    filters['securityDepositResolution.status'] = 'DISPUTED';
+                    filters['securityDepositResolution.status'] = { $in: ['DISPUTED', 'PENDING'] };
+                    filters['disputeRaised'] = true; // Only show identified disputes
                 } else if (activeTab === 'Resolved') {
                     filters['securityDepositResolution.status'] = { $in: ['RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] };
                 } else if (activeTab === 'All Disputes') {
-                    filters['securityDepositResolution.status'] = { $in: ['DISPUTED', 'RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] };
+                    filters['securityDepositResolution.status'] = { $in: ['DISPUTED', 'PENDING', 'RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] };
+                    filters['disputeRaised'] = true;
                 }
 
                 const response = await getBookings(filters);
@@ -77,7 +79,7 @@ const DisputesReports = () => {
                             ? `Status: ${resolutionDetail}. Note: ${resolutionNote || 'No reason provided'}`
                             : (resolutionNote || 'Security deposit disputed by guest');
 
-                        const displayStatus = resolutionStatus === 'DISPUTED' ? 'Pending' : (resolutionDetail || 'In Progress');
+                        const displayStatus = (resolutionStatus === 'DISPUTED' || resolutionStatus === 'PENDING') ? 'Pending' : (resolutionDetail || 'In Progress');
 
                         return {
                             id: booking._id,
@@ -571,7 +573,9 @@ const DisputesReports = () => {
                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer"
                                                     >
                                                         <MdOutlineNoteAdd className="w-4 h-4" />
-                                                        {dispute.resolutionNote ? 'View Resolution Note' : (disputeNotes[dispute.id] ? 'View Internal Note' : 'Add Note')}
+                                                        {(dispute.resolutionNote || disputeNotes[dispute.id]) && 
+                                                         (dispute.status?.includes('RELEASED')) 
+                                                         ? 'View Note' : 'Add Note'}
                                                     </button>
                                                     {dispute.status === 'Pending' && (
                                                         <>

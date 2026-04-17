@@ -165,7 +165,11 @@ const BookingActionButton = ({ booking, refresh, isLastItems }) => {
               className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-slate-50 hover:text-slate-900 transition-all group cursor-pointer"
             >
               <img src="/assets/icons/action-menu/vuesax/outline/edit.svg" alt="Add Note" className="w-4 h-4 opacity-70 group-hover:opacity-100" />
-              <span className="text-xs font-bold">Add Staff Note</span>
+              <span className="text-xs font-bold">
+                {(booking.securityDepositResolution?.reason || booking.internalNote) && 
+                 (booking.cautionFeeStatus?.includes('RELEASED')) 
+                 ? 'View Note' : 'Add Staff Note'}
+              </span>
             </button>
 
             {/* Checkout Button - Only for Active (ONGOING) bookings */}

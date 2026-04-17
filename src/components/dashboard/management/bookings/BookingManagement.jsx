@@ -133,7 +133,9 @@ const BookingManagement = () => {
         currency: booking.totalAmount?.currency || 'NGN',
         cautionFeeStatus: (booking.securityDepositStatus || 'HELD').toUpperCase(),
         disputeRaised: !!booking.disputeRaised,
-        referenceCode: booking.referenceCode
+        referenceCode: booking.referenceCode,
+        internalNote: booking.internalNote || '',
+        securityDepositResolution: booking.securityDepositResolution || null
       }));
       setBookings(transformedBookings);
     } catch (err) {

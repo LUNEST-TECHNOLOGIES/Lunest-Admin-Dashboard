@@ -54,52 +54,62 @@ const AddNoteModal = ({ booking, onClose, onAddNote }) => {
         </button>
 
         {/* Header Content */}
-        <div className="left-[99.50px] top-[26px] absolute inline-flex flex-col justify-center items-center gap-7">
+        <div className="left-[99.50px] top-[26px] absolute inline-flex flex-col justify-center items-center gap-2">
           <h2 className="text-black text-lg font-bold font-aeonik">
-            Add a Note
+            {(booking?.securityDepositResolution?.reason || booking?.internalNote) ? 'View Note' : 'Add a Note'}
           </h2>
-          <p className="w-[453px] text-center text-slate-900 text-base font-medium font-aeonik leading-5">
-            Add a note for booking {booking?.id || 'MN94567'}?
-          </p>
+          <div className="flex flex-col items-center gap-1">
+            <p className="w-[453px] text-center text-slate-900 text-base font-medium font-aeonik leading-5">
+              Booking Ref: <span className="font-bold">{booking?.id || booking?.referenceCode || 'N/A'}</span>
+            </p>
+            {booking?.securityDepositResolution?.resolvedAt && (
+              <p className="text-slate-500 text-xs font-aeonik">
+                Resolved on: {new Date(booking.securityDepositResolution.resolvedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Note Input */}
+        {/* Note Input / View */}
         <div className="w-[602px] h-28 left-[24px] top-[143px] absolute">
           <label className="left-[1px] top-0 absolute text-black text-sm font-semibold font-aeonik">
-            Reason (Optional)
+            {booking?.securityDepositResolution?.reason ? 'Resolution Reason' : 'Internal Staff Note'}
           </label>
           <textarea
-            value={note}
+            value={note || booking?.securityDepositResolution?.reason || booking?.internalNote || ''}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Give a reason here..."
-            className="w-[602px] h-20 left-0 top-[31px] absolute rounded-[10px] border-[0.50px] border-neutral-500 p-4 text-neutral-500 text-sm font-normal font-inter placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-300 resize-none"
+            readOnly={!!booking?.securityDepositResolution?.reason}
+            className={`w-[602px] h-20 left-0 top-[31px] absolute rounded-[10px] border-[0.50px] border-neutral-500 p-4 text-sm font-normal font-inter focus:outline-none focus:ring-2 focus:ring-slate-300 resize-none ${!!booking?.securityDepositResolution?.reason ? 'bg-slate-50 text-slate-600 border-slate-200' : 'text-neutral-500 placeholder-neutral-500'}`}
           />
         </div>
 
         {/* Action Buttons */}
-        <div className="w-80 left-[159px] top-[298px] absolute inline-flex justify-between items-start gap-4">
+        <div className="w-80 left-[159px] top-[298px] absolute inline-flex justify-center items-center gap-4">
           
-          {/* Cancel Button */}
+          {/* Cancel/Close Button */}
           <button
             onClick={handleCancel}
             disabled={isProcessing}
-            className="px-5 py-3 rounded-3xl outline outline-1 outline-offset-[-1px] outline-red-600 flex justify-center items-center gap-1 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`px-8 py-3 rounded-3xl outline outline-1 outline-offset-[-1px] flex justify-center items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${!!booking?.securityDepositResolution?.reason ? 'bg-slate-900 outline-slate-900 hover:bg-slate-800' : 'outline-red-600 hover:bg-red-50'}`}
           >
-            <span className="text-red-600 text-base font-bold font-aeonik leading-4">
-              Cancel
+            <span className={`${!!booking?.securityDepositResolution?.reason ? 'text-white' : 'text-red-600'} text-base font-bold font-aeonik leading-4`}>
+              {!!booking?.securityDepositResolution?.reason ? 'Close' : 'Cancel'}
             </span>
           </button>
 
-          {/* Add Note Button */}
-          <button
-            onClick={handleAddNote}
-            disabled={isProcessing}
-            className="w-36 px-2.5 py-3 bg-slate-900 rounded-3xl flex justify-center items-center gap-1 hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="text-white text-base font-bold font-aeonik leading-4">
-              {isProcessing ? 'Adding...' : 'Add Note'}
-            </span>
-          </button>
+          {/* Add/Update Note Button - Hidden if viewing fixed Resolution Reason */}
+          {!booking?.securityDepositResolution?.reason && (
+            <button
+              onClick={handleAddNote}
+              disabled={isProcessing}
+              className="w-36 px-2.5 py-3 bg-slate-900 rounded-3xl flex justify-center items-center gap-1 hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="text-white text-base font-bold font-aeonik leading-4">
+                {isProcessing ? 'Adding...' : (booking?.internalNote ? 'Update Note' : 'Add Note')}
+              </span>
+            </button>
+          )}
         </div>
       </div>
     </div>
