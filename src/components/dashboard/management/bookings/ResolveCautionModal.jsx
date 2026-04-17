@@ -75,15 +75,27 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
               </span>
             </div>
           </div>
+          
+          {/* Zero Caution Fee Message */}
+          {cautionAmount === 0 && (
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-black text-xl">!</div>
+              <div className="flex-1">
+                <p className="text-amber-900 font-bold text-sm">Zero caution fee to resolve</p>
+                <p className="text-amber-700 text-xs">This booking does not have a security deposit held in escrow.</p>
+              </div>
+            </div>
+          )}
 
           {/* Action Selection */}
           <div className="space-y-3">
             <label className="text-black text-sm font-semibold font-aeonik">
               Resolution Action
             </label>
-            <div className="flex gap-4">
+            <div className={`flex gap-4 ${cautionAmount === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
               <button
                 onClick={() => setAction('RELEASE_TO_GUEST')}
+                disabled={cautionAmount === 0}
                 className={`flex-1 py-10 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2 ${
                   action === 'RELEASE_TO_GUEST'
                     ? 'border-slate-900 bg-slate-900 text-white'
@@ -98,6 +110,7 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
               
               <button
                 onClick={() => setAction('RELEASE_TO_HOST')}
+                disabled={cautionAmount === 0}
                 className={`flex-1 py-10 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2 ${
                   action === 'RELEASE_TO_HOST'
                     ? 'border-indigo-600 bg-indigo-600 text-white'
@@ -164,7 +177,7 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
           </button>
           <button
             onClick={handleResolve}
-            disabled={isProcessing}
+            disabled={isProcessing || cautionAmount === 0}
             className={`px-8 py-3 rounded-3xl text-white text-base font-bold font-aeonik shadow-lg transition-all transform active:scale-95 cursor-pointer disabled:opacity-50 ${
               action === 'RELEASE_TO_GUEST' ? 'bg-slate-900 hover:bg-slate-800' : 'bg-indigo-600 hover:bg-indigo-700'
             }`}
