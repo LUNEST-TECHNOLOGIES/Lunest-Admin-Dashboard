@@ -74,6 +74,8 @@ const DisputesReports = () => {
                             ? `Status: ${resolutionDetail}. Note: ${resolutionNote || 'No reason provided'}`
                             : (resolutionNote || 'Security deposit disputed by guest');
 
+                        const displayStatus = resolutionStatus === 'DISPUTED' ? 'Pending' : (resolutionDetail || 'In Progress');
+
                         return {
                             id: booking._id,
                             refCode: booking.referenceCode,
