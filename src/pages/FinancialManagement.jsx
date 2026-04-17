@@ -1302,7 +1302,7 @@ const FinancialManagement = () => {
                                      transaction.metadata.reconciliation.cautionFeeStatus}
                                   </span>
                                   {transaction.metadata?.reconciliation?.resolutionReason && (
-                                    <p className="text-[10px] text-slate-500 italic max-w-[150px] leading-tight line-clamp-2" title={transaction.metadata.reconciliation.resolutionReason}>
+                                    <p className="text-[10px] text-slate-500 italic leading-tight break-words mt-1 border-t border-slate-50 pt-1" title={transaction.metadata.reconciliation.resolutionReason}>
                                       Note: {transaction.metadata.reconciliation.resolutionReason}
                                     </p>
                                   )}
@@ -1331,7 +1331,7 @@ const FinancialManagement = () => {
                             {transaction.metadata?.isDisclosure ? '' : (transaction.type === 'CREDIT' ? '+' : transaction.type === 'DEBIT' ? '-' : '')} 
                             {formatCurrency(transaction.amount)}
                           </td>
-                          <td className={`px-6 py-4 text-sm max-w-xs truncate ${
+                          <td className={`px-6 py-4 text-sm break-words min-w-[200px] ${
                             transaction._isRelated ? 'text-slate-400' : 'text-slate-500'
                           }`}>{transaction.description}</td>
                           <td className="px-6 py-4 text-sm text-slate-600">

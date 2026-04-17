@@ -68,6 +68,9 @@ const DisputesReports = () => {
                         const resolutionNote = booking.securityDepositResolution?.reason;
                         const resolutionStatus = booking.securityDepositResolution?.status;
                         const resolutionDetail = resolutionStatus === 'RELEASED_TO_GUEST' ? 'Released to Guest' : resolutionStatus === 'RELEASED_TO_HOST' ? 'Released to Host' : '';
+                        const resolutionDate = booking.securityDepositResolution?.resolvedAt 
+                            ? new Date(booking.securityDepositResolution.resolvedAt).toLocaleDateString()
+                            : new Date(booking.updatedAt).toLocaleDateString();
                         
                         // Combine for a richer description in the 'Resolved' tab
                         const fullDescription = resolutionDetail 
@@ -81,6 +84,8 @@ const DisputesReports = () => {
                             refCode: booking.referenceCode,
                             details: 'Caution Fee Dispute',
                             description: fullDescription,
+                            disputeDate: resolutionDate,
+                            resolutionNote: resolutionNote,
                             plaintiff: { 
                                 name: booking.bookedBy?.fullName || 'N/A', 
                                 email: booking.bookedBy?.emailAddress || 'N/A', 
@@ -498,10 +503,13 @@ const DisputesReports = () => {
                                                     </div>
                                                     <span className="font-bold text-slate-900">{dispute.details}</span>
                                                 </div>
-                                                <p className="text-xs text-slate-500 line-clamp-2 max-w-[200px] leading-relaxed">
+                                                <p className="text-xs text-slate-500 leading-relaxed break-words">
                                                     {dispute.description}
                                                 </p>
-                                                <p className="text-xs font-bold text-slate-600">ID: {dispute.id}</p>
+                                                <div className="flex flex-col gap-0.5 mt-1.5 pt-1.5 border-t border-slate-50">
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ref: {dispute.refCode}</p>
+                                                    <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Date: {dispute.disputeDate}</p>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -563,7 +571,7 @@ const DisputesReports = () => {
                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer"
                                                     >
                                                         <MdOutlineNoteAdd className="w-4 h-4" />
-                                                        {disputeNotes[dispute.id] ? 'View Resolution Note' : 'Add Note'}
+                                                        {dispute.resolutionNote ? 'View Resolution Note' : (disputeNotes[dispute.id] ? 'View Internal Note' : 'Add Note')}
                                                     </button>
                                                     {dispute.status === 'Pending' && (
                                                         <>
