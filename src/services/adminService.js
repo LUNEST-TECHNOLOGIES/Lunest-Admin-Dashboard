@@ -512,10 +512,12 @@ export const getAuditLogs = async(filters = {}) => {
                     userEmail: (n.relatedUser && n.relatedUser.emailAddress) || '',
                     category: getAuditCategory(n.type),
                     status: n.read ? 'reviewed' : 'pending'
-                }))
+                })),
+                totalCount: response.data.body.totalCount || 0,
+                unreadCount: response.data.body.unreadCount || 0
             };
         }
-        return { body: [] };
+        return { body: [], totalCount: 0 };
     } catch (error) {
         console.error('Error fetching audit logs:', error);
         return { body: [] };

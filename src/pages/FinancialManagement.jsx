@@ -1290,16 +1290,23 @@ const FinancialManagement = () => {
                               <span className="text-xs text-slate-500">{transaction.userId?.emailAddress || 'N/A'}</span>
                               <span className="text-[10px] text-slate-400 font-mono mt-0.5">User ID: {transaction.userId?._id || transaction.userId?.id || transaction.userId || 'N/A'}</span>
                               {transaction.category === 'SECURITY_DEPOSIT' && transaction.metadata?.reconciliation?.cautionFeeStatus && transaction.metadata?.reconciliation?.cautionFeeStatus !== 'ON_HOLD' && (
-                                <span className={`text-[10px] font-medium mt-1 ${
-                                  transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_GUEST' ? 'text-green-600' :
-                                  transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_HOST' ? 'text-blue-600' :
-                                  transaction.metadata.reconciliation.cautionFeeStatus === 'DISPUTED' ? 'text-orange-600' : 'text-gray-600'
-                                }`}>
-                                  {transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_GUEST' ? '↩️ Released to Guest' :
-                                   transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_HOST' ? '→ Released to Host' :
-                                   transaction.metadata.reconciliation.cautionFeeStatus === 'DISPUTED' ? '⚠️ Under Dispute' : 
-                                   transaction.metadata.reconciliation.cautionFeeStatus}
-                                </span>
+                                <div className="flex flex-col gap-1 mt-1">
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block w-fit ${
+                                    transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_GUEST' ? 'bg-green-50 text-green-600 border border-green-100' :
+                                    transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_HOST' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' :
+                                    transaction.metadata.reconciliation.cautionFeeStatus === 'DISPUTED' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-gray-50 text-gray-600 border border-gray-100'
+                                  }`}>
+                                    {transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_GUEST' ? 'Released to Guest' :
+                                     transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_HOST' ? 'Released to Host' :
+                                     transaction.metadata.reconciliation.cautionFeeStatus === 'DISPUTED' ? 'Caution Disputed' : 
+                                     transaction.metadata.reconciliation.cautionFeeStatus}
+                                  </span>
+                                  {transaction.metadata?.reconciliation?.resolutionReason && (
+                                    <p className="text-[10px] text-slate-500 italic max-w-[150px] leading-tight line-clamp-2" title={transaction.metadata.reconciliation.resolutionReason}>
+                                      Note: {transaction.metadata.reconciliation.resolutionReason}
+                                    </p>
+                                  )}
+                                </div>
                               )}
                             </div>
                           </td>
@@ -1318,8 +1325,12 @@ const FinancialManagement = () => {
                             </span>
                           </td>
                           <td className={`px-6 py-4 font-bold ${
+                            transaction.metadata?.isDisclosure ? 'text-slate-400' :
                             transaction._isRelated ? 'text-slate-600' : 'text-slate-900'
-                          }`}>{formatCurrency(transaction.amount)}</td>
+                          }`}>
+                            {transaction.metadata?.isDisclosure ? '' : (transaction.type === 'CREDIT' ? '+' : transaction.type === 'DEBIT' ? '-' : '')} 
+                            {formatCurrency(transaction.amount)}
+                          </td>
                           <td className={`px-6 py-4 text-sm max-w-xs truncate ${
                             transaction._isRelated ? 'text-slate-400' : 'text-slate-500'
                           }`}>{transaction.description}</td>

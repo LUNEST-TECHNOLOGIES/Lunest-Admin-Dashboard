@@ -48,9 +48,15 @@ const DisputesReports = () => {
             try {
                 setLoading(true);
                 // Fetch bookings with disputed caution fee
-                const filters = {
-                    'securityDepositResolution.status': 'DISPUTED'
-                };
+                let filters = {};
+                if (activeTab === 'Pending') {
+                    filters['securityDepositResolution.status'] = 'DISPUTED';
+                } else if (activeTab === 'Resolved') {
+                    filters['securityDepositResolution.status'] = { $in: ['RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] };
+                } else if (activeTab === 'All Disputes') {
+                    filters['securityDepositResolution.status'] = { $in: ['DISPUTED', 'RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] };
+                }
+
                 const response = await getBookings(filters);
                 if (response.success) {
                     const notesMap = {};
@@ -58,11 +64,21 @@ const DisputesReports = () => {
                         if (booking.internalNote) {
                             notesMap[booking._id] = booking.internalNote;
                         }
+
+                        const resolutionNote = booking.securityDepositResolution?.reason;
+                        const resolutionStatus = booking.securityDepositResolution?.status;
+                        const resolutionDetail = resolutionStatus === 'RELEASED_TO_GUEST' ? 'Released to Guest' : resolutionStatus === 'RELEASED_TO_HOST' ? 'Released to Host' : '';
+                        
+                        // Combine for a richer description in the 'Resolved' tab
+                        const fullDescription = resolutionDetail 
+                            ? `Status: ${resolutionDetail}. Note: ${resolutionNote || 'No reason provided'}`
+                            : (resolutionNote || 'Security deposit disputed by guest');
+
                         return {
                             id: booking._id,
                             refCode: booking.referenceCode,
                             details: 'Caution Fee Dispute',
-                            description: booking.securityDepositResolution?.reason || 'Security deposit disputed by guest',
+                            description: fullDescription,
                             plaintiff: { 
                                 name: booking.bookedBy?.fullName || 'N/A', 
                                 email: booking.bookedBy?.emailAddress || 'N/A', 
@@ -75,7 +91,8 @@ const DisputesReports = () => {
                             },
                             amount: `₦${(booking.pricingBreakdown?.securityDeposit || 0).toLocaleString()}`,
                             priority: 'High',
-                            status: 'Pending',
+                            status: displayStatus,
+                            bookingStatus: booking.status,
                             assignedTo: 'Admin',
                             raw: booking
                         };
@@ -91,7 +108,7 @@ const DisputesReports = () => {
             }
         };
 
-        if (activeTab === 'Pending' || activeTab === 'All Disputes') {
+        if (activeTab === 'Pending' || activeTab === 'All Disputes' || activeTab === 'Resolved') {
             fetchDisputes();
         } else {
             setDisputes([]); // Other tabs not yet implemented in backend
@@ -135,7 +152,9 @@ const DisputesReports = () => {
     const getStatusColor = (status) => {
         switch (status) {
             case 'In Progress': return 'text-amber-600';
-            case 'Resolved': return 'text-green-600';
+            case 'Resolved':
+            case 'Released to Guest':
+            case 'Released to Host': return 'text-green-600';
             case 'Pending': return 'text-red-500';
             default: return 'text-slate-500';
         }
@@ -441,6 +460,7 @@ const DisputesReports = () => {
                                 <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider">Defendant</th>
                                 <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider">Amount</th>
                                 <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-center">Priority</th>
+                                <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider">Booking Status</th>
                                 <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider">Assigned to</th>
                                 <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-right">Actions</th>
@@ -449,7 +469,7 @@ const DisputesReports = () => {
                         <tbody className="divide-y divide-slate-100 text-sm">
                              {loading ? (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-12 text-center text-slate-500 font-medium">
+                                    <td colSpan="9" className="px-6 py-12 text-center text-slate-500 font-medium">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
                                             <span>Loading disputes from backend...</span>
@@ -458,7 +478,7 @@ const DisputesReports = () => {
                                 </tr>
                             ) : filteredDisputes.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-12 text-center text-slate-500 font-medium">
+                                    <td colSpan="9" className="px-6 py-12 text-center text-slate-500 font-medium">
                                         No disputes found matching your criteria.
                                     </td>
                                 </tr>
@@ -506,6 +526,11 @@ const DisputesReports = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
+                                            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                                                {dispute.bookingStatus}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
                                             <span className={`text-xs font-bold ${getStatusColor(dispute.status)}`}>
                                                 {dispute.status}
                                             </span>
@@ -536,22 +561,26 @@ const DisputesReports = () => {
                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer"
                                                     >
                                                         <MdOutlineNoteAdd className="w-4 h-4" />
-                                                        {disputeNotes[dispute.id] ? 'View/Edit Note' : 'Add Note'}
+                                                        {disputeNotes[dispute.id] ? 'View Resolution Note' : 'Add Note'}
                                                     </button>
-                                                    <button 
-                                                        onClick={() => { setEscalateModalData(dispute); setOpenMenuId(null); }}
-                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-amber-600 transition-colors cursor-pointer"
-                                                    >
-                                                        <MdOutlineWarningAmber className="w-4 h-4 text-amber-500" />
-                                                        Escalate
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => { setResolveModalData(dispute); setOpenMenuId(null); }}
-                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-green-600 transition-colors cursor-pointer border-b border-slate-100 pb-3 mb-1"
-                                                    >
-                                                        <MdOutlineCheckCircleOutline className="w-4 h-4 text-green-500" />
-                                                        Resolve Case
-                                                    </button>
+                                                    {dispute.status === 'Pending' && (
+                                                        <>
+                                                            <button 
+                                                                onClick={() => { setEscalateModalData(dispute); setOpenMenuId(null); }}
+                                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-amber-600 transition-colors cursor-pointer"
+                                                            >
+                                                                <MdOutlineWarningAmber className="w-4 h-4 text-amber-500" />
+                                                                Escalate
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => { setResolveModalData(dispute); setOpenMenuId(null); }}
+                                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-green-600 transition-colors cursor-pointer border-b border-slate-100 pb-3 mb-1"
+                                                            >
+                                                                <MdOutlineCheckCircleOutline className="w-4 h-4 text-green-500" />
+                                                                Resolve Case
+                                                            </button>
+                                                        </>
+                                                    )}
                                                     <button 
                                                         onClick={() => { notify.info('Contact', 'Contacting parties...'); setOpenMenuId(null); }}
                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer"
@@ -566,7 +595,7 @@ const DisputesReports = () => {
                                 ))
                             )}
                             {/* Extra space at bottom to prevent clipping */}
-                            {filteredDisputes.length > 0 && <tr className="h-40"><td colSpan="8"></td></tr>}
+                            {filteredDisputes.length > 0 && <tr className="h-40"><td colSpan="9"></td></tr>}
                         </tbody>
                     </table>
                 </div>
