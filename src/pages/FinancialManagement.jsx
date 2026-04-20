@@ -506,6 +506,7 @@ const FinancialManagement = () => {
     const hostVatRevenue = Number(overview.hostVatRevenue) || 0; // Host VAT amount
     const escrowAppFees = Number(overview.escrowAppFees) || 0; // NEW: App fees from caution resolutions
     const escrowVatRevenue = Number(overview.escrowVatRevenue) || 0; // NEW: VAT from caution resolutions
+    const totalRefunds = Number(overview.totalRefunds) || 0; // NEW: Total refunds processed
     
     // NEW: Booking-specific metrics from backend
     const bookingAppFees = Number(overview.bookingAppFees) || 0;      // App fees from booking payments
@@ -583,6 +584,7 @@ const FinancialManagement = () => {
       bookingAppFees,
       bookingVAT,
       totalBookingRevenue,
+      totalRefunds,
       
       // Validation
       allPositive,
@@ -982,6 +984,16 @@ const FinancialManagement = () => {
       changeText: `${formatCurrency(financeMetrics?.escrowVatRevenue || 0)} VAT (Resolution Claims)`,
       changeColor: 'text-emerald-700',
       icon: '🛡️',
+      critical: false,
+      integrity: true
+    },
+    {
+      title: 'Total Refunds',
+      value: formatCurrency(financeMetrics?.totalRefunds || 0),
+      change: 'Guest/Booking',
+      changeText: 'Total cancellations & admin refunds',
+      changeColor: 'text-rose-600',
+      icon: '↩️',
       critical: false,
       integrity: true
     }

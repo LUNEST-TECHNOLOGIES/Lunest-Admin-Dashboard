@@ -20,11 +20,13 @@ import {
   SidebarIcons,
 } from '../AllIcons'
 
-import { getCurrentUser } from '../../services/adminService';
+import { getCurrentUser, logoutUser } from '../../services/adminService';
+import LogoutModal from './LogoutModal';
 
 const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
   const [isOpen, setIsOpen] = useState(true)
   const [expandedSubmenu, setExpandedSubmenu] = useState(null)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   const menuItems = [
     { label: 'Dashboard', iconComponent: DashboardIcon },
@@ -201,7 +203,10 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
           </button>
           
           {/* Logout Button */}
-          <button className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 text-slate-400 hover:text-red-600 w-full cursor-pointer">
+          <button 
+            onClick={() => setShowLogoutModal(true)}
+            className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 text-slate-400 hover:text-red-600 w-full cursor-pointer"
+          >
             <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-slate-600">
               <LogoutIcon />
             </div>
@@ -209,6 +214,22 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
           </button>
         </div>
       </div>
+
+      <LogoutModal 
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={async () => {
+          try {
+            await logoutUser();
+            window.location.href = '/login';
+          } catch (err) {
+            console.error('Logout failed:', err);
+            // Fallback: clear token and redirect anyway
+            localStorage.removeItem('authToken');
+            window.location.href = '/login';
+          }
+        }}
+      />
     </div>
   )
 }

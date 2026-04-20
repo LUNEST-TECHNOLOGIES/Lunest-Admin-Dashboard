@@ -322,7 +322,8 @@ export const cancelBooking = async(bookingId, reason) => {
 export const approveRefund = async(bookingId, amount) => {
     const response = await apiClient.patch('/bookings/' + bookingId, {
         refundApproved: true,
-        refundAmount: amount
+        refundAmount: amount,
+        status: 'CANCELLED'
     });
     return response.data;
 };

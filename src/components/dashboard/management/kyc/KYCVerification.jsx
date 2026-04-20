@@ -4,6 +4,7 @@ import { getUsers, approveKYC, rejectKYC } from '../../../../services/adminServi
 import ApproveKYCModal from './ApproveKYCModal';
 import RejectKYCModal from './RejectKYCModal';
 import RequestResubmissionModal from './RequestResubmissionModal';
+import KYCResultModal from './KYCResultModal';
 
 const KYCVerification = () => {
   const [activeTab, setActiveTab] = useState('pending');
@@ -22,6 +23,8 @@ const KYCVerification = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showResubmissionModal, setShowResubmissionModal] = useState(false);
   const [selectedKYCRecord, setSelectedKYCRecord] = useState(null);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultConfig, setResultConfig] = useState({ type: 'success', title: '', message: '' });
 
   // Fetch KYC data from backend
   useEffect(() => {
@@ -136,8 +139,20 @@ const KYCVerification = () => {
       await approveKYC(userId);
       await fetchKYCData();
       setOpenMenuId(null);
+      setResultConfig({
+        type: 'success',
+        title: 'KYC Approved',
+        message: 'The user has been successfully verified and notified.'
+      });
+      setShowResultModal(true);
     } catch (err) {
       console.error('Error approving KYC:', err);
+      setResultConfig({
+        type: 'error',
+        title: 'Approval Failed',
+        message: err.message || 'There was an error approving this KYC verification.'
+      });
+      setShowResultModal(true);
     }
   };
 
@@ -146,8 +161,20 @@ const KYCVerification = () => {
       await rejectKYC(userId, reason);
       await fetchKYCData();
       setOpenMenuId(null);
+      setResultConfig({
+        type: 'success',
+        title: 'KYC Rejected',
+        message: 'Verification has been rejected and the user has been notified.'
+      });
+      setShowResultModal(true);
     } catch (err) {
       console.error('Error rejecting KYC:', err);
+      setResultConfig({
+        type: 'error',
+        title: 'Rejection Failed',
+        message: err.message || 'There was an error rejecting this KYC verification.'
+      });
+      setShowResultModal(true);
     }
   };
 
@@ -510,6 +537,14 @@ const KYCVerification = () => {
         }}
         kycRecord={selectedKYCRecord}
         onRequestResubmission={handleRequestResubmission}
+      />
+
+      <KYCResultModal
+        isOpen={showResultModal}
+        onClose={() => setShowResultModal(false)}
+        type={resultConfig.type}
+        title={resultConfig.title}
+        message={resultConfig.message}
       />
     </div>
   );
