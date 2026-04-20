@@ -227,9 +227,15 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                   <span className="font-medium text-black">Location:</span>
                   <span className="text-xs text-black">{listing?.location || listing?.rawData?.propertyLocation?.fullAddress || 'Not specified'}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="font-medium text-black">Type:</span>
                   <span className="text-xs text-black">{listing?.propertyType || listing?.rawData?.rentalPurpose || listing?.rawData?.propertyType || listing?.rawData?.propertyCategory || 'Not specified'}</span>
+                  {listing?.rawData?.instantBooking && (
+                    <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded uppercase tracking-wider">Instant</span>
+                  )}
+                  {listing?.rawData?.availableNow && (
+                    <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase tracking-wider">Available</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium text-black">Bedrooms:</span>
@@ -285,31 +291,120 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
               </div>
             </div>
 
-              {/* Host Information */}
-              <div>
-                <h4 className="text-black text-base font-semibold font-aeonik mb-3">Host Information</h4>
+            {/* Advanced Space Details */}
+            {(listing?.rawData?.sittingRooms > 0 || listing?.rawData?.lounges > 0 || listing?.rawData?.workspaces > 0 || listing?.rawData?.totalSquareFootage || listing?.rawData?.rentalPurpose) && (
+              <div className="pb-5 border-b border-neutral-200">
+                <h4 className="text-black text-base font-semibold font-aeonik mb-3">Space Details</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm font-aeonik">
+                  <div className="space-y-2">
+                    {listing?.rawData?.sittingRooms > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-black">Sitting Rooms:</span>
+                        <span className="text-xs text-black">{listing.rawData.sittingRooms}</span>
+                      </div>
+                    )}
+                    {listing?.rawData?.lounges > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-black">Lounges:</span>
+                        <span className="text-xs text-black">{listing.rawData.lounges}</span>
+                      </div>
+                    )}
+                    {listing?.rawData?.workspaces > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-black">Workspaces:</span>
+                        <span className="text-xs text-black">{listing.rawData.workspaces}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {listing?.rawData?.totalSquareFootage && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-black">Total Area:</span>
+                        <span className="text-xs text-black">{listing.rawData.totalSquareFootage}</span>
+                      </div>
+                    )}
+                    {listing?.rawData?.rentalPurpose && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-black">Category:</span>
+                        <span className="text-xs text-black">{listing.rawData.rentalPurpose}</span>
+                      </div>
+                    )}
+                    {listing?.rawData?.usageType && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-black">Usage:</span>
+                        <span className="text-xs text-black">{listing.rawData.usageType}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {listing?.rawData?.roomSizes && listing.rawData.roomSizes.length > 0 && (
+                  <div className="mt-3">
+                    <span className="font-medium text-black text-xs">Room Sizes:</span>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {listing.rawData.roomSizes.map((size, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-slate-100 text-[10px] rounded border border-slate-200">
+                          {size}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Documentation & Agreements */}
+            {(listing?.rawData?.agreementUrl || listing?.rawData?.agreementAt) && (
+              <div className="pb-5 border-b border-neutral-200">
+                <h4 className="text-black text-base font-semibold font-aeonik mb-3">Documentation</h4>
                 <div className="space-y-2 text-sm font-aeonik">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium text-black">Host:</span>
-                    <span className="text-xs text-black">{hostInfo?.fullName || listing?.hostName || listing?.host?.fullName || 'Unknown'}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium text-black">Email:</span>
-                    <span className="text-xs text-black">{hostInfo?.emailAddress || hostInfo?.email || listing?.hostEmail || 'Not available'}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium text-black">Status:</span>
-                    <span className={`text-xs font-medium ${(hostInfo?.active || listing?.hostActive) ? 'text-green-600' : 'text-red-600'}`}>
-                      {(hostInfo?.active || listing?.hostActive) ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium text-black">User Type:</span>
-                    <span className="text-xs text-black">{hostInfo?.userType || 'Host'}</span>
-                  </div>
+                  {listing?.rawData?.agreementAt && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-black">Agreement Signed:</span>
+                      <span className="text-xs text-black">{new Date(listing.rawData.agreementAt).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                  {listing?.rawData?.agreementUrl && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-black">Agreement Doc:</span>
+                      <a 
+                        href={listing.rawData.agreementUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-indigo-600 hover:underline font-bold flex items-center gap-1"
+                      >
+                        View Legal Agreement
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Host Information */}
+            <div>
+              <h4 className="text-black text-base font-semibold font-aeonik mb-3">Host Information</h4>
+              <div className="space-y-2 text-sm font-aeonik">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-black">Host:</span>
+                  <span className="text-xs text-black">{hostInfo?.fullName || listing?.hostName || listing?.host?.fullName || 'Unknown'}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-black">Email:</span>
+                  <span className="text-xs text-black">{hostInfo?.emailAddress || hostInfo?.email || listing?.hostEmail || 'Not available'}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-black">Status:</span>
+                  <span className={`text-xs font-medium ${(hostInfo?.active || listing?.hostActive) ? 'text-green-600' : 'text-red-600'}`}>
+                    {(hostInfo?.active || listing?.hostActive) ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-black">User Type:</span>
+                  <span className="text-xs text-black">{hostInfo?.userType || 'Host'}</span>
                 </div>
               </div>
             </div>
+          </div>
 
             {/* Description */}
             <div className="pb-5 border-b border-neutral-200">
