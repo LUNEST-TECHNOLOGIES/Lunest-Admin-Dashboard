@@ -106,7 +106,7 @@ const ListingManagement = () => {
               planTier: listing.planTier || 'Free',
               boosted: listing.boosted ? 'Yes' : 'No',
               expDate: listing.expiryDate ? formatDate(listing.expiryDate) : getStatusDate(listing.status, listing.createdAt),
-              propertyType: listing.propertyType || listing.propertyCategory || listing.propertyTitle || 'N/A',
+              propertyType: listing.rentalPurpose || listing.propertyType || listing.propertyCategory || 'N/A',
               intent: listing.intent || 'N/A',
               description: listing.description || '',
               price: listing.propertyPrice?.price || listing.price || 0,

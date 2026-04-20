@@ -229,7 +229,7 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium text-black">Type:</span>
-                  <span className="text-xs text-black">{listing?.propertyType || listing?.rawData?.propertyType || listing?.rawData?.propertyCategory || listing?.rawData?.propertyTitle || 'Not specified'}</span>
+                  <span className="text-xs text-black">{listing?.propertyType || listing?.rawData?.rentalPurpose || listing?.rawData?.propertyType || listing?.rawData?.propertyCategory || 'Not specified'}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium text-black">Bedrooms:</span>
