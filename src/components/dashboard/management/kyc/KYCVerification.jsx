@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MdSearch, MdArrowBack, MdArrowForward, MdMoreVert, MdCheckCircle } from 'react-icons/md';
-import { getUsers, approveKYC, rejectKYC } from '../../../../services/adminService';
+import { getKYCSubmissions, approveKYC, rejectKYC } from '../../../../services/adminService';
 import ApproveKYCModal from './ApproveKYCModal';
 import RejectKYCModal from './RejectKYCModal';
 import RequestResubmissionModal from './RequestResubmissionModal';
@@ -35,7 +35,7 @@ const KYCVerification = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getUsers();
+      const response = await getKYCSubmissions();
       console.log('KYC/Users response:', response);
       
       // Transform backend user data to KYC format
@@ -82,6 +82,7 @@ const KYCVerification = () => {
         'NONE': 'Pending',
         'PENDING': 'Pending',
         'APPROVED': 'Approved',
+        'VERIFIED': 'Approved',
         'REJECTED': 'Rejected',
         'RESUBMISSION': 'Resubmission',
       };
