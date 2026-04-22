@@ -85,7 +85,7 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
   return (
     <div className={`transition-all duration-300 ease-in-out ${
       isOpen ? 'w-72' : 'w-20'
-    } min-h-screen bg-gray-50 border-r-[0.50px] border-slate-200 flex flex-col justify-between overflow-hidden`}>
+    } min-h-screen bg-gray-50 border-r-[0.50px] border-slate-200 flex flex-col justify-between`}>
       
       {/* Header */}
       <div className="border-b-[0.50px] border-slate-200 py-4 px-2.5">
@@ -100,7 +100,10 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
 
         {/* Toggle Button */}
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            setIsOpen(!isOpen)
+            setExpandedSubmenu(null) // Reset on toggle
+          }}
           className="w-full p-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer text-slate-600 flex items-center justify-center"
         >
           {isOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
@@ -108,7 +111,7 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
       </div>
       
       {/* Navigation Menu */}
-      <div className="flex-1 py-6 px-2.5 overflow-y-auto">
+      <div className={`flex-1 py-6 px-2.5 ${isOpen ? 'overflow-y-auto' : ''}`}>
         <nav className="flex flex-col gap-3">
           {filteredMenuItems.map((item, idx) => {
             const IconComponent = item.iconComponent
@@ -120,15 +123,13 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
               (hasSubmenu && item.submenu.some(sub => sub.label === activeMenu))
 
             return (
-              <div key={idx}>
+              <div key={idx} className="relative group">
                 {/* Main Menu Item */}
                 <button
                   onClick={() => {
                     if (hasSubmenu) {
-                      // If clicking on a parent with submenu, toggle it and auto-expand
                       setExpandedSubmenu(isSubmenuOpen ? null : item.label)
                     } else {
-                      // If clicking on a regular menu item, select it
                       onMenuSelect(item.label)
                     }
                   }}
@@ -157,7 +158,7 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
                   )}
                 </button>
 
-                {/* Submenu Items */}
+                {/* Inline Submenu (Expanded Sidebar) */}
                 {hasSubmenu && isSubmenuOpen && isOpen && (
                   <div className="mt-2 ml-6 space-y-2 border-l-2 border-slate-200 pl-3">
                     {item.submenu.map((subitem, subIdx) => (
@@ -176,6 +177,34 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
                         <span>{subitem.label}</span>
                       </button>
                     ))}
+                  </div>
+                )}
+
+                {/* Floating Submenu (Collapsed Sidebar) */}
+                {hasSubmenu && isSubmenuOpen && !isOpen && (
+                  <div className="absolute left-full top-0 ml-2 w-56 bg-white border border-slate-200 rounded-lg shadow-xl py-3 z-50 animate-in fade-in slide-in-from-left-2 duration-200">
+                    <div className="px-4 py-2 border-b border-slate-100 mb-2">
+                       <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{item.label}</span>
+                    </div>
+                    <div className="px-2 space-y-1">
+                      {item.submenu.map((subitem, subIdx) => (
+                        <button
+                          key={subIdx}
+                          onClick={() => {
+                            onMenuSelect(subitem.label)
+                            setExpandedSubmenu(null) // Close floating menu after selection
+                          }}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer w-full text-left text-sm font-aeonik whitespace-nowrap ${
+                            activeMenu === subitem.label
+                              ? 'bg-indigo-50 text-indigo-600 font-semibold'
+                              : 'text-slate-400 hover:bg-indigo-50/50 hover:text-slate-600'
+                          }`}
+                        >
+                          <span className="w-5">{subitem.icon}</span>
+                          <span>{subitem.label}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
