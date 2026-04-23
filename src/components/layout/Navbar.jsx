@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NotificationDropdown from './NotificationDropdown'
+import LogoutModal from './LogoutModal'
 
 const Navbar = ({ activeMenu = 'Dashboard' }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [adminUser, setAdminUser] = useState(null)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const navigate = useNavigate()
 
   // Load admin user data from localStorage on mount
@@ -186,11 +188,8 @@ const Navbar = ({ activeMenu = 'Dashboard' }) => {
                 {/* Sign Out */}
                 <button 
                   onClick={() => {
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('loginMessage');
-                    localStorage.removeItem('adminUser');
+                    setShowLogoutModal(true);
                     setIsDropdownOpen(false);
-                    navigate('/login');
                   }}
                   className="w-full px-5 py-3 flex items-center gap-3 hover:bg-red-50 transition-colors cursor-pointer text-left">
                   <div className="w-4 h-4 flex-shrink-0 text-red-600">
@@ -205,6 +204,18 @@ const Navbar = ({ activeMenu = 'Dashboard' }) => {
           </div>
         </div>
       </div>
+
+      <LogoutModal 
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={() => {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('loginMessage');
+          localStorage.removeItem('adminUser');
+          setShowLogoutModal(false);
+          navigate('/login');
+        }}
+      />
     </div>
   )
 }

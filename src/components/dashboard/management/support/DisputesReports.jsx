@@ -48,14 +48,21 @@ const DisputesReports = () => {
             try {
                 setLoading(true);
                 // Fetch bookings with disputed caution fee
+                // Use $or to check both securityDepositResolution.status and booking status for backward compatibility
                 let filters = {};
                 if (activeTab === 'Pending') {
-                    filters['securityDepositResolution.status'] = { $in: ['DISPUTED', 'PENDING'] };
+                    filters['$or'] = [
+                        { 'securityDepositResolution.status': { $in: ['DISPUTED', 'PENDING'] } },
+                        { 'status': 'DISPUTED' }
+                    ];
                     filters['disputeRaised'] = true; // Only show identified disputes
                 } else if (activeTab === 'Resolved') {
                     filters['securityDepositResolution.status'] = { $in: ['RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] };
                 } else if (activeTab === 'All Disputes') {
-                    filters['securityDepositResolution.status'] = { $in: ['DISPUTED', 'PENDING', 'RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] };
+                    filters['$or'] = [
+                        { 'securityDepositResolution.status': { $in: ['DISPUTED', 'PENDING', 'RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] } },
+                        { 'status': 'DISPUTED' }
+                    ];
                     filters['disputeRaised'] = true;
                 }
 
@@ -67,17 +74,20 @@ const DisputesReports = () => {
                             notesMap[booking._id] = booking.internalNote;
                         }
 
-                        const resolutionNote = booking.securityDepositResolution?.reason;
-                        const resolutionStatus = booking.securityDepositResolution?.status;
+                        const resolutionNote = booking.securityDepositResolution?.reason || booking.disputeReason;
+                        // Fallback to booking.status if securityDepositResolution.status is not set
+                        const resolutionStatus = booking.securityDepositResolution?.status || (booking.status === 'DISPUTED' ? 'DISPUTED' : null);
                         const resolutionDetail = resolutionStatus === 'RELEASED_TO_GUEST' ? 'Released to Guest' : resolutionStatus === 'RELEASED_TO_HOST' ? 'Released to Host' : '';
                         const resolutionDate = booking.securityDepositResolution?.resolvedAt 
                             ? new Date(booking.securityDepositResolution.resolvedAt).toLocaleDateString()
-                            : new Date(booking.updatedAt).toLocaleDateString();
+                            : booking.disputedAt 
+                                ? new Date(booking.disputedAt).toLocaleDateString()
+                                : new Date(booking.updatedAt).toLocaleDateString();
                         
                         // Combine for a richer description in the 'Resolved' tab
                         const fullDescription = resolutionDetail 
                             ? `Status: ${resolutionDetail}. Note: ${resolutionNote || 'No reason provided'}`
-                            : (resolutionNote || 'Security deposit disputed by guest');
+                            : (resolutionNote || 'Security deposit disputed by guest/host');
 
                         const displayStatus = (resolutionStatus === 'DISPUTED' || resolutionStatus === 'PENDING') ? 'Pending' : (resolutionDetail || 'In Progress');
 
