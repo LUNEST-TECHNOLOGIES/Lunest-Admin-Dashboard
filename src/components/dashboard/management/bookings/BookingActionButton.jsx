@@ -6,6 +6,7 @@ import AddNoteModal from './AddNoteModal';
 import ApplyPenaltyModal from './ApplyPenaltyModal';
 import CheckoutWithDisputeModal from './CheckoutWithDisputeModal';
 import ResolveCautionModal from './ResolveCautionModal';
+import ResolveDisputeModal from './ResolveDisputeModal';
 import { 
   approveRefund, 
   updateBookingInternalNote, 
@@ -23,6 +24,7 @@ const BookingActionButton = ({ booking, refresh, isLastItems }) => {
   const [showPenaltyModal, setShowPenaltyModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showResolveCautionModal, setShowResolveCautionModal] = useState(false);
+  const [showResolveDisputeModal, setShowResolveDisputeModal] = useState(false);
 
   const menuRef = useRef(null);
 
@@ -56,6 +58,11 @@ const BookingActionButton = ({ booking, refresh, isLastItems }) => {
 
   const handleCheckout = () => {
     setShowCheckoutModal(true);
+    setIsMenuOpen(false);
+  };
+
+  const handleResolveDispute = () => {
+    setShowResolveDisputeModal(true);
     setIsMenuOpen(false);
   };
 
@@ -204,8 +211,31 @@ const BookingActionButton = ({ booking, refresh, isLastItems }) => {
                 </button>
               </>
             )}
+
+            {/* Resolve Booking Dispute Button - Only for DISPUTED status */}
+            {booking.rawStatus === 'DISPUTED' && (
+              <>
+                <div className="my-1 border-t border-slate-50"></div>
+                <button
+                  onClick={handleResolveDispute}
+                  className="w-full px-3 py-2 bg-amber-600 text-white rounded-lg flex justify-start items-center gap-3 hover:bg-amber-700 transition-all shadow-lg shadow-amber-100 cursor-pointer"
+                >
+                  <span className="text-xs font-bold">Resolve Dispute</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
+      )}
+
+      {showResolveDisputeModal && (
+        <ResolveDisputeModal
+          booking={booking}
+          onClose={() => setShowResolveDisputeModal(false)}
+          onResolve={() => {
+            if (refresh) refresh();
+          }}
+        />
       )}
 
       {/* Refund Review Modal */}

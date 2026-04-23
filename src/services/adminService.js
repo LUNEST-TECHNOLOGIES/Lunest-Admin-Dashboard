@@ -344,6 +344,16 @@ export const updateBookingInternalNote = async(bookingRef, note) => {
     return response.data;
 };
 
+export const resolveDispute = async(bookingId, guestRefundAmount, hostPayoutAmount, reason, targetStatus = 'CANCELLED') => {
+    const response = await apiClient.post(`/bookings/${bookingId}/resolve-dispute`, {
+        guestRefundAmount,
+        hostPayoutAmount,
+        reason,
+        targetStatus
+    });
+    return response.data;
+};
+
 // ============================================
 // KYC VERIFICATION
 // ============================================

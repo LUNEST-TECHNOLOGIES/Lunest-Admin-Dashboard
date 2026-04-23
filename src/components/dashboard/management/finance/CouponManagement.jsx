@@ -18,7 +18,8 @@ import {
   getAdminCoupons,
   getCouponStats,
   adminCreateCoupon,
-  adminDeleteCoupon
+  adminDeleteCoupon,
+  getUserById
 } from '../../../../services/adminService';
 
 const CouponManagement = () => {
@@ -49,6 +50,8 @@ const CouponManagement = () => {
     userId: ''
   });
   const [creating, setCreating] = useState(false);
+  const [verifyingUser, setVerifyingUser] = useState(false);
+  const [verifiedUser, setVerifiedUser] = useState(null);
 
   useEffect(() => {
     fetchStats();
@@ -144,6 +147,30 @@ const CouponManagement = () => {
       }
     } catch (err) {
       notify.error('Error', err.message || 'Failed to delete coupon');
+    }
+  };
+
+  const handleVerifyUser = async () => {
+    if (!formData.userId.trim()) return;
+    if (!formData.userId.match(/^[0-9a-fA-F]{24}$/)) {
+      notify.error('Validation', 'Invalid User ID format');
+      return;
+    }
+
+    setVerifyingUser(true);
+    setVerifiedUser(null);
+    try {
+      const res = await getUserById(formData.userId.trim());
+      if (res.success && res.body) {
+        setVerifiedUser(res.body);
+        notify.success('User Verified', `Valid user: ${res.body.fullName}`);
+      } else {
+        notify.error('User Not Found', 'Could not find a user with this ID');
+      }
+    } catch (err) {
+      notify.error('Error', 'Failed to verify user ID');
+    } finally {
+      setVerifyingUser(false);
     }
   };
 
@@ -528,13 +555,31 @@ const CouponManagement = () => {
                 {/* Assign to User (Optional) */}
                 <div className="space-y-1.5">
                   <label className="block text-sm font-aeonik font-semibold text-slate-900 ml-1">Assign to User ID <span className="text-slate-400 font-normal">(optional)</span></label>
-                  <input
-                    type="text"
-                    value={formData.userId}
-                    onChange={(e) => setFormData(prev => ({ ...prev, userId: e.target.value }))}
-                    className="w-full h-11 px-5 bg-slate-50 border border-slate-200 rounded-full text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-aeonik font-mono"
-                    placeholder="Leave empty for unassigned"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formData.userId}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, userId: e.target.value }));
+                        if (verifiedUser) setVerifiedUser(null);
+                      }}
+                      className="flex-1 h-11 px-5 bg-slate-50 border border-slate-200 rounded-full text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-aeonik font-mono"
+                      placeholder="Paste User ID here"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyUser}
+                      disabled={verifyingUser || !formData.userId.trim()}
+                      className="px-4 h-11 bg-slate-100 text-slate-700 rounded-full text-xs font-bold hover:bg-slate-200 transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      {verifyingUser ? '...' : 'Verify'}
+                    </button>
+                  </div>
+                  {verifiedUser && (
+                    <p className="text-[11px] text-green-600 font-medium ml-4 mt-1">
+                      ✅ Verified: <span className="font-bold">{verifiedUser.fullName}</span> ({verifiedUser.emailAddress})
+                    </p>
+                  )}
                 </div>
               </div>
 
