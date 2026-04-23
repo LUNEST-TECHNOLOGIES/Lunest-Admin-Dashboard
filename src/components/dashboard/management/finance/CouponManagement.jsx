@@ -104,11 +104,12 @@ const CouponManagement = () => {
 
     setCreating(true);
     try {
+      const validityDays = formData.validityDays === '' ? 90 : Number(formData.validityDays);
       const payload = {
         discountValue: Number(formData.discountValue),
         discountType: formData.discountType,
         currency: formData.currency,
-        validityDays: Number(formData.validityDays) || 90,
+        validityDays: validityDays,
       };
       if (formData.code.trim()) payload.code = formData.code.trim();
       if (formData.userId.trim()) payload.userId = formData.userId.trim();
@@ -155,6 +156,11 @@ const CouponManagement = () => {
     if (coupon.isUsed) return 'used';
     if (coupon.validity && new Date(coupon.validity) < new Date()) return 'expired';
     return 'active';
+  };
+
+  const formatValidity = (validity) => {
+    if (!validity) return 'Never expires';
+    return new Date(validity).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
   const statusBadge = (status) => {
@@ -256,7 +262,7 @@ const CouponManagement = () => {
             <MdOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search by coupon code or owner name..."
+              placeholder="Search by code, user name, email, or user ID..."
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -296,8 +302,8 @@ const CouponManagement = () => {
                 <tr>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Code</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Owner</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Discount Rule</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Actual Discount Used</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Discount</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Source</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Validity</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Created</th>
@@ -326,24 +332,33 @@ const CouponManagement = () => {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-bold text-slate-900">
-                          {coupon.discount?.type === 'PERCENTAGE'
-                            ? `${coupon.discount?.value}%`
-                            : `₦${(coupon.discount?.value || 0).toLocaleString()}`}
-                        </span>
-                        <span className="text-xs text-slate-500 ml-1">
-                          {coupon.discount?.type === 'PERCENTAGE' ? 'off' : coupon.discount?.currency || 'NGN'}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-900">
+                            {coupon.discount?.type === 'PERCENTAGE'
+                              ? `${coupon.discount?.value}%`
+                              : `₦${(coupon.discount?.value || 0).toLocaleString()}`}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            {coupon.discount?.type === 'PERCENTAGE' ? 'percentage off' : 'fixed amount'}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-bold text-indigo-600">
-                          {coupon.totalDiscountUsed > 0 
-                            ? `₦${(coupon.totalDiscountUsed || 0).toLocaleString()}` 
-                            : '-'}
-                        </span>
+                        {coupon.description ? (
+                          <div className="flex flex-col max-w-[150px]">
+                            <span className="text-xs text-slate-700 truncate" title={coupon.description}>
+                              {coupon.description}
+                            </span>
+                            <span className="text-[10px] text-slate-400">Auto-generated</span>
+                          </div>
+                        ) : coupon.owner ? (
+                          <span className="text-xs text-slate-500">Admin-assigned</span>
+                        ) : (
+                          <span className="text-xs text-slate-400">General promo</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-slate-600 text-sm">
-                        {coupon.validity ? formatDate(coupon.validity) : 'No expiry'}
+                        {formatValidity(coupon.validity)}
                       </td>
                       <td className="px-6 py-4">{statusBadge(status)}</td>
                       <td className="px-6 py-4 text-slate-600 text-sm">{formatDate(coupon.createdAt)}</td>
@@ -485,14 +500,16 @@ const CouponManagement = () => {
 
                 {/* Validity Days */}
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-aeonik font-semibold text-slate-900 ml-1">Validity (Days)</label>
+                  <label className="block text-sm font-aeonik font-semibold text-slate-900 ml-1">
+                    Validity (Days) <span className="text-slate-400 font-normal">(0 or empty = never expires)</span>
+                  </label>
                   <input
                     type="number"
                     value={formData.validityDays}
                     onChange={(e) => setFormData(prev => ({ ...prev, validityDays: e.target.value }))}
                     className="w-full h-11 px-5 bg-slate-50 border border-slate-200 rounded-full text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-aeonik"
-                    placeholder="90"
-                    min="1"
+                    placeholder="90 (0 = never expires)"
+                    min="0"
                   />
                 </div>
 
@@ -531,7 +548,9 @@ const CouponManagement = () => {
                         ? `${formData.discountValue}% off`
                         : `₦${Number(formData.discountValue).toLocaleString()} off`}
                     </span>
-                    {formData.validityDays && `, valid for ${formData.validityDays} days`}
+                    {formData.validityDays && Number(formData.validityDays) > 0 
+                      ? `, valid for ${formData.validityDays} days` 
+                      : ', never expires'}
                     {formData.code && ` with code ${formData.code}`}
                   </p>
                 </div>

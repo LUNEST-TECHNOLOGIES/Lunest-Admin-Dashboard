@@ -57,11 +57,15 @@ const DisputesReports = () => {
                     ];
                     filters['disputeRaised'] = true; // Only show identified disputes
                 } else if (activeTab === 'Resolved') {
-                    filters['securityDepositResolution.status'] = { $in: ['RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] };
+                    filters['$or'] = [
+                        { 'securityDepositResolution.status': { $in: ['RELEASED_TO_GUEST', 'RELEASED_TO_HOST', 'RESOLVED_BY_ADMIN'] } },
+                        { 'resolutionStatus': 'RESOLVED_BY_ADMIN' }
+                    ];
                 } else if (activeTab === 'All Disputes') {
                     filters['$or'] = [
-                        { 'securityDepositResolution.status': { $in: ['DISPUTED', 'PENDING', 'RELEASED_TO_GUEST', 'RELEASED_TO_HOST'] } },
-                        { 'status': 'DISPUTED' }
+                        { 'securityDepositResolution.status': { $in: ['DISPUTED', 'PENDING', 'RELEASED_TO_GUEST', 'RELEASED_TO_HOST', 'RESOLVED_BY_ADMIN'] } },
+                        { 'status': 'DISPUTED' },
+                        { 'resolutionStatus': 'RESOLVED_BY_ADMIN' }
                     ];
                     filters['disputeRaised'] = true;
                 }
@@ -76,13 +80,21 @@ const DisputesReports = () => {
 
                         const resolutionNote = booking.securityDepositResolution?.reason || booking.disputeReason;
                         // Fallback to booking.status if securityDepositResolution.status is not set
-                        const resolutionStatus = booking.securityDepositResolution?.status || (booking.status === 'DISPUTED' ? 'DISPUTED' : null);
-                        const resolutionDetail = resolutionStatus === 'RELEASED_TO_GUEST' ? 'Released to Guest' : resolutionStatus === 'RELEASED_TO_HOST' ? 'Released to Host' : '';
+                        const resolutionStatus = booking.securityDepositResolution?.status || (booking.status === 'DISPUTED' ? 'DISPUTED' : null) || booking.resolutionStatus;
+                        const resolutionDetail = resolutionStatus === 'RELEASED_TO_GUEST' 
+                            ? 'Released to Guest' 
+                            : resolutionStatus === 'RELEASED_TO_HOST' 
+                                ? 'Released to Host' 
+                                : resolutionStatus === 'RESOLVED_BY_ADMIN' 
+                                    ? 'Resolved by Admin' 
+                                    : '';
                         const resolutionDate = booking.securityDepositResolution?.resolvedAt 
                             ? new Date(booking.securityDepositResolution.resolvedAt).toLocaleDateString()
-                            : booking.disputedAt 
-                                ? new Date(booking.disputedAt).toLocaleDateString()
-                                : new Date(booking.updatedAt).toLocaleDateString();
+                            : booking.resolvedAt 
+                                ? new Date(booking.resolvedAt).toLocaleDateString()
+                                : booking.disputedAt 
+                                    ? new Date(booking.disputedAt).toLocaleDateString()
+                                    : new Date(booking.updatedAt).toLocaleDateString();
                         
                         // Combine for a richer description in the 'Resolved' tab
                         const fullDescription = resolutionDetail 
