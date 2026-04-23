@@ -413,55 +413,72 @@ const KYCVerification = () => {
                 {kyc.reviewer}
               </div>
 
-              {/* Action Menu */}
-              <div className="w-6 h-6 relative">
-                <button
-                  onClick={() => setOpenMenuId(openMenuId === kyc.id ? null : kyc.id)}
-                  className="w-6 h-6 bg-gray-50 rounded-[5px] cursor-pointer hover:bg-gray-100 transition-colors flex items-center justify-center"
-                >
-                  <MdMoreVert className="w-4 h-4 text-slate-900" />
-                </button>
-
-                {/* Dropdown Menu */}
-                {openMenuId === kyc.id && (
-                  <div className="absolute top-8 right-0 bg-white rounded-[5px] outline outline-[0.50px] outline-offset-[-0.50px] outline-slate-900 shadow-lg z-50 w-max md:w-28 lg:w-32">
-                    {/* View Button */}
-                    <button
-                      onClick={() => {
-                        setOpenMenuId(null);
-                      }}
-                      className="w-full px-1.5 py-[3px] text-left text-xs font-medium text-black hover:bg-gray-50 transition-colors border-b border-slate-200 cursor-pointer inline-flex justify-start items-center gap-1.5 group"
-                    >
-                      <img src="/assets/icons/action-menu/vuesax/linear/vuesax/linear/eye.svg" alt="View" className="w-4 h-4 flex-shrink-0" />
-                      <span className="font-aeonik whitespace-nowrap">View</span>
-                    </button>
-
-                    {/* Approve Button */}
+              {/* Actions */}
+              <div className="w-36 flex justify-start items-center gap-2 flex-shrink-0">
+                {kyc.status === 'Pending' ? (
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => openApproveModal(kyc)}
-                      className="w-full px-1.5 py-[3px] text-left text-xs font-medium text-black hover:bg-gray-50 transition-colors border-b border-slate-200 cursor-pointer inline-flex justify-start items-center gap-1.5 group"
+                      className="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors border border-green-200 cursor-pointer"
                     >
-                      <img src="/assets/icons/action-menu/done-v.svg" alt="Approve" className="w-4 h-4 flex-shrink-0" />
-                      <span className="font-aeonik whitespace-nowrap">Approve</span>
+                      Approve
                     </button>
-
-                    {/* Reject Button */}
                     <button
                       onClick={() => openRejectModal(kyc)}
-                      className="w-full px-1.5 py-[3px] text-left text-xs font-medium text-black hover:bg-gray-50 transition-colors border-b border-slate-200 cursor-pointer inline-flex justify-start items-center gap-1.5 group"
+                      className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 cursor-pointer"
                     >
-                      <img src="/assets/icons/action-menu/close-x.svg" alt="Reject" className="w-4 h-4 flex-shrink-0" />
-                      <span className="font-aeonik whitespace-nowrap">Reject</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                     </button>
-
-                    {/* Request Resubmission Button */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === kyc.id ? null : kyc.id)}
+                        className="p-1 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
+                        <MdMoreVert className="w-4 h-4 text-slate-900" />
+                      </button>
+                      
+                      {openMenuId === kyc.id && (
+                        <div className="absolute top-8 right-0 bg-white rounded-lg shadow-xl z-50 w-32 py-1">
+                          <button
+                            onClick={() => { setOpenMenuId(null); }}
+                            className="w-full px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                          >
+                            View Details
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => openResubmissionModal(kyc)}
-                      className="w-full px-1.5 py-[3px] text-left text-xs font-medium text-black hover:bg-gray-50 transition-colors cursor-pointer inline-flex justify-start items-center gap-1.5 group"
+                      onClick={() => setOpenMenuId(openMenuId === kyc.id ? null : kyc.id)}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors flex items-center gap-1 cursor-pointer"
                     >
-                      <img src="/assets/icons/action-menu/vuesax/outline/edit.svg" alt="Request" className="w-4 h-4 flex-shrink-0" />
-                      <span className="font-aeonik whitespace-nowrap">Request</span>
+                      Options
+                      <MdMoreVert className="w-3 h-3" />
                     </button>
+                    
+                    {openMenuId === kyc.id && (
+                      <div className="absolute top-8 right-0 bg-white rounded-lg shadow-xl z-50 w-40 py-1">
+                        <button
+                          onClick={() => { setOpenMenuId(null); }}
+                          className="w-full px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                        >
+                          Full Details
+                        </button>
+                        {kyc.status !== 'Approved' && (
+                          <button
+                            onClick={() => openApproveModal(kyc)}
+                            className="w-full px-3 py-2 text-left text-xs font-medium text-green-600 hover:bg-green-50 transition-colors border-b border-slate-100"
+                          >
+                            Approve KYC
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
