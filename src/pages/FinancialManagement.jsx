@@ -65,7 +65,7 @@ const FinancialManagement = () => {
         filters.groupByBooking = true;
         break;
       case 'Guest Payments':
-        filters.category = 'BOOKING';
+        filters.category = 'BOOKING,COUPON_PAYMENT';
         filters.type = 'DEBIT';
         break;
       case 'Host Earnings':
