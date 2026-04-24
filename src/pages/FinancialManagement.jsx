@@ -95,7 +95,7 @@ const FinancialManagement = () => {
         filters.category = 'TOP_UP,ADJUSTMENT,TRANSFER,ADDED_FUNDS';
         break;
       case 'Refunds':
-        filters.category = 'REFUND,CANCELLATION_REFUND,CANCELLATION_PENALTY';
+        filters.category = 'REFUND,CANCELLATION_REFUND,CANCELLATION_PENALTY,CANCELLATION_CREDIT';
         break;
       case 'Rewards':
         filters.category = 'REWARD,CASH_REWARD';
@@ -428,6 +428,7 @@ const FinancialManagement = () => {
       case 'on_hold': return 'bg-orange-100 text-orange-600';
       case 'completed': return 'bg-green-100 text-green-600';
       case 'failed': return 'bg-red-100 text-red-600';
+      case 'processing': return 'bg-blue-100 text-blue-600';
       default: return 'bg-gray-100 text-gray-600';
     }
   };
@@ -510,6 +511,7 @@ const FinancialManagement = () => {
     const refundCount = Number(overview.refundCount) || 0; // NEW: Number of refunds
     const totalPenalties = Number(overview.totalPenalties) || 0; // NEW: Total cancellation penalties
     const penaltyCount = Number(overview.penaltyCount) || 0; // NEW: Number of penalties
+    const totalPenaltyRevenue = Number(overview.totalPenaltyRevenue) || 0; // P3 FIX: Penalties retained by platform (separate from app fees)
     const totalCouponRefunds = Number(overview.totalCouponRefunds) || 0; // NEW: Total refunds as coupons
     const couponRefundCount = Number(overview.couponRefundCount) || 0; // NEW: Number of coupon refunds
     
@@ -593,6 +595,7 @@ const FinancialManagement = () => {
       refundCount,
       totalPenalties,
       penaltyCount,
+      totalPenaltyRevenue,  // P3 FIX: Penalty revenue tracked separately from app fees
       totalCouponRefunds,
       couponRefundCount,
       
