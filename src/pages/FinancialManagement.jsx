@@ -507,8 +507,11 @@ const FinancialManagement = () => {
     const escrowAppFees = Number(overview.escrowAppFees) || 0; // NEW: App fees from caution resolutions
     const escrowVatRevenue = Number(overview.escrowVatRevenue) || 0; // NEW: VAT from caution resolutions
     const totalRefunds = Number(overview.totalRefunds) || 0; // NEW: Total refunds processed
+    const refundCount = Number(overview.refundCount) || 0; // NEW: Number of refunds
     const totalPenalties = Number(overview.totalPenalties) || 0; // NEW: Total cancellation penalties
+    const penaltyCount = Number(overview.penaltyCount) || 0; // NEW: Number of penalties
     const totalCouponRefunds = Number(overview.totalCouponRefunds) || 0; // NEW: Total refunds as coupons
+    const couponRefundCount = Number(overview.couponRefundCount) || 0; // NEW: Number of coupon refunds
     
     // NEW: Booking-specific metrics from backend
     const bookingAppFees = Number(overview.bookingAppFees) || 0;      // App fees from booking payments
@@ -587,8 +590,11 @@ const FinancialManagement = () => {
       bookingVAT,
       totalBookingRevenue,
       totalRefunds,
+      refundCount,
       totalPenalties,
+      penaltyCount,
       totalCouponRefunds,
+      couponRefundCount,
       
       // Validation
       allPositive,
@@ -993,9 +999,10 @@ const FinancialManagement = () => {
     },
     {
       title: 'Total Refunds',
-      value: formatCurrency(financeMetrics?.totalRefunds || 0),
-      change: 'Guest/Booking',
-      changeText: 'Total cancellations & admin refunds',
+      value: financeMetrics?.refundCount || 0,
+      isNumerical: true,
+      change: formatCurrency(financeMetrics?.totalRefunds || 0),
+      changeText: 'Total cash refunds processed',
       changeColor: 'text-rose-600',
       icon: '↩️',
       critical: false,
@@ -1003,8 +1010,9 @@ const FinancialManagement = () => {
     },
     {
       title: 'Total Penalties',
-      value: formatCurrency(financeMetrics?.totalPenalties || 0),
-      change: 'Cancellation',
+      value: financeMetrics?.penaltyCount || 0,
+      isNumerical: true,
+      change: formatCurrency(financeMetrics?.totalPenalties || 0),
       changeText: 'Penalties retained from cancellations',
       changeColor: 'text-amber-600',
       icon: '⚠️',
@@ -1012,10 +1020,11 @@ const FinancialManagement = () => {
       integrity: true
     },
     {
-      title: 'Coupon Refunds',
-      value: formatCurrency(financeMetrics?.totalCouponRefunds || 0),
-      change: 'Credit Value',
-      changeText: 'Refunds issued as coupon credits',
+      title: 'Cancellation Credits',
+      value: financeMetrics?.couponRefundCount || 0,
+      isNumerical: true,
+      change: formatCurrency(financeMetrics?.totalCouponRefunds || 0),
+      changeText: 'Refunds issued as platform coupons',
       changeColor: 'text-purple-600',
       icon: '🎟️',
       critical: false,

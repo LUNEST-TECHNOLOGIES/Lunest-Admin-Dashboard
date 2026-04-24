@@ -127,7 +127,10 @@ export const FinancialManagementContent = () => {
     vat: 0,
     escrow: 0,
     couponValue: 0,
-    appFeeTransactionCount: 0
+    appFeeTransactionCount: 0,
+    totalRefunds: 0,
+    totalPenalties: 0,
+    totalCouponRefunds: 0
   });
   
   // Prevent duplicate actions
@@ -194,6 +197,9 @@ export const FinancialManagementContent = () => {
     const failedAmount = Number(overview.failedTransactionAmount) || 0; // Failed transaction amount
     const couponValue = Number(overview.totalCouponValue) || 0;      // Coupon discounts
     const appFeeCount = Number(overview.appFeeTransactionCount) || 0; // App fee transactions
+    const totalRefunds = Number(overview.totalRefunds) || 0; // NEW: Total refunds processed
+    const totalPenalties = Number(overview.totalPenalties) || 0; // NEW: Total cancellation penalties
+    const totalCouponRefunds = Number(overview.totalCouponRefunds) || 0; // NEW: Total refunds as coupons
 
     // Calculated metrics with proper financial logic
     const processedVolume = totalInflow + totalOutflow;              // Total transaction volume
@@ -229,6 +235,11 @@ export const FinancialManagementContent = () => {
       // Discount Metrics
       couponValue: couponValue,              // Coupon Value stat card
       
+      // Cancellation Metrics
+      totalRefunds,
+      totalPenalties,
+      totalCouponRefunds,
+      
       // Validation
       allPositive,
       financialHealth: revenueIntegrity && allPositive
@@ -250,6 +261,9 @@ export const FinancialManagementContent = () => {
     const appFeeTransactionCount = overview.appFeeTransactionCount || 0;
     const bookingAppFees = overview.bookingAppFees || 0;
     const bookingVAT = overview.bookingVAT || 0;
+    const totalRefunds = overview.totalRefunds || 0;
+    const totalPenalties = overview.totalPenalties || 0;
+    const totalCouponRefunds = overview.totalCouponRefunds || 0;
     
     // Calculate derived values to match stat cards
     const processedVolume = totalInflow + totalOutflow;
@@ -290,7 +304,7 @@ export const FinancialManagementContent = () => {
       appFeeCountValid: appFeeTransactionCount >= 0,
       
       // All values should be positive numbers
-      allPositive: [totalInflow, totalOutflow, platformFees, appFeesOnly, vatRevenue, hostEarnings, withdrawals, escrowedFunds, couponValue, bookingAppFees, bookingVAT].every(val => val >= 0)
+      allPositive: [totalInflow, totalOutflow, platformFees, appFeesOnly, vatRevenue, hostEarnings, withdrawals, escrowedFunds, couponValue, bookingAppFees, bookingVAT, totalRefunds, totalPenalties, totalCouponRefunds].every(val => val >= 0)
     };
     
     // Log validation results with stat card correspondence
@@ -308,7 +322,10 @@ export const FinancialManagementContent = () => {
       couponValue: couponValue,
       appFeeCount: appFeeTransactionCount,
       bookingAppFees,
-      bookingVAT
+      bookingVAT,
+      totalRefunds,
+      totalPenalties,
+      totalCouponRefunds
     });
     
     // Return validated and corrected data
@@ -326,6 +343,9 @@ export const FinancialManagementContent = () => {
       appFeeTransactionCount: appFeeTransactionCount, // App Fee Count stat card
       bookingAppFees: bookingAppFees,               // Booking-specific fees
       bookingVAT: bookingVAT,                       // Booking-specific VAT
+      totalRefunds,
+      totalPenalties,
+      totalCouponRefunds,
       validations
     };
   };
@@ -649,6 +669,10 @@ export const FinancialManagementContent = () => {
         <StatsCard icon={<XCircle />} label="Failed Trans." value={financeStats.failedTransactions} description="error count" bgColor="red" iconColor="red" isCurrency={false} />
         <StatsCard icon={<CreditCard />} label="Total Discount Value Redeemed" value={financeStats.couponValue} description="promos used" bgColor="violet" iconColor="indigo" isCurrency={true} />
         <StatsCard icon={<CreditCard />} label="App Fee Count" value={financeStats.appFeeTransactionCount} description="fee transactions" bgColor="purple" iconColor="purple" isCurrency={false} />
+
+        <StatsCard icon={<Banknote />} label="Total Refunds (Cash)" value={financeStats.totalRefunds} description="guest payouts" bgColor="red" iconColor="red" isCurrency={true} />
+        <StatsCard icon={<AlertTriangle />} label="Total Penalties" value={financeStats.totalPenalties} description="deductions" bgColor="orange" iconColor="orange" isCurrency={true} />
+        <StatsCard icon={<Wallet />} label="Cancellation Credits" value={financeStats.totalCouponRefunds} description="platform credits" bgColor="purple" iconColor="purple" isCurrency={true} />
       </div>
 
       {/* Financial Validation Debug Panel */}

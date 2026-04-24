@@ -359,7 +359,7 @@ export const resolveDispute = async(bookingId, guestRefundAmount, hostPayoutAmou
 // ============================================
 
 export const getKYCSubmissions = async(filters = {}) => {
-    const response = await apiClient.post('/users/all', {...filters, hasKYC: true });
+    const response = await apiClient.post('/users/all', filters);
     return response.data;
 };
 
