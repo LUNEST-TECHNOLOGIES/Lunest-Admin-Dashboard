@@ -434,10 +434,18 @@ export const verifyWithdrawalStatus = async(reference) => {
     return response.data;
 };
 
-export const finalizeWithdrawal = async(transferCode, otp) => {
+export const finalizeWithdrawal = async(transferCode, otp, reference) => {
     const response = await apiClient.post('/admin/transactions/withdraw/finalize', { 
         transfer_code: transferCode, 
-        otp 
+        otp,
+        reference
+    });
+    return response.data;
+};
+
+export const resendWithdrawalOTP = async(reference) => {
+    const response = await apiClient.post('/admin/transactions/withdraw/resend-otp', { 
+        reference 
     });
     return response.data;
 };

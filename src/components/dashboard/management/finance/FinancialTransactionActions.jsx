@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { finalizeWithdrawal, verifyWithdrawalStatus } from '../../../../services/adminService';
+import { finalizeWithdrawal, verifyWithdrawalStatus, resendWithdrawalOTP } from '../../../../services/adminService';
 
 const Icons = {
   Document: () => <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
@@ -275,6 +275,25 @@ const FinancialTransactionActions = ({ transaction, onActionComplete }) => {
                       maxLength={6}
                       autoFocus
                     />
+                    <div className="flex justify-center mt-2">
+                      <button
+                        onClick={async () => {
+                          setIsProcessing(true);
+                          try {
+                            const res = await resendWithdrawalOTP(transaction.reference);
+                            alert(res.message || 'OTP resent successfully');
+                          } catch (err) {
+                            alert(err.message || 'Failed to resend OTP');
+                          } finally {
+                            setIsProcessing(false);
+                          }
+                        }}
+                        disabled={isProcessing}
+                        className="text-indigo-600 text-xs font-bold hover:text-indigo-800 transition-colors uppercase tracking-widest"
+                      >
+                        {isProcessing ? 'Processing...' : 'Resend OTP'}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex gap-3 pt-4 border-t border-slate-100">
@@ -291,8 +310,8 @@ const FinancialTransactionActions = ({ transaction, onActionComplete }) => {
                         setIsProcessing(true);
                         try {
                           const transferCode = transaction.metadata?.transfer_code;
-                          if (!transferCode) throw new Error('Transfer code not found');
-                          const res = await finalizeWithdrawal(transferCode, otp);
+                          // Note: We now send reference as a fallback so backend can resolve transferCode
+                          const res = await finalizeWithdrawal(transferCode, otp, transaction.reference);
                           if (res.success) {
                             setShowDetailModal(false);
                             setOtp('');
