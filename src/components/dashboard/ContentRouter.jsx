@@ -71,8 +71,12 @@ export const DashboardContent = ({ stats }) => {
       {/* Stats Cards - Row 2 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <StatsCard icon={<Banknote />} label="Total Revenue" value={stats.totalRevenue || 0} description="fees + VAT" bgColor="violet" iconColor="indigo" isCurrency={true} />
+        <StatsCard icon={<Wallet />} label="Total Escrow Balance" value={stats.totalEscrowFunds || 0} description="pending earnings + deposits" bgColor="amber" iconColor="orange" isCurrency={true} />
         <StatsCard icon={<KycIcon />} label="Pending KYC" value={stats.pendingKYC || 0} description="needs review" bgColor="orange" iconColor="orange" />
         <StatsCard icon={<ListingsIcon />} label="Pending Listings" value={stats.pendingListings || 0} description="awaiting approval" bgColor="orange" iconColor="orange" />
+      </div>
+      {/* Stats Cards - Row 3 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <StatsCard icon={<DisputesIcon />} label="Open Disputes" value={stats.openDisputes || 0} description="since last month" bgColor="red" iconColor="red" />
       </div>
       {/* Alerts */}

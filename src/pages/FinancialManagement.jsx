@@ -492,7 +492,7 @@ const FinancialManagement = () => {
     const hostServiceChargeEarnings = Number(overview.hostServiceChargeEarnings) || 0;     // Host service charge earnings
     const hostCautionEarnings = Number(overview.hostCautionEarnings) || 0;     // Host caution claim earnings
     const withdrawals = Number(overview.totalWithdrawals) || 0;       // User withdrawals
-    const escrowedFunds = Number(overview.escrowedFunds) || 0;       // Security deposits on hold
+    const escrowedFunds = Number(overview.totalEscrowFunds) || 0;       // Security deposits on hold
     const failedCount = Number(overview.failedTransactionCount) || 0; // Failed transaction count
     const failedAmount = Number(overview.failedTransactionAmount) || 0; // Failed transaction amount
     const couponValue = Number(overview.totalCouponValue) || 0;      // Coupon discounts
@@ -960,10 +960,10 @@ const FinancialManagement = () => {
       integrity: true
     },
     {
-      title: 'Escrow Holdings',
+      title: 'Platform Escrow Balance',
       value: formatCurrency(financeMetrics?.escrowedFunds || 0),
       change: 'Active Holds',
-      changeText: 'Security deposits in system',
+      changeText: 'Pending earnings + Security deposits',
       changeColor: 'text-amber-600',
       icon: '⏳',
       critical: false,

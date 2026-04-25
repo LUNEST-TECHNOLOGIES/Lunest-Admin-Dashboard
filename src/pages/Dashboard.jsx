@@ -139,7 +139,8 @@ export default function Dashboard() {
                                     openDisputes,
                                     activeListings,
                                     pendingListings,
-                                    totalListings
+                                    totalListings,
+                                    totalEscrowFunds: dashboardStats?.totalEscrowFunds || 0
                                 }}
                             />
                         )}
