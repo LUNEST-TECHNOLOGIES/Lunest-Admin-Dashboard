@@ -11,6 +11,7 @@ const FinancialManagement = () => {
   const lastFetchRef = useRef(0);
   const DEBOUNCE_MS = 300;
   const [summary, setSummary] = useState(null);
+  const [allTimeSummary, setAllTimeSummary] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 1 });
   const [search, setSearch] = useState('');
@@ -151,9 +152,11 @@ const FinancialManagement = () => {
 
       console.log('[FinancialManagement] Fetching with filters:', filters);
 
-      const [summaryRes, transRes] = await Promise.all([
+      const [summaryRes, transRes, allTimeRes] = await Promise.all([
         getAdminTransactionSummary({ startDate: filters.startDate, endDate: filters.endDate }, abortControllerRef.current.signal),
-        getAdminTransactions({ ...filters, page: pagination.page, limit: pagination.limit }, abortControllerRef.current.signal)
+        getAdminTransactions({ ...filters, page: pagination.page, limit: pagination.limit }, abortControllerRef.current.signal),
+        // All-time summary (no date filter) for cumulative cancellation/refund/penalty stats
+        getAdminTransactionSummary({}, abortControllerRef.current.signal)
       ]);
       
       // Check if component is still mounted before updating state
@@ -209,6 +212,22 @@ const FinancialManagement = () => {
           }
         }
         setSummary(overview);
+      }
+      // Store all-time summary for cumulative cancellation/refund/penalty stats
+      if (allTimeRes?.success && allTimeRes?.body) {
+        const allTimeOverview = allTimeRes.body.overview || allTimeRes.body;
+        setAllTimeSummary(allTimeOverview);
+        console.log('[FinancialManagement] All-time overview (cancellation stats):', {
+          totalRefunds: allTimeOverview.totalRefunds,
+          refundCount: allTimeOverview.refundCount,
+          totalPenalties: allTimeOverview.totalPenalties,
+          penaltyCount: allTimeOverview.penaltyCount,
+          totalPenaltyRevenue: allTimeOverview.totalPenaltyRevenue,
+          totalCouponRefunds: allTimeOverview.totalCouponRefunds,
+          couponRefundCount: allTimeOverview.couponRefundCount,
+          totalCouponValue: allTimeOverview.totalCouponValue,
+          byCategory: allTimeRes.body.byCategory,
+        });
       }
       if (transRes.success && transRes.body) {
         const txns = transRes.body.transactions || [];
@@ -843,6 +862,7 @@ const FinancialManagement = () => {
   
   // Memoize financial metrics for efficiency and consistent integrity checks
   const financeMetrics = calculateFinancialMetrics(summary);
+  const allTimeFinanceMetrics = calculateFinancialMetrics(allTimeSummary);
 
   const mainStats = [
     {
@@ -1010,8 +1030,8 @@ const FinancialManagement = () => {
   const cancellationStats = [
     {
       title: 'Cash Refunds Issued',
-      value: formatCurrency(financeMetrics?.totalRefunds || 0),
-      count: financeMetrics?.refundCount || 0,
+      value: formatCurrency(allTimeFinanceMetrics?.totalRefunds || 0),
+      count: allTimeFinanceMetrics?.refundCount || 0,
       countLabel: 'refund transactions',
       changeText: 'Total cash returned to guest wallets',
       changeColor: 'text-rose-600',
@@ -1021,8 +1041,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Penalties Collected',
-      value: formatCurrency(financeMetrics?.totalPenalties || 0),
-      count: financeMetrics?.penaltyCount || 0,
+      value: formatCurrency(allTimeFinanceMetrics?.totalPenalties || 0),
+      count: allTimeFinanceMetrics?.penaltyCount || 0,
       countLabel: 'penalty transactions',
       changeText: 'Cancellation penalties deducted from guests',
       changeColor: 'text-amber-600',
@@ -1032,7 +1052,7 @@ const FinancialManagement = () => {
     },
     {
       title: 'Penalty Platform Revenue',
-      value: formatCurrency(financeMetrics?.totalPenaltyRevenue || 0),
+      value: formatCurrency(allTimeFinanceMetrics?.totalPenaltyRevenue || 0),
       count: null,
       countLabel: null,
       changeText: 'Portion of penalties retained by platform',
@@ -1043,8 +1063,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Credit Refunds Issued',
-      value: formatCurrency(financeMetrics?.totalCouponRefunds || 0),
-      count: financeMetrics?.couponRefundCount || 0,
+      value: formatCurrency(allTimeFinanceMetrics?.totalCouponRefunds || 0),
+      count: allTimeFinanceMetrics?.couponRefundCount || 0,
       countLabel: 'credit coupon refunds',
       changeText: 'Refunds issued as LUNEST credit coupons',
       changeColor: 'text-purple-600',
