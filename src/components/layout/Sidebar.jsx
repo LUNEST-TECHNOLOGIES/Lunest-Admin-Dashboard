@@ -224,7 +224,14 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
           )}
           
           {/* Profile Button */}
-          <button className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-white transition-all duration-200 text-slate-400 hover:text-slate-600 w-full cursor-pointer">
+          <button 
+            onClick={() => onMenuSelect('Profile')}
+            className={`flex items-center gap-3 px-2.5 py-2 rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-600 w-full cursor-pointer ${
+              activeMenu === 'Profile'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200 font-semibold'
+                : 'hover:bg-white'
+            }`}
+          >
             <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-slate-600">
               <ProfileIcon />
             </div>

@@ -533,7 +533,13 @@ export const getAuditLogs = async(filters = {}) => {
                     status: n.read ? 'reviewed' : 'pending'
                 })),
                 totalCount: response.data.body.totalCount || 0,
-                unreadCount: response.data.body.unreadCount || 0
+                unreadCount: response.data.body.unreadCount || 0,
+                pagination: response.data.body.pagination || {
+                    page: filters.page || 1,
+                    limit: filters.limit || 50,
+                    total: response.data.body.totalCount || 0,
+                    pages: Math.ceil((response.data.body.totalCount || 0) / (filters.limit || 50))
+                }
             };
         }
         return { body: [], totalCount: 0 };
@@ -562,7 +568,8 @@ const getAuditCategory = (type) => {
         'CAUTION_FEE_RESOLVED': 'Finance',
         'WALLET_ADJUSTED': 'Finance',
         'PAYMENT_PROCESSED': 'Finance',
-        'COUPON_REDEEMED': 'Finance'
+        'COUPON_REDEEMED': 'Finance',
+        'LUNA_AGENT_ACTIVITY': 'System / AI Agent'
     };
     return categoryMap[type] || 'System';
 };
@@ -782,5 +789,23 @@ export const adminCreateCoupon = async (data) => {
 
 export const adminDeleteCoupon = async (couponId) => {
     const response = await apiClient.delete(`/admin/referrals/coupons/${couponId}`);
+    return response.data;
+};
+
+// ============================================
+// PROFILE & SECURITY MANAGEMENT
+// ============================================
+
+export const updateAdminProfile = async (data) => {
+    const response = await apiClient.patch('/users/profile', data);
+    return response.data;
+};
+
+export const updateAdminPassword = async (currentPassword, newPassword, confirmPassword) => {
+    const response = await apiClient.post('/users/update-password', {
+        currentPassword,
+        newPassword,
+        confirmPassword
+    });
     return response.data;
 };

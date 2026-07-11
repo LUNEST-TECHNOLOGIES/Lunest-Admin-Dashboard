@@ -3,23 +3,29 @@ import { useNavigate } from 'react-router-dom'
 import NotificationDropdown from './NotificationDropdown'
 import LogoutModal from './LogoutModal'
 
-const Navbar = ({ activeMenu = 'Dashboard' }) => {
+const Navbar = ({ activeMenu = 'Dashboard', onMenuSelect }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [adminUser, setAdminUser] = useState(null)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const navigate = useNavigate()
 
-  // Load admin user data from localStorage on mount
+  // Load admin user data from localStorage on mount and listen to changes
   useEffect(() => {
-    const storedUser = localStorage.getItem('adminUser')
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        setAdminUser(userData)
-      } catch (e) {
-        console.error('Error parsing admin user data:', e)
+    const loadUser = () => {
+      const storedUser = localStorage.getItem('adminUser')
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser)
+          setAdminUser(userData)
+        } catch (e) {
+          console.error('Error parsing admin user data:', e)
+        }
       }
-    }
+    };
+
+    loadUser();
+    window.addEventListener('storage', loadUser);
+    return () => window.removeEventListener('storage', loadUser);
   }, [])
 
   // Get display name and role from admin user data
@@ -161,8 +167,14 @@ const Navbar = ({ activeMenu = 'Dashboard' }) => {
                   <div className="text-slate-400 text-xs font-medium font-aeonik truncate">{adminUser?.emailAddress || ''}</div>
                 </div>
 
-                {/* Menu Items */}
-                <button className="w-full px-5 py-3 border-b-[0.50px] border-slate-200 flex items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer text-left">
+                 {/* Menu Items */}
+                <button 
+                  onClick={() => {
+                    if (typeof onMenuSelect === 'function') onMenuSelect('Profile');
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full px-5 py-3 border-b-[0.50px] border-slate-200 flex items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer text-left"
+                >
                   <div className="w-4 h-4 flex-shrink-0">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2"/>
@@ -172,7 +184,13 @@ const Navbar = ({ activeMenu = 'Dashboard' }) => {
                   <span className="text-neutral-700 text-sm font-medium font-aeonik">View Profile</span>
                 </button>
 
-                <button className="w-full px-5 py-3 border-b-[0.50px] border-slate-200 flex items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer text-left">
+                <button 
+                  onClick={() => {
+                    if (typeof onMenuSelect === 'function') onMenuSelect('Audit Logs');
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full px-5 py-3 border-b-[0.50px] border-slate-200 flex items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer text-left"
+                >
                   <div className="w-4 h-4 flex-shrink-0">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>

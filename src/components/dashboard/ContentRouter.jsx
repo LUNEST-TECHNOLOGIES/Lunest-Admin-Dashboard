@@ -1019,6 +1019,29 @@ export const AuditLogsContent = () => {
     }
   };
 
+  const fetchAllMatchingLogsForExport = async () => {
+    try {
+      setLoading(true);
+      const limit = pagination.total || 5000;
+      const response = await getAuditLogs({
+        limit,
+        page: 1,
+        type: filter !== 'all' ? filter : undefined,
+        search: searchTerm,
+        startDate,
+        endDate
+      });
+      const responseData = response.body || response;
+      const logsArray = responseData.logs || (Array.isArray(responseData) ? responseData : responseData.body || []);
+      return Array.isArray(logsArray) ? logsArray : [];
+    } catch (e) {
+      console.error('Failed to fetch logs for export:', e);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Reset to page 1 when filters change (except for page itself)
   useEffect(() => {
     if (pagination.page !== 1) {
@@ -1028,7 +1051,7 @@ export const AuditLogsContent = () => {
 
   const filteredLogs = logs; // Filtering is handled server-side now for pagination accuracy
 
-  const categories = ['all', 'User Management', 'Listings', 'Bookings', 'Finance', 'Verification', 'Disputes', 'Content Moderation'];
+  const categories = ['all', 'User Management', 'Listings', 'Bookings', 'Finance', 'Verification', 'Disputes', 'Content Moderation', 'System / AI Agent'];
 
   const getPriorityBadge = (priority) => {
     const colors = {
@@ -1295,86 +1318,125 @@ export const AuditLogsContent = () => {
                 {isExportOpen && (
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-100 z-50 overflow-hidden py-1">
                     <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 italic text-[10px] text-slate-500">
-                      Exports {logs.length} matching logs
+                      Exports {pagination.total || logs.length} matching logs
                     </div>
                     <button
-                      onClick={() => {
-                        const exportData = logs.map(log => ({
-                            Type: log.type,
-                            Action: log.action,
-                            User: log.user,
-                            Email: log.userEmail,
-                            Category: log.category,
-                            Priority: log.priority,
-                            Status: log.status,
+                      onClick={async () => {
+                        setIsExportOpen(false);
+                        const exportLogs = await fetchAllMatchingLogsForExport();
+                        if (exportLogs.length === 0) {
+                          alert("No logs to export.");
+                          return;
+                        }
+                        const XLSXLib = window.XLSX;
+                        if (!XLSXLib) {
+                          alert("Export library (SheetJS) is not loaded yet.");
+                          return;
+                        }
+                        const exportData = exportLogs.map(log => ({
+                            Type: log.type || '',
+                            Action: log.action || '',
+                            User: log.user || '',
+                            Email: log.userEmail || '',
+                            Category: log.category || '',
+                            Priority: log.priority || '',
+                            Status: log.status || '',
                             Timestamp: new Date(log.timestamp).toLocaleString(),
-                            Description: log.description
+                            Description: log.description || ''
                         }));
                         const filename = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
-                        const ws = XLSX.utils.json_to_sheet(exportData);
-                        const csv = XLSX.utils.sheet_to_csv(ws);
+                        const ws = XLSXLib.utils.json_to_sheet(exportData);
+                        const csv = XLSXLib.utils.sheet_to_csv(ws);
                         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
                         a.download = filename;
                         a.click();
-                        setIsExportOpen(false);
                       }}
                       className="w-full text-left px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2 border-b border-slate-50"
                     >
                       <span className="text-green-600">📊</span> Export as CSV
                     </button>
                     <button
-                      onClick={() => {
-                        const doc = new jsPDF();
+                      onClick={async () => {
+                        setIsExportOpen(false);
+                        const exportLogs = await fetchAllMatchingLogsForExport();
+                        if (exportLogs.length === 0) {
+                          alert("No logs to export.");
+                          return;
+                        }
+                        const jsPDFClass = window.jspdf?.jsPDF;
+                        if (!jsPDFClass) {
+                          alert("Export library (jsPDF) is not loaded yet.");
+                          return;
+                        }
+                        const doc = new jsPDFClass();
                         doc.text(`Audit Logs - ${new Date().toLocaleDateString()}`, 14, 15);
                         
-                        const tableData = logs.map(log => [
-                            log.type,
-                            log.action,
-                            log.user,
-                            log.category,
-                            log.priority,
-                            log.status,
+                        const tableData = exportLogs.map(log => [
+                            log.type || '',
+                            log.action || '',
+                            log.user || '',
+                            log.category || '',
+                            log.priority || '',
+                            log.status || '',
                             new Date(log.timestamp).toLocaleString()
                         ]);
                         
-                        if (autoTable) {
-                            autoTable(doc, {
-                                head: [['Type', 'Action', 'User', 'Category', 'Priority', 'Status', 'Timestamp']],
-                                body: tableData,
-                                startY: 20,
-                                styles: { fontSize: 8 },
-                                headStyles: { fillColor: [79, 70, 229] }
-                            });
+                        const autoTablePlugin = window.jspdf?.autoTable || window.autoTable;
+                        if (autoTablePlugin) {
+                          autoTablePlugin(doc, {
+                            head: [['Type', 'Action', 'User', 'Category', 'Priority', 'Status', 'Timestamp']],
+                            body: tableData,
+                            startY: 20,
+                            styles: { fontSize: 8 },
+                            headStyles: { fillColor: [79, 70, 229] }
+                          });
+                        } else if (typeof doc.autoTable === 'function') {
+                          doc.autoTable({
+                            head: [['Type', 'Action', 'User', 'Category', 'Priority', 'Status', 'Timestamp']],
+                            body: tableData,
+                            startY: 20,
+                            styles: { fontSize: 8 },
+                            headStyles: { fillColor: [79, 70, 229] }
+                          });
                         }
                         doc.save(`audit_logs_${new Date().toISOString().split('T')[0]}.pdf`);
-                        setIsExportOpen(false);
                       }}
                       className="w-full text-left px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2 border-b border-slate-50"
                     >
                       <span className="text-red-500">📄</span> Export as PDF
                     </button>
                     <button
-                      onClick={() => {
-                        const exportData = logs.map(log => ({
-                            Type: log.type,
-                            Action: log.action,
-                            User: log.user,
-                            Email: log.userEmail,
-                            Category: log.category,
-                            Priority: log.priority,
-                            Status: log.status,
+                      onClick={async () => {
+                        setIsExportOpen(false);
+                        const exportLogs = await fetchAllMatchingLogsForExport();
+                        if (exportLogs.length === 0) {
+                          alert("No logs to export.");
+                          return;
+                        }
+                        const XLSXLib = window.XLSX;
+                        if (!XLSXLib) {
+                          alert("Export library (SheetJS) is not loaded yet.");
+                          return;
+                        }
+                        const exportData = exportLogs.map(log => ({
+                            Type: log.type || '',
+                            Action: log.action || '',
+                            User: log.user || '',
+                            Email: log.userEmail || '',
+                            Category: log.category || '',
+                            Priority: log.priority || '',
+                            Status: log.status || '',
                             Timestamp: new Date(log.timestamp).toLocaleString(),
-                            Description: log.description
+                            Description: log.description || ''
                         }));
                         const filename = `audit_logs_${new Date().toISOString().split('T')[0]}.xlsx`;
-                        const ws = XLSX.utils.json_to_sheet(exportData);
-                        const wb = XLSX.utils.book_new();
-                        XLSX.utils.book_append_sheet(wb, ws, "Audit Logs");
-                        XLSX.writeFile(wb, filename);
-                        setIsExportOpen(false);
+                        const ws = XLSXLib.utils.json_to_sheet(exportData);
+                        const wb = XLSXLib.utils.book_new();
+                        XLSXLib.utils.book_append_sheet(wb, ws, "Audit Logs");
+                        XLSXLib.writeFile(wb, filename);
                       }}
                       className="w-full text-left px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2"
                     >
@@ -1637,6 +1699,387 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
   );
 };
 
+// Profile Content Component
+export const ProfileContent = () => {
+  const [adminUser, setAdminUser] = useState(() => {
+    const stored = localStorage.getItem('adminUser');
+    try {
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [activeTab, setActiveTab] = useState('profile');
+  
+  // Profile Form State
+  const [fullName, setFullName] = useState(adminUser?.fullName || '');
+  const [gender, setGender] = useState(adminUser?.gender || 'OTHERS');
+  const [phoneNumber, setPhoneNumber] = useState(adminUser?.phoneNumber || '');
+  const [location, setLocation] = useState(adminUser?.location || '');
+  const [nin, setNin] = useState(adminUser?.nin || '');
+  
+  // Password Form State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // Load states and feedback states
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileError, setProfileError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  // Listen to changes in local storage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const stored = localStorage.getItem('adminUser');
+      try {
+        if (stored) {
+          const userData = JSON.parse(stored);
+          setAdminUser(userData);
+        }
+      } catch {}
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Sync state if adminUser object changes
+  useEffect(() => {
+    if (adminUser) {
+      setFullName(adminUser.fullName || '');
+      setGender(adminUser.gender || 'OTHERS');
+      setPhoneNumber(adminUser.phoneNumber || '');
+      setLocation(adminUser.location || '');
+      setNin(adminUser.nin || '');
+    }
+  }, [adminUser]);
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setProfileSuccess('');
+    setProfileError('');
+    setSavingProfile(true);
+
+    try {
+      const payload = {
+        fullName,
+        gender,
+        phoneNumber: phoneNumber || undefined,
+        location: location || undefined,
+        nin: nin || undefined
+      };
+      
+      const adminService = await import('../../services/adminService');
+      const response = await adminService.updateAdminProfile(payload);
+      
+      if (response && response.success && response.body) {
+        // Merge updated fields back into localStorage adminUser
+        const updatedUser = {
+          ...adminUser,
+          ...response.body
+        };
+        localStorage.setItem('adminUser', JSON.stringify(updatedUser));
+        setAdminUser(updatedUser);
+        setProfileSuccess('Profile updated successfully!');
+        
+        // Trigger a custom event to notify Navbar/Sidebar to update immediately
+        window.dispatchEvent(new Event('storage'));
+      } else {
+        setProfileError(response?.message || 'Failed to update profile.');
+      }
+    } catch (err) {
+      console.error(err);
+      setProfileError(err.message || 'An error occurred while updating profile.');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    setPasswordSuccess('');
+    setPasswordError('');
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New password and confirmation do not match.');
+      return;
+    }
+
+    setSavingPassword(true);
+
+    try {
+      const adminService = await import('../../services/adminService');
+      const response = await adminService.updateAdminPassword(currentPassword, newPassword, confirmPassword);
+      
+      if (response && response.success) {
+        setPasswordSuccess('Password updated successfully!');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setPasswordError(response?.message || 'Failed to update password.');
+      }
+    } catch (err) {
+      console.error(err);
+      setPasswordError(err.message || 'An error occurred while changing password.');
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const permissionsList = adminUser?.permissions || [];
+
+  return (
+    <div className="space-y-6 lg:space-y-7">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-7">
+        
+        {/* Left Column: Glassmorphism Avatar & Info Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col items-center text-center">
+          <div className="w-24 h-24 bg-gradient-to-tr from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-md relative">
+            {fullName ? fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'AD'}
+            <div className="w-6 h-6 bg-green-500 rounded-full absolute bottom-1 right-1 border-4 border-white" />
+          </div>
+          
+          <h2 className="mt-4 text-lg font-bold text-slate-800 font-aeonik">{fullName || 'Admin User'}</h2>
+          <span className="mt-1 px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-100 capitalize">
+            {adminUser?.userType?.toLowerCase() || 'admin'}
+          </span>
+          <p className="mt-2 text-sm text-slate-400 font-aeonik">{adminUser?.emailAddress || 'No Email'}</p>
+          
+          <div className="w-full border-t border-slate-100 my-5"></div>
+          
+          {/* Permissions Grid */}
+          <div className="w-full text-left">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Assigned Permissions</h3>
+            {permissionsList.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {permissionsList.map((perm, idx) => (
+                  <span 
+                    key={idx} 
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-700 text-xs font-medium rounded-md border border-slate-200"
+                  >
+                    <span className="text-green-500 font-bold">✓</span> {perm.replace(/_/g, ' ')}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400 italic">No custom permissions assigned. Full access control.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Profile & Settings Tabs */}
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          {/* Tab Headers */}
+          <div className="flex border-b border-slate-200 bg-slate-50/50">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`flex-1 py-4 text-center text-sm font-semibold transition-colors border-b-2 font-aeonik ${
+                activeTab === 'profile'
+                  ? 'border-indigo-600 text-indigo-600 bg-white shadow-sm'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Profile Details
+            </button>
+            <button
+              onClick={() => setActiveTab('security')}
+              className={`flex-1 py-4 text-center text-sm font-semibold transition-colors border-b-2 font-aeonik ${
+                activeTab === 'security'
+                  ? 'border-indigo-600 text-indigo-600 bg-white shadow-sm'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Security Settings
+            </button>
+          </div>
+
+          <div className="p-6">
+            {/* Tab 1: Profile Details Form */}
+            {activeTab === 'profile' && (
+              <form onSubmit={handleUpdateProfile} className="space-y-4">
+                {profileSuccess && (
+                  <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg flex items-center gap-2">
+                    <span>✅</span> {profileSuccess}
+                  </div>
+                )}
+                {profileError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
+                    <span>❌</span> {profileError}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                      placeholder="e.g. John Doe"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address (Read-only)</label>
+                    <input
+                      type="email"
+                      value={adminUser?.emailAddress || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-slate-100 bg-slate-50 rounded-lg text-sm text-slate-400 cursor-not-allowed outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Gender</label>
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                      <option value="OTHERS">Others</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="e.g. +2348012345678"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Location</label>
+                    <input
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="e.g. Lagos, Nigeria"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">National Identification Number (NIN)</label>
+                    <input
+                      type="text"
+                      value={nin}
+                      onChange={(e) => setNin(e.target.value)}
+                      placeholder="11 digits"
+                      maxLength={11}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={savingProfile}
+                    className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold text-sm transition-colors flex items-center gap-2 cursor-pointer disabled:bg-indigo-400"
+                  >
+                    {savingProfile ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Profile Details'
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Tab 2: Security & Password Form */}
+            {activeTab === 'security' && (
+              <form onSubmit={handleUpdatePassword} className="space-y-4 max-w-md">
+                {passwordSuccess && (
+                  <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg flex items-center gap-2">
+                    <span>✅</span> {passwordSuccess}
+                  </div>
+                )}
+                {passwordError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
+                    <span>❌</span> {passwordError}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Current Password</label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">New Password</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Confirm New Password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="pt-4 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={savingPassword}
+                    className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold text-sm transition-colors flex items-center gap-2 cursor-pointer disabled:bg-indigo-400"
+                  >
+                    {savingPassword ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Updating...
+                      </>
+                    ) : (
+                      'Change Password'
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  );
+};
+
 export function ContentRouter({ activeMenu, stats }) {
   const contentMap = {
     'Dashboard': <DashboardContent stats={stats} />,
@@ -1661,6 +2104,7 @@ export function ContentRouter({ activeMenu, stats }) {
     'Content Moderation': <ContentModerationContent />,
     'Messages Oversight': <MessagesContent />,
     'Audit Logs': <AuditLogsContent />,
+    'Profile': <ProfileContent />,
   };
 
   return contentMap[activeMenu] || contentMap['Dashboard'];

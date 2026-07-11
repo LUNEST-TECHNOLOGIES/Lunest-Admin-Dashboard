@@ -103,7 +103,7 @@ export default function Dashboard() {
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Navbar - Pass active menu */}
-                <Navbar activeMenu={activeMenu} />
+                <Navbar activeMenu={activeMenu} onMenuSelect={setActiveMenu} />
 
                 {/* Scrollable Content */}
                 <main className="flex-1 overflow-y-auto">
