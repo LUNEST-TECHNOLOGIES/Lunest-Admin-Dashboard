@@ -1316,7 +1316,7 @@ export const AuditLogsContent = () => {
                 </button>
                 
                 {isExportOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-100 z-50 overflow-hidden py-1">
+                  <div className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-lg shadow-xl border border-slate-100 z-50 overflow-hidden py-1">
                     <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 italic text-[10px] text-slate-500">
                       Exports {pagination.total || logs.length} matching logs
                     </div>

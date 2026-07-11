@@ -135,7 +135,9 @@ const BookingManagement = () => {
         disputeRaised: !!booking.disputeRaised,
         referenceCode: booking.referenceCode,
         internalNote: booking.internalNote || '',
-        securityDepositResolution: booking.securityDepositResolution || null
+        securityDepositResolution: booking.securityDepositResolution || null,
+        cancelReason: booking.cancelReason || '',
+        cancelNote: booking.cancelNote || ''
       }));
       setBookings(transformedBookings);
     } catch (err) {
@@ -306,7 +308,7 @@ const BookingManagement = () => {
                         </div>
                       </div>
 
-                      <div className="flex justify-center">
+                      <div className="flex flex-col items-center justify-center gap-1">
                         <div className={`px-3 py-1 rounded-full border flex justify-center items-center whitespace-nowrap ${
                           booking.rawStatus === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
                           booking.rawStatus === 'CANCELLED' ? 'bg-rose-50 text-rose-700 border-rose-100' :
@@ -314,6 +316,14 @@ const BookingManagement = () => {
                         }`}>
                           <span className="text-[10px] font-black uppercase tracking-wider">{booking.status}</span>
                         </div>
+                        {booking.rawStatus === 'CANCELLED' && booking.cancelReason && (
+                          <span 
+                            className="text-[9px] text-red-500 font-medium text-center line-clamp-1 max-w-[120px]" 
+                            title={`${booking.cancelReason}${booking.cancelNote ? ': ' + booking.cancelNote : ''}`}
+                          >
+                            Reason: {booking.cancelReason}
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex justify-end pr-2">
