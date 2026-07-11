@@ -1535,6 +1535,9 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
             <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border whitespace-nowrap ${
               isFee ? 'bg-blue-50 text-blue-600 border-blue-100' :
               isVat ? 'bg-purple-50 text-purple-600 border-purple-100' :
+              transaction.category === 'CANCELLATION_PENALTY' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+              transaction.category === 'CANCELLATION_REFUND' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+              transaction.category === 'CANCELLATION_CREDIT' ? 'bg-purple-50 text-purple-700 border-purple-200' :
               'bg-slate-100 text-slate-500 border-slate-200/50'
             }`}>
               {transaction.category?.replace(/_/g, ' ')}
