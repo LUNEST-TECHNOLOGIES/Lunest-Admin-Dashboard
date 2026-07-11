@@ -47,6 +47,7 @@ const FinancialManagement = () => {
     'Caution Fees',
     'Coupons',
     'Refunds',
+    'Cancellations',
     'Rewards'
   ];
 
@@ -99,6 +100,9 @@ const FinancialManagement = () => {
         break;
       case 'Rewards':
         filters.category = 'REWARD,CASH_REWARD';
+        break;
+      case 'Cancellations':
+        filters.category = 'CANCELLATION_REFUND,CANCELLATION_PENALTY,CANCELLATION_CREDIT';
         break;
       default:
         // 'All Transactions' - no filters
@@ -840,7 +844,7 @@ const FinancialManagement = () => {
   // Memoize financial metrics for efficiency and consistent integrity checks
   const financeMetrics = calculateFinancialMetrics(summary);
 
-  const stats = [
+  const mainStats = [
     {
       title: 'Gross Revenue',
       value: formatCurrency(financeMetrics?.grossRevenue || 0),
@@ -1000,40 +1004,58 @@ const FinancialManagement = () => {
       critical: false,
       integrity: true
     },
-    {
-      title: 'Total Refunds',
-      value: financeMetrics?.refundCount || 0,
-      isNumerical: true,
-      change: formatCurrency(financeMetrics?.totalRefunds || 0),
-      changeText: 'Total cash refunds processed',
-      changeColor: 'text-rose-600',
-      icon: '↩️',
-      critical: false,
-      integrity: true
-    },
-    {
-      title: 'Total Penalties',
-      value: financeMetrics?.penaltyCount || 0,
-      isNumerical: true,
-      change: formatCurrency(financeMetrics?.totalPenalties || 0),
-      changeText: 'Penalties retained from cancellations',
-      changeColor: 'text-amber-600',
-      icon: '⚠️',
-      critical: false,
-      integrity: true
-    },
-    {
-      title: 'Cancellation Credits',
-      value: financeMetrics?.couponRefundCount || 0,
-      isNumerical: true,
-      change: formatCurrency(financeMetrics?.totalCouponRefunds || 0),
-      changeText: 'Refunds issued as platform coupons',
-      changeColor: 'text-purple-600',
-      icon: '🎟️',
-      critical: false,
-      integrity: true
-    }
   ];
+
+  // Cancellation & Refund stats — shown in a dedicated section
+  const cancellationStats = [
+    {
+      title: 'Cash Refunds Issued',
+      value: formatCurrency(financeMetrics?.totalRefunds || 0),
+      count: financeMetrics?.refundCount || 0,
+      countLabel: 'refund transactions',
+      changeText: 'Total cash returned to guest wallets',
+      changeColor: 'text-rose-600',
+      borderColor: 'border-rose-200',
+      bgColor: 'bg-rose-50',
+      icon: '↩️',
+    },
+    {
+      title: 'Penalties Collected',
+      value: formatCurrency(financeMetrics?.totalPenalties || 0),
+      count: financeMetrics?.penaltyCount || 0,
+      countLabel: 'penalty transactions',
+      changeText: 'Cancellation penalties deducted from guests',
+      changeColor: 'text-amber-600',
+      borderColor: 'border-amber-200',
+      bgColor: 'bg-amber-50',
+      icon: '⚠️',
+    },
+    {
+      title: 'Penalty Platform Revenue',
+      value: formatCurrency(financeMetrics?.totalPenaltyRevenue || 0),
+      count: null,
+      countLabel: null,
+      changeText: 'Portion of penalties retained by platform',
+      changeColor: 'text-orange-600',
+      borderColor: 'border-orange-200',
+      bgColor: 'bg-orange-50',
+      icon: '🏦',
+    },
+    {
+      title: 'Credit Refunds Issued',
+      value: formatCurrency(financeMetrics?.totalCouponRefunds || 0),
+      count: financeMetrics?.couponRefundCount || 0,
+      countLabel: 'credit coupon refunds',
+      changeText: 'Refunds issued as LUNEST credit coupons',
+      changeColor: 'text-purple-600',
+      borderColor: 'border-purple-200',
+      bgColor: 'bg-purple-50',
+      icon: '🎟️',
+    },
+  ];
+
+  // Legacy alias for any remaining references
+  const stats = mainStats;
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -1062,8 +1084,11 @@ const FinancialManagement = () => {
             )}
 
             {/* Stats Cards - Main Financials */}
+            <div className="mb-3">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">Financial Overview</h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
-              {stats.map((stat, index) => (
+              {mainStats.map((stat, index) => (
                 <div key={index} className={`bg-white rounded-lg shadow-md border ${stat.critical && !stat.integrity ? 'border-red-300' : 'border-gray-200'} p-6 hover:shadow-lg transition-shadow relative`}>
                   {/* Integrity Indicator for Critical Cards */}
                   {stat.critical && (
@@ -1090,6 +1115,40 @@ const FinancialManagement = () => {
                       </div>
                     )}
                   </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Cancellations & Refunds Section */}
+            <div className="mb-3">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-1">Cancellations &amp; Refunds</h2>
+              <p className="text-xs text-gray-400 mb-4">Breakdown of cancellation penalties, cash refunds, and credit refunds within the selected date range.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+              {cancellationStats.map((stat, index) => (
+                <div key={index} className={`bg-white rounded-lg shadow-md border ${stat.borderColor} p-6 hover:shadow-lg transition-shadow`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`w-12 h-12 ${stat.bgColor} rounded-full flex items-center justify-center text-xl`}>
+                      {stat.icon}
+                    </div>
+                    {stat.count !== null && (
+                      <span className="text-xs font-semibold text-gray-400 bg-gray-100 rounded-full px-2 py-1">
+                        {stat.count} {stat.countLabel}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">{stat.title}</h3>
+                  <p className={`text-2xl font-bold ${stat.changeColor}`}>{stat.value}</p>
+                  <p className="text-xs text-gray-400 mt-2">{stat.changeText}</p>
+                  <button
+                    className="mt-3 text-xs font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                    onClick={() => {
+                      setActiveTab('Cancellations');
+                      setPagination(prev => ({ ...prev, page: 1 }));
+                    }}
+                  >
+                    View transactions →
+                  </button>
                 </div>
               ))}
             </div>
