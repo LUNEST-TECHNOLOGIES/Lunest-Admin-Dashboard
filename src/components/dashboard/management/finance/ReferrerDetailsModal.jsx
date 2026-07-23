@@ -17,8 +17,9 @@ const ReferrerDetailsModal = ({ isOpen, onClose, referrer }) => {
     const [filterRole, setFilterRole] = useState('ALL'); // ALL | GUESTS | HOSTS
 
     useEffect(() => {
-        if (isOpen && referrer?._id) {
-            fetchReferralDetails(referrer._id);
+        const targetId = referrer?._id || referrer?.id || referrer?.userId || referrer?.userID;
+        if (isOpen && targetId) {
+            fetchReferralDetails(targetId);
         } else {
             setData(null);
         }
@@ -157,7 +158,7 @@ const ReferrerDetailsModal = ({ isOpen, onClose, referrer }) => {
                         </div>
 
                         <button 
-                            onClick={() => fetchReferralDetails(referrer._id)}
+                            onClick={() => fetchReferralDetails(referrer._id || referrer.id || referrer.userId || referrer.userID)}
                             className="flex items-center gap-1 text-xs text-indigo-600 font-bold hover:text-indigo-800 cursor-pointer"
                         >
                             <MdOutlineRefresh className="w-4 h-4" />
