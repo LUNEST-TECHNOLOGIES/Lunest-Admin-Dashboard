@@ -743,6 +743,13 @@ export const getReferredUsers = async (referrerId) => {
     return response.data;
 };
 
+export const getReferralLeaderboard = async (limit = 50, search = '') => {
+    const params = { limit };
+    if (search) params.search = search;
+    const response = await apiClient.get('/admin/referrals/leaderboard', { params });
+    return response.data;
+};
+
 export const getManualRewardLogs = async (page = 1, limit = 20) => {
     const response = await apiClient.get('/admin/referrals/manual-rewards', { params: { page, limit } });
     return response.data;
@@ -750,6 +757,14 @@ export const getManualRewardLogs = async (page = 1, limit = 20) => {
 
 export const adminCreditPoints = async (userId, points, reason) => {
     const response = await apiClient.post('/admin/referrals/credit-points', { userId, points, reason });
+    return response.data;
+};
+
+export const assignCustomReferralCode = async (identifier, customCode) => {
+    const payload = (typeof identifier === 'string' && identifier.includes('@'))
+        ? { emailAddress: identifier, customCode }
+        : { userId: identifier, customCode };
+    const response = await apiClient.post('/admin/referrals/custom-code', payload);
     return response.data;
 };
 

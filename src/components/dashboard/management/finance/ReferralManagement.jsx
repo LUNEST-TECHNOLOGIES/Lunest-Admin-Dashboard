@@ -20,6 +20,9 @@ import {
 import StatsCard from '../../StatsCard';
 import CreditPointsModal from './CreditPointsModal';
 import ConvertPointsModal from './ConvertPointsModal';
+import ReferrerDetailsModal from './ReferrerDetailsModal';
+import ReferralLeaderboard from './ReferralLeaderboard';
+import CustomReferralCodeModal from './CustomReferralCodeModal';
 import { useNotification } from '../../../ui/NotificationProvider';
 import {
     getReferralStats,
@@ -32,10 +35,14 @@ import {
 
 const ReferralManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState('Referral Tree');
+    const [activeTab, setActiveTab] = useState('Leaderboard');
     const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
     const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [isCustomCodeModalOpen, setIsCustomCodeModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [selectedReferrer, setSelectedReferrer] = useState(null);
+    const [selectedUserForCustomCode, setSelectedUserForCustomCode] = useState(null);
     const [sortConfig, setSortConfig] = useState({ key: 'directReferrals', direction: 'desc' });
     const notify = useNotification();
 
@@ -204,7 +211,7 @@ const ReferralManagement = () => {
         fetchTabData(newPage);
     };
 
-    const tabs = ['Referral Tree', 'Manual Reward Logs', 'Credit Bonus', 'Promo Impact'];
+    const tabs = ['Leaderboard', 'Referral Tree', 'Manual Reward Logs', 'Credit Bonus', 'Promo Impact'];
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '-';
@@ -212,6 +219,22 @@ const ReferralManagement = () => {
     };
 
     const renderTable = () => {
+        if (activeTab === 'Leaderboard') {
+            return (
+                <ReferralLeaderboard 
+                    searchTerm={searchTerm}
+                    onSelectReferrer={(user) => {
+                        setSelectedReferrer(user);
+                        setIsDetailsModalOpen(true);
+                    }}
+                    onEditCustomCode={(user) => {
+                        setSelectedUserForCustomCode(user);
+                        setIsCustomCodeModalOpen(true);
+                    }}
+                />
+            );
+        }
+
         if (loading) {
             return (
                 <div className="p-20 text-center">
@@ -272,17 +295,19 @@ const ReferralManagement = () => {
                             <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Referral Code</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider cursor-pointer group hover:bg-indigo-100 transition-colors" onClick={() => requestSort('directReferrals')}>
                                 <div className="flex items-center gap-1">
-                                    Direct Referrals
+                                    Total Referrals
                                     <MdOutlineSwapVert className={`w-4 h-4 transition-colors ${sortConfig.key === 'directReferrals' ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
                                 </div>
                             </th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Guests Onboarded</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Hosts Onboarded</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider cursor-pointer group hover:bg-indigo-100 transition-colors" onClick={() => requestSort('totalEarnedPoints')}>
                                 <div className="flex items-center gap-1">
-                                    Total Earned Points
+                                    Total Points
                                     <MdOutlineSwapVert className={`w-4 h-4 transition-colors ${sortConfig.key === 'totalEarnedPoints' ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
                                 </div>
                             </th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm">
@@ -302,15 +327,47 @@ const ReferralManagement = () => {
                                 </td>
                                 <td className="px-6 py-4 text-slate-700 font-bold">{user.directReferrals}</td>
                                 <td className="px-6 py-4">
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-slate-900">{user.guestsOnboarded || 0}</span>
+                                        <span className="text-xs text-green-600 font-medium">({user.guestsBooked || 0} booked)</span>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-slate-900">{user.hostsOnboarded || 0}</span>
+                                        <span className="text-xs text-blue-600 font-medium">({user.hostsApproved || 0} approved)</span>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4">
                                     <div className="flex items-center gap-1.5 font-semibold text-slate-900">
                                         <MdOutlineMonetizationOn className="w-4 h-4 text-amber-500" />
                                         {user.totalEarnedPoints} Points
                                     </div>
                                 </td>
-                                <td className="px-6 py-4">
-                                    <span className="px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-bold">
-                                        {user.status}
-                                    </span>
+                                <td className="px-6 py-4 text-right">
+                                    <div className="flex justify-end gap-2">
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedUserForCustomCode(user);
+                                                setIsCustomCodeModalOpen(true);
+                                            }}
+                                            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-100 transition-all cursor-pointer"
+                                            title="Assign or Edit Custom Referral Code"
+                                        >
+                                            <MdOutlineEdit className="w-3.5 h-3.5" />
+                                            Edit Code
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedReferrer(user);
+                                                setIsDetailsModalOpen(true);
+                                            }}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-all cursor-pointer"
+                                        >
+                                            <MdOutlineVisibility className="w-3.5 h-3.5" />
+                                            View Referrals
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -458,7 +515,17 @@ const ReferralManagement = () => {
                         />
                     </div>
                     
-                    <div className="flex gap-4 w-full md:w-auto">
+                    <div className="flex gap-3 w-full md:w-auto">
+                        <button 
+                            onClick={() => {
+                                setSelectedUserForCustomCode(null);
+                                setIsCustomCodeModalOpen(true);
+                            }}
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-900 text-white rounded-lg text-sm font-bold hover:bg-indigo-950 transition-all cursor-pointer shadow-sm"
+                        >
+                            <MdOutlineAddCircleOutline className="w-5 h-5" />
+                            Assign Custom Code
+                        </button>
                         <button 
                             onClick={() => { fetchStats(); fetchTabData(); }}
                             className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-sm font-bold hover:bg-slate-100 transition-all cursor-pointer"
@@ -524,6 +591,24 @@ const ReferralManagement = () => {
                 onConvert={(data) => {
                     notify.success('Points Converted', `Conversion of ${data.points} points approved for ${selectedUser?.name}.`);
                     setIsConvertModalOpen(false);
+                }}
+            />
+            <ReferrerDetailsModal
+                isOpen={isDetailsModalOpen}
+                onClose={() => setIsDetailsModalOpen(false)}
+                referrer={selectedReferrer}
+                onEditCustomCode={(refUser) => {
+                    setSelectedUserForCustomCode(refUser);
+                    setIsCustomCodeModalOpen(true);
+                }}
+            />
+            <CustomReferralCodeModal
+                isOpen={isCustomCodeModalOpen}
+                onClose={() => setIsCustomCodeModalOpen(false)}
+                user={selectedUserForCustomCode}
+                onSuccess={() => {
+                    fetchStats();
+                    fetchTabData();
                 }}
             />
         </div>
