@@ -11,7 +11,7 @@ import {
 } from 'react-icons/md';
 import { getReferredUsers } from '../../../../services/adminService';
 
-const ReferrerDetailsModal = ({ isOpen, onClose, referrer }) => {
+const ReferrerDetailsModal = ({ isOpen, onClose, referrer, onEditCustomCode }) => {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState(null);
     const [filterRole, setFilterRole] = useState('ALL'); // ALL | GUESTS | HOSTS
