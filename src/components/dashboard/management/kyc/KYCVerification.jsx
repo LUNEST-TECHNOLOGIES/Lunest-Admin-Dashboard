@@ -283,13 +283,13 @@ const KYCVerification = () => {
         ))}
       </div>
 
-      {/* Main Content */}
-      <div className="w-full p-2.5 bg-white rounded-[10px] outline outline-[0.40px] outline-zinc-400 flex flex-col justify-start items-center gap-2.5 mt-5">
+      {/* Main Content Container with Horizontal Scroll Support */}
+      <div className="w-full bg-white rounded-[10px] outline outline-[0.40px] outline-zinc-400 flex flex-col justify-start items-stretch mt-5 overflow-hidden">
         {/* Search and Filter Bar */}
-        <div className="w-full inline-flex justify-between items-center px-7 py-3">
+        <div className="w-full flex flex-col sm:flex-row justify-between items-center px-4 md:px-7 py-3 gap-3">
           {/* Search Input */}
-          <div className="w-96 h-10 px-4 py-2 bg-gray-50 rounded-[30px] flex justify-start items-center gap-2.5">
-            <MdSearch className="w-5 h-5 text-slate-900" />
+          <div className="w-full sm:w-80 md:w-96 h-10 px-4 py-2 bg-gray-50 rounded-[30px] flex justify-start items-center gap-2.5">
+            <MdSearch className="w-5 h-5 text-slate-900 flex-shrink-0" />
             <input
               type="text"
               value={searchQuery}
@@ -298,7 +298,7 @@ const KYCVerification = () => {
                 setCurrentPage(1);
               }}
               placeholder="Enter User ID or Submission Ref..."
-              className="flex-1 bg-transparent text-slate-400 text-sm font-medium font-inter placeholder-slate-400 focus:outline-none"
+              className="flex-1 bg-transparent text-slate-900 text-sm font-medium font-inter placeholder-slate-400 focus:outline-none"
             />
           </div>
 
@@ -310,7 +310,7 @@ const KYCVerification = () => {
                 setSelectedRows(new Set());
               }
             }}
-            className={`px-7 py-2 rounded-3xl flex justify-center items-center gap-1 transition-colors cursor-pointer ${
+            className={`px-5 py-2 rounded-3xl flex justify-center items-center gap-2 transition-colors cursor-pointer shrink-0 ${
               showSelectMode
                 ? 'bg-slate-900 text-white hover:bg-slate-800'
                 : 'bg-indigo-50 text-slate-900 hover:bg-indigo-100'
@@ -318,180 +318,185 @@ const KYCVerification = () => {
           >
             {selectedRows.size > 0 && <MdCheckCircle className="w-4 h-4 text-white" />}
             <div className={`w-5 h-5 p-0.5 rounded text-white text-[8px] font-medium flex items-center justify-center flex-shrink-0 ${selectedRows.size > 0 ? 'bg-orange-600' : 'bg-gray-400'}`}>{selectedRows.size}</div>
-            <span className={`text-[10px] font-semibold font-aeonik leading-4 ${showSelectMode ? 'text-white' : 'text-slate-900'}`}>{selectedRows.size > 0 ? 'Selected' : 'Select'}</span>
+            <span className={`text-xs font-semibold font-aeonik leading-4 ${showSelectMode ? 'text-white' : 'text-slate-900'}`}>{selectedRows.size > 0 ? 'Selected' : 'Select'}</span>
           </button>
         </div>
 
-        {/* Table Header */}
-        <div className="w-full px-7 py-3.5 bg-sky-100 border-b-[0.40px] border-zinc-400 inline-flex justify-between items-center gap-3">
-          {showSelectMode && (
-            <div 
-              className="w-6 h-6 flex-shrink-0 flex items-center justify-center cursor-pointer border-2 border-zinc-300 rounded"
-              onClick={handleSelectAll}
-            >
-              {selectedRows.size === paginatedKYC.length && selectedRows.size > 0 && <MdCheckCircle className="w-5 h-5 text-indigo-600" />}
-            </div>
-          )}
-          <div className="w-36 opacity-90 text-neutral-800 text-base font-bold font-aeonik flex-shrink-0">KYC ID</div>
-          <div className="w-36 opacity-90 text-neutral-800 text-base font-bold font-aeonik flex-shrink-0">User Details</div>
-          <div className="w-36 opacity-90 text-neutral-800 text-base font-bold font-aeonik flex-shrink-0">Role</div>
-          <div className="w-36 opacity-90 text-neutral-800 text-base font-bold font-aeonik flex-shrink-0">Documents</div>
-          <div className="w-36 opacity-90 text-neutral-800 text-base font-bold font-aeonik flex-shrink-0">Submitted</div>
-          <div className="w-36 opacity-90 text-neutral-800 text-base font-bold font-aeonik flex-shrink-0">Status</div>
-          <div className="w-36 opacity-90 text-neutral-800 text-base font-bold font-aeonik flex-shrink-0">Reviewer</div>
-          <div className="w-12 opacity-90 text-neutral-800 text-base font-bold font-aeonik flex-shrink-0">Actions</div>
-        </div>
-
-        {/* Table Rows */}
-        <div className="w-full flex flex-col">
-          {paginatedKYC.map((kyc) => (
-            <div
-              key={kyc.id}
-              className="w-full px-7 py-3.5 border-b-[0.40px] border-stone-300 inline-flex justify-between items-center hover:bg-gray-50 transition-colors gap-3"
-            >
-              {/* Checkbox */}
+        {/* Responsive Table Scroll Container */}
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-[1080px] w-full flex flex-col">
+            {/* Table Header */}
+            <div className="w-full px-4 md:px-7 py-3.5 bg-sky-100 border-b border-zinc-300 flex items-center gap-4 text-neutral-800 text-sm font-bold font-aeonik">
               {showSelectMode && (
                 <div 
-                  className="w-6 h-6 flex-shrink-0 flex items-center justify-center cursor-pointer border-2 border-zinc-300 rounded"
-                  onClick={() => handleSelectRow(kyc.id)}
+                  className="w-6 h-6 shrink-0 flex items-center justify-center cursor-pointer border-2 border-zinc-300 rounded bg-white"
+                  onClick={handleSelectAll}
                 >
-                  {selectedRows.has(kyc.id) && <MdCheckCircle className="w-5 h-5 text-indigo-600" />}
+                  {selectedRows.size === paginatedKYC.length && selectedRows.size > 0 && <MdCheckCircle className="w-5 h-5 text-indigo-600" />}
                 </div>
               )}
+              <div className="w-28 shrink-0">KYC ID</div>
+              <div className="flex-1 min-w-[200px] shrink-0">User Details</div>
+              <div className="w-24 shrink-0">Role</div>
+              <div className="w-40 shrink-0">Documents</div>
+              <div className="w-28 shrink-0">Submitted</div>
+              <div className="w-28 shrink-0">Status</div>
+              <div className="w-32 shrink-0">Reviewer</div>
+              <div className="w-36 shrink-0 text-center">Actions</div>
+            </div>
 
-              {/* KYC ID */}
-              <div className="w-36 opacity-90 text-neutral-800 text-sm font-medium font-aeonik flex-shrink-0">
-                {kyc.kycId}
-              </div>
+            {/* Table Rows */}
+            <div className="w-full flex flex-col divide-y divide-stone-200">
+              {paginatedKYC.map((kyc) => (
+                <div
+                  key={kyc.id}
+                  className="w-full px-4 md:px-7 py-3.5 flex items-center hover:bg-slate-50 transition-colors gap-4"
+                >
+                  {/* Checkbox */}
+                  {showSelectMode && (
+                    <div 
+                      className="w-6 h-6 shrink-0 flex items-center justify-center cursor-pointer border-2 border-zinc-300 rounded bg-white"
+                      onClick={() => handleSelectRow(kyc.id)}
+                    >
+                      {selectedRows.has(kyc.id) && <MdCheckCircle className="w-5 h-5 text-indigo-600" />}
+                    </div>
+                  )}
 
-              {/* User Details */}
-              <div className="w-36 inline-flex flex-col justify-center items-start gap-2.5 flex-shrink-0">
-                <div className="opacity-90 text-black text-base font-semibold font-aeonik line-clamp-1">
-                  {kyc.name}
-                </div>
-                <div className="opacity-90 text-neutral-800 text-sm font-medium font-aeonik line-clamp-1">
-                  {kyc.email}
-                </div>
-                <div className="opacity-90 text-neutral-800 text-sm font-medium font-aeonik line-clamp-1">
-                  ID: {kyc.walletId}
-                </div>
-              </div>
-
-              {/* Role */}
-              <div className="w-36 h-6 relative flex-shrink-0">
-                <div className="px-4 py-[5px] rounded-[20px] outline outline-1 outline-offset-[-1px] outline-black inline-flex justify-center items-center">
-                  <span className="text-black text-xs font-medium font-inter">{kyc.role}</span>
-                </div>
-              </div>
-
-              {/* Documents */}
-              <div className="w-36 flex justify-start items-start gap-2.5 flex-wrap content-start flex-shrink-0">
-                {kyc.documents.map((doc, index) => (
-                  <div
-                    key={index}
-                    className="px-4 py-[5px] bg-neutral-100 rounded-[20px] outline outline-1 outline-offset-[-1px] outline-stone-500 flex justify-center items-center"
-                  >
-                    <span className="text-zinc-800 text-xs font-medium font-aeonik">{doc}</span>
+                  {/* KYC ID */}
+                  <div className="w-28 text-neutral-800 text-sm font-semibold font-aeonik shrink-0">
+                    {kyc.kycId}
                   </div>
-                ))}
-              </div>
 
-              {/* Submitted */}
-              <div className="w-36 opacity-90 text-neutral-800 text-sm font-medium font-aeonik whitespace-nowrap flex-shrink-0">
-                {kyc.submitted}
-              </div>
-
-              {/* Status */}
-              <div className="w-36 h-6 relative flex-shrink-0">
-                <div className={`px-4 py-[5px] rounded-[20px] inline-flex justify-center items-center ${getStatusColor(kyc.status)}`}>
-                  <span className="text-xs font-medium font-inter">{kyc.status}</span>
-                </div>
-              </div>
-
-              {/* Reviewer */}
-              <div className="w-36 opacity-90 text-neutral-800 text-sm font-medium font-aeonik underline cursor-pointer hover:text-slate-700 flex-shrink-0">
-                {kyc.reviewer}
-              </div>
-
-              {/* Actions */}
-              <div className="w-36 flex justify-start items-center gap-2 flex-shrink-0">
-                {kyc.status === 'Pending' ? (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openApproveModal(kyc)}
-                      className="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors border border-green-200 cursor-pointer"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => openRejectModal(kyc)}
-                      className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 cursor-pointer"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                    <div className="relative">
-                      <button
-                        onClick={() => setOpenMenuId(openMenuId === kyc.id ? null : kyc.id)}
-                        className="p-1 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                      >
-                        <MdMoreVert className="w-4 h-4 text-slate-900" />
-                      </button>
-                      
-                      {openMenuId === kyc.id && (
-                        <div className="absolute top-8 right-0 bg-white rounded-lg shadow-xl z-50 w-32 py-1">
-                          <button
-                            onClick={() => { setOpenMenuId(null); }}
-                            className="w-full px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
-                          >
-                            View Details
-                          </button>
-                        </div>
-                      )}
+                  {/* User Details */}
+                  <div className="flex-1 min-w-[200px] flex flex-col justify-center items-start gap-1 shrink-0 pr-2">
+                    <div className="text-slate-900 text-sm font-bold font-aeonik truncate max-w-[240px]">
+                      {kyc.name}
+                    </div>
+                    <div className="text-slate-600 text-xs font-medium font-aeonik truncate max-w-[240px]">
+                      {kyc.email}
+                    </div>
+                    <div className="text-slate-400 text-[11px] font-mono tracking-tight">
+                      ID: {kyc.walletId}
                     </div>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setOpenMenuId(openMenuId === kyc.id ? null : kyc.id)}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                      Options
-                      <MdMoreVert className="w-3 h-3" />
-                    </button>
-                    
-                    {openMenuId === kyc.id && (
-                      <div className="absolute top-8 right-0 bg-white rounded-lg shadow-xl z-50 w-40 py-1">
+
+                  {/* Role */}
+                  <div className="w-24 shrink-0">
+                    <div className="px-3 py-1 rounded-full outline outline-1 outline-slate-300 inline-flex justify-center items-center bg-slate-50">
+                      <span className="text-slate-800 text-xs font-semibold font-inter">{kyc.role}</span>
+                    </div>
+                  </div>
+
+                  {/* Documents */}
+                  <div className="w-40 flex flex-wrap gap-1.5 shrink-0">
+                    {kyc.documents.map((doc, index) => (
+                      <div
+                        key={index}
+                        className="px-2.5 py-0.5 bg-gray-100 rounded-full border border-gray-300 flex justify-center items-center"
+                      >
+                        <span className="text-gray-700 text-[11px] font-medium font-aeonik">{doc}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Submitted */}
+                  <div className="w-28 text-neutral-700 text-xs font-medium font-aeonik whitespace-nowrap shrink-0">
+                    {kyc.submitted}
+                  </div>
+
+                  {/* Status */}
+                  <div className="w-28 shrink-0">
+                    <div className={`px-3 py-1 rounded-full inline-flex justify-center items-center font-medium ${getStatusColor(kyc.status)}`}>
+                      <span className="text-xs font-semibold font-inter">{kyc.status}</span>
+                    </div>
+                  </div>
+
+                  {/* Reviewer */}
+                  <div className="w-32 text-slate-700 text-xs font-medium font-aeonik underline cursor-pointer hover:text-indigo-600 shrink-0 truncate">
+                    {kyc.reviewer}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="w-36 shrink-0 relative flex items-center justify-center gap-2">
+                    {kyc.status === 'Pending' ? (
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => { setOpenMenuId(null); }}
-                          className="w-full px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                          onClick={() => openApproveModal(kyc)}
+                          className="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors border border-green-200 cursor-pointer"
                         >
-                          Full Details
+                          Approve
                         </button>
-                        {kyc.status !== 'Approved' && (
+                        <button
+                          onClick={() => openRejectModal(kyc)}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 cursor-pointer"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                        <div className="relative">
                           <button
-                            onClick={() => openApproveModal(kyc)}
-                            className="w-full px-3 py-2 text-left text-xs font-medium text-green-600 hover:bg-green-50 transition-colors border-b border-slate-100"
+                            onClick={() => setOpenMenuId(openMenuId === kyc.id ? null : kyc.id)}
+                            className="p-1 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                           >
-                            Approve KYC
+                            <MdMoreVert className="w-4 h-4 text-slate-900" />
                           </button>
+                          
+                          {openMenuId === kyc.id && (
+                            <div className="absolute top-8 right-0 bg-white rounded-lg shadow-xl z-50 w-32 py-1 border border-slate-200">
+                              <button
+                                onClick={() => { setOpenMenuId(null); }}
+                                className="w-full px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                              >
+                                View Details
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 relative">
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === kyc.id ? null : kyc.id)}
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          Options
+                          <MdMoreVert className="w-3 h-3" />
+                        </button>
+                        
+                        {openMenuId === kyc.id && (
+                          <div className="absolute top-8 right-0 bg-white rounded-lg shadow-xl z-50 w-40 py-1 border border-slate-200">
+                            <button
+                              onClick={() => { setOpenMenuId(null); }}
+                              className="w-full px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                            >
+                              Full Details
+                            </button>
+                            {kyc.status !== 'Approved' && (
+                              <button
+                                onClick={() => openApproveModal(kyc)}
+                                className="w-full px-3 py-2 text-left text-xs font-medium text-green-600 hover:bg-green-50 transition-colors border-b border-slate-100"
+                              >
+                                Approve KYC
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Empty State */}
-        {paginatedKYC.length === 0 && (
-          <div className="w-full py-12 flex flex-col justify-center items-center gap-4">
-            <p className="text-neutral-500 text-base font-medium font-aeonik">No KYC records found</p>
+            {/* Empty State */}
+            {paginatedKYC.length === 0 && (
+              <div className="w-full py-12 flex flex-col justify-center items-center gap-4">
+                <p className="text-neutral-500 text-base font-medium font-aeonik">No KYC records found</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Pagination */}
