@@ -31,12 +31,14 @@ const ViewUserModal = ({ isOpen, onClose, user }) => {
       : 'bg-rose-50 text-rose-700 border-rose-200';
   };
 
-  // Mask NIN for security
+  // Mask NIN / Government ID for security
   const maskNIN = (nin) => {
     if (!nin) return 'Not Provided';
-    const str = nin.toString();
+    const str = nin.toString().trim();
     if (str.length <= 4) return str;
-    return '*'.repeat(str.length - 4) + str.slice(-4);
+    const first = str.substring(0, 3);
+    const last = str.slice(-3);
+    return `${first}****${last}`;
   };
 
   // Get role badge style

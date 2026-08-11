@@ -73,7 +73,7 @@ const UsersManagement = () => {
           createdAt: user.createdAt,
           hostApplicationStatus: user.hostApplicationStatus || 'NONE',
           kycStatus: user.kycStatus || 'NONE',
-          nin: user.nin || null,
+          nin: user.nin || user.kycData?.documentNumber || user.idNumber || user.kycData?.decision?.id_verifications?.[0]?.document_number || user.kycData?.webhookPayload?.decision?.id_verifications?.[0]?.document_number || null,
         };
       });
       
