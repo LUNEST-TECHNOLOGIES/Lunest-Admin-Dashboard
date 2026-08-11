@@ -280,7 +280,7 @@ const UsersManagement = () => {
 
         {/* Table Content with Horizontal Scroll */}
         <div className="w-full overflow-x-auto scrollbar-hide">
-          <div className="min-w-[1200px]">
+          <div className="min-w-[1320px]">
             {/* Table Header */}
             <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 flex justify-between items-center gap-4">
               <div className="w-10 flex-shrink-0"></div>
@@ -289,6 +289,7 @@ const UsersManagement = () => {
               <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Subscription</div>
               <div className="w-20 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Bookings</div>
               <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Wallet</div>
+              <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">KYC Status</div>
               <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Status</div>
               <div className="w-40 text-xs font-bold text-slate-600 uppercase tracking-wider">Last Activity</div>
               <div className="w-12 text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Actions</div>
@@ -298,6 +299,38 @@ const UsersManagement = () => {
             <div className="w-full flex flex-col pb-24">
               {paginatedUsers.map((user, index) => {
                 const isLastItems = index >= paginatedUsers.length - 2 && index >= 3;
+                
+                // Render KYC Status Badge
+                const renderKycBadge = () => {
+                  const rawKyc = (user.kycStatus || '').toUpperCase();
+                  if (rawKyc === 'VERIFIED' || rawKyc === 'APPROVED' || user.verified === true) {
+                    return (
+                      <span className="px-2.5 py-[5px] rounded-[20px] text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Verified
+                      </span>
+                    );
+                  }
+                  if (rawKyc === 'PENDING' || rawKyc === 'IN_PROGRESS' || rawKyc === 'SUBMITTED') {
+                    return (
+                      <span className="px-2.5 py-[5px] rounded-[20px] text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                        Pending
+                      </span>
+                    );
+                  }
+                  if (rawKyc === 'REJECTED' || rawKyc === 'FAILED') {
+                    return (
+                      <span className="px-2.5 py-[5px] rounded-[20px] text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                        Rejected
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className="px-2.5 py-[5px] rounded-[20px] text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+                      Unverified
+                    </span>
+                  );
+                };
+
                 return (
                 <div
                   key={user.id}
@@ -320,7 +353,7 @@ const UsersManagement = () => {
                       </div>
                       {user.hostApplicationStatus === 'PENDING' && (
                         <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full border border-amber-100">
-                          Pending
+                          Pending Host
                         </span>
                       )}
                     </div>
@@ -356,7 +389,12 @@ const UsersManagement = () => {
                     {formatCurrency(user.walletBalance.toString())}
                   </div>
 
-                  {/* Status */}
+                  {/* KYC Status */}
+                  <div className="w-28 flex-shrink-0 flex justify-center">
+                    {renderKycBadge()}
+                  </div>
+
+                  {/* Account Status */}
                   <div className="w-24 flex-shrink-0 flex justify-center">
                     <div className={`px-3 py-[5px] rounded-[20px] border flex justify-center items-center ${
                       user.status === 'Active' 
