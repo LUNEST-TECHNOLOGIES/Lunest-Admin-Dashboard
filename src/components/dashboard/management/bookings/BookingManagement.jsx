@@ -134,10 +134,10 @@ const BookingManagement = () => {
         cautionFeeStatus: (booking.securityDepositStatus || 'HELD').toUpperCase(),
         disputeRaised: !!booking.disputeRaised,
         referenceCode: booking.referenceCode,
-        internalNote: booking.internalNote || '',
         securityDepositResolution: booking.securityDepositResolution || null,
         cancelReason: booking.cancelReason || '',
-        cancelNote: booking.cancelNote || ''
+        cancelNote: booking.cancelNote || '',
+        extensionsCount: Array.isArray(booking.extensions) ? booking.extensions.length : 0
       }));
       setBookings(transformedBookings);
     } catch (err) {
@@ -316,6 +316,11 @@ const BookingManagement = () => {
                         }`}>
                           <span className="text-[10px] font-black uppercase tracking-wider">{booking.status}</span>
                         </div>
+                        {booking.extensionsCount > 0 && (
+                          <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[9px] font-black rounded-full border border-indigo-200">
+                            +{booking.extensionsCount} Extension(s) (2% Fee)
+                          </span>
+                        )}
                         {booking.rawStatus === 'CANCELLED' && booking.cancelReason && (
                           <span 
                             className="text-[9px] text-red-500 font-medium text-center line-clamp-1 max-w-[120px]" 
