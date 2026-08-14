@@ -48,6 +48,12 @@ export const resolveImageUrl = (img) => {
     return null;
   }
 
+  // Skip blob URLs - they're temporary browser-generated URLs
+  if (value.startsWith('blob:')) {
+    console.warn('[imageUtils] Skipping blob URL:', value);
+    return null;
+  }
+
   // Skip local file URIs (cannot be loaded from browser)
   if (value.startsWith('file://')) {
     console.warn('[imageUtils] Skipping local file URI:', value);

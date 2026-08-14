@@ -135,10 +135,37 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
   // Enhanced video handling - extract URLs from various object formats
   const extractVideoUrl = (video) => {
     if (!video) return null;
-    if (typeof video === 'string') return resolveImageUrl(video);
+    
+    console.log('[Video Extraction] Input video data:', video);
+    
+    if (typeof video === 'string') {
+      // Skip blob URLs - they're temporary and won't work
+      if (video.startsWith('blob:')) {
+        console.warn('[Video Extraction] Skipping blob URL:', video);
+        return null;
+      }
+      const resolved = resolveImageUrl(video);
+      console.log('[Video Extraction] Resolved string URL:', video, '->', resolved);
+      return resolved;
+    }
+    
     // Handle video objects with different field names
     const url = video.url || video.uri || video.src || video.location || video.key || video.Key || video.filename;
-    return url ? resolveImageUrl(url) : null;
+    
+    if (!url) {
+      console.warn('[Video Extraction] No URL field found in video object:', video);
+      return null;
+    }
+    
+    // Skip blob URLs in objects too
+    if (url.startsWith('blob:')) {
+      console.warn('[Video Extraction] Skipping blob URL in object:', url);
+      return null;
+    }
+    
+    const resolved = resolveImageUrl(url);
+    console.log('[Video Extraction] Resolved object URL:', url, '->', resolved);
+    return resolved;
   };
 
   const videos = normalizeArray(
@@ -485,7 +512,10 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                       src={images[currentImageIndex]}
                       alt={`Listing ${currentImageIndex + 1}`}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      onError={() => setImageError(prev => ({ ...prev, [currentImageIndex]: true }))}
+                      onError={() => {
+                        console.error('[Image Load Error] Failed to load image:', images[currentImageIndex]);
+                        setImageError(prev => ({ ...prev, [currentImageIndex]: true }));
+                      }}
                       onLoad={() => setImageError(prev => ({ ...prev, [currentImageIndex]: false }))}
                     />
                   )}
@@ -516,7 +546,10 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                             src={image}
                             alt={`Listing ${index + 1}`}
                             className="w-full h-full object-cover"
-                            onError={() => setImageError(prev => ({ ...prev, [index]: true }))}
+                            onError={() => {
+                              console.error('[Thumbnail Load Error] Failed to load thumbnail:', image);
+                              setImageError(prev => ({ ...prev, [index]: true }));
+                            }}
                           />
                         )}
                       </div>
@@ -544,7 +577,10 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                             src={videoUrl}
                             controls
                             className="w-full h-[300px] bg-black rounded-[10px] overflow-hidden"
-                            onError={() => setVideoError(prev => ({ ...prev, [index]: true }))}
+                            onError={() => {
+                              console.error('[Video Load Error] Failed to load video:', videoUrl);
+                              setVideoError(prev => ({ ...prev, [index]: true }));
+                            }}
                           />
                         )}
                       </div>
