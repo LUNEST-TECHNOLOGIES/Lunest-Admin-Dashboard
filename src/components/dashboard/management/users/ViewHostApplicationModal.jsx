@@ -94,9 +94,12 @@ const ViewHostApplicationModal = ({ isOpen, onClose, user, onApprove, onReject }
             </div>
           </div>
           <div className="text-right">
-             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NIN NUMBER</p>
+             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">KYC NIN (Masked)</p>
              <p className="text-sm font-black text-indigo-600 tracking-tight">
-               {applicationData?.applicationData?.nin || applicationData?.nin || user?.nin || 'NOT PROVIDED'}
+               {applicationData?.applicationData?.maskedNin || applicationData?.maskedNin || 'NOT PROVIDED'}
+             </p>
+             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">
+               KYC: {applicationData?.applicationData?.kycStatus || applicationData?.kycStatus || 'UNKNOWN'}
              </p>
           </div>
         </div>
@@ -269,6 +272,25 @@ const ViewHostApplicationModal = ({ isOpen, onClose, user, onApprove, onReject }
                                  <span className="text-white text-[10px] font-bold uppercase tracking-widest">ID Card Preview</span>
                                  <button className="text-white text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded backdrop-blur-sm transition-all">Expand</button>
                               </div>
+                           </div>
+                        </div>
+                      );
+                   })()}
+
+                   {/* Landlord ID Document */}
+                   {(() => {
+                      const landlordId = applicationData?.applicationData?.landlordIdImage || applicationData?.landlordIdImage;
+                      if (!landlordId) return null;
+                      return (
+                        <div className="group space-y-3">
+                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Landlord Valid ID</p>
+                           <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm transition-all hover:shadow-md group">
+                              <img
+                                src={resolveImageUrl(landlordId)}
+                                alt="Landlord valid ID"
+                                className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-500"
+                                onClick={() => setPreviewImage(resolveImageUrl(landlordId))}
+                              />
                            </div>
                         </div>
                       );

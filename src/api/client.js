@@ -41,12 +41,9 @@ apiClient.interceptors.request.use((config) => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
         console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
-        console.log(`[Auth Header] Bearer ${token.substring(0, 30)}...`);
     } else {
         console.warn(`[API Request] ${config.method?.toUpperCase()} ${config.url} - NO TOKEN`);
     }
-    console.log(`[Request Headers]`, config.headers);
-    console.log(`[Request Body]`, config.data);
     return config;
 }, (error) => {
     console.error('[API Request Error]', error);
@@ -76,7 +73,7 @@ apiClient.interceptors.response.use(
             url: errorConfig.url,
             baseURL: apiClient.defaults.baseURL,
             fullURL: `${apiClient.defaults.baseURL}${errorConfig.url}`,
-            data: errorResponse.data
+            data: errorResponse.data?.message || errorResponse.data?.error || errorResponse.data?.code
         });
 
         // Handle 401 Unauthorized
