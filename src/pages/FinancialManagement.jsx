@@ -71,6 +71,8 @@ const FinancialManagement = () => {
         filters.type = 'DEBIT';
         break;
       case 'Host Earnings':
+        // Only show HOST_EARNING to avoid duplicates
+        // RENT and SERVICE_CHARGE are legacy categories that are now part of HOST_EARNING
         filters.category = 'HOST_EARNING';
         filters.type = 'CREDIT';
         filters.showInternal = true; // Show the net summary which is marked as internal

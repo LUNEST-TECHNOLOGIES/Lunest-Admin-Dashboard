@@ -92,6 +92,17 @@ const ListingManagement = () => {
           }
           
           try {
+            // Debug: Log host information for each listing
+            if (index < 5) {
+              console.log(`[ListingManagement] Listing ${index} host info:`, {
+                listingId: listing._id,
+                host: listing.host,
+                hostId: listing.hostId,
+                hostUserId: listing.host?.userID,
+                hostName: listing.host?.fullName
+              });
+            }
+            
             return {
               id: listing._id?.toString() || listing.id?.toString() || listing.id || `temp-${index}`,
               title: listing.propertyName || listing.propertyTitle || listing.title || 'Untitled Listing',

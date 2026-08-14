@@ -9,7 +9,7 @@ const BASE_URL = API_URL.replace(/\/v1\/?$/, ''); // Remove /v1 for static uploa
 const CLOUDFRONT_URL = (import.meta.env.VITE_CLOUDFRONT_URL || 'https://d1eoci8rrogdfp.cloudfront.net').replace(/\/$/, '');
 
 const warnUnresolvableImage = (img) => {
-  if (import.meta.env.DEV) console.warn('[imageUtils] Unable to resolve image', img);
+  console.warn('[imageUtils] Unable to resolve image', img);
 };
 
 const cloudFrontUrlForKey = (key) => {
@@ -24,29 +24,41 @@ const cloudFrontUrlForKey = (key) => {
  * @returns {string|null} - The resolved absolute URL or null if invalid
  */
 export const resolveImageUrl = (img) => {
-  if (!img) return null;
+  if (!img) {
+    console.warn('[imageUtils] Null/undefined image provided');
+    return null;
+  }
 
   // If image is an object, try common fields recursively
   if (typeof img === 'object') {
     const candidate = img.url || img.uri || img.path || img.src || img.location || img.Location || img.key || img.Key || img.file || img.filename;
     if (candidate) return resolveImageUrl(candidate);
-    warnUnresolvableImage(img);
+    console.warn('[imageUtils] Image object has no recognized URL field:', img);
     return null;
   }
 
   // At this point img should be a string
   if (typeof img !== 'string') {
-    warnUnresolvableImage(img);
+    console.warn('[imageUtils] Image is not a string or object:', typeof img, img);
     return null;
   }
   const value = img.trim();
-  if (!value) return null;
+  if (!value) {
+    console.warn('[imageUtils] Empty image string provided');
+    return null;
+  }
 
   // Skip local file URIs (cannot be loaded from browser)
-  if (value.startsWith('file://')) return null;
+  if (value.startsWith('file://')) {
+    console.warn('[imageUtils] Skipping local file URI:', value);
+    return null;
+  }
 
   // Skip Android content:// URIs (cannot be loaded from browser)
-  if (value.startsWith('content://')) return null;
+  if (value.startsWith('content://')) {
+    console.warn('[imageUtils] Skipping Android content URI:', value);
+    return null;
+  }
 
   // Allow base64 data URIs directly
   if (value.startsWith('data:image/')) return value;
@@ -58,29 +70,38 @@ export const resolveImageUrl = (img) => {
     if (value.includes('/uploads/')) {
       const pathAfterUploads = value.split('/uploads/')[1];
       const cleanBase = BASE_URL.replace(/\/$/, '');
-      return `${cleanBase}/uploads/${pathAfterUploads}`;
+      const resolved = `${cleanBase}/uploads/${pathAfterUploads}`;
+      console.log('[imageUtils] Converted uploads URL:', value, '->', resolved);
+      return resolved;
     }
     try {
       const parsed = new URL(value);
       const isS3Url = /\.s3[.-]/i.test(parsed.hostname) || /amazonaws\.com$/i.test(parsed.hostname);
       const isCloudFrontUrl = /\.cloudfront\.net$/i.test(parsed.hostname);
       if (isS3Url || (isCloudFrontUrl && parsed.origin !== CLOUDFRONT_URL)) {
-        return cloudFrontUrlForKey(decodeURIComponent(parsed.pathname));
+        const cloudFrontUrl = cloudFrontUrlForKey(decodeURIComponent(parsed.pathname));
+        console.log('[imageUtils] Converted S3/CloudFront URL:', value, '->', cloudFrontUrl);
+        return cloudFrontUrl;
       }
-    } catch {
-      warnUnresolvableImage(img);
+    } catch (err) {
+      console.warn('[imageUtils] Failed to parse URL:', value, err);
       return null;
     }
+    console.log('[imageUtils] Using original URL:', value);
     return value;
   }
 
   if (/^(?:uploads\/)?(?:properties|listings|images|avatars|host-applications)\//i.test(value)) {
-    return cloudFrontUrlForKey(value);
+    const cloudFrontUrl = cloudFrontUrlForKey(value);
+    console.log('[imageUtils] Converted relative path to CloudFront:', value, '->', cloudFrontUrl);
+    return cloudFrontUrl;
   }
 
   // Otherwise treat as relative path and prepend BASE_URL
   const cleanBase = BASE_URL.replace(/\/$/, '');
-  return `${cleanBase}${value.startsWith('/') ? '' : '/'}${value}`;
+  const resolved = `${cleanBase}${value.startsWith('/') ? '' : '/'}${value}`;
+  console.log('[imageUtils] Converted relative path:', value, '->', resolved);
+  return resolved;
 };
 
 /**

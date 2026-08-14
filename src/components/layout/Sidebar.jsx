@@ -64,6 +64,7 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
     { label: 'Content Moderation', iconComponent: ModerationIcon },
     { label: 'Messages Oversight', iconComponent: MessagesIcon },
     { label: 'Audit Logs', iconComponent: AuditIcon },
+    { label: 'System Health', iconComponent: ProfileIcon, superAdminOnly: true },
   ]
   
   const currentUser = getCurrentUser();
@@ -79,8 +80,12 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
             })
         };
     }
+    // Hide System Health from non-superadmins
+    if (item.superAdminOnly && !isSuperAdmin) {
+      return null;
+    }
     return item;
-  });
+  }).filter(Boolean);
 
   return (
     <div className={`transition-all duration-300 ease-in-out ${

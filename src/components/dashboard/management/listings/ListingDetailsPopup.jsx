@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MdClose } from 'react-icons/md';
+import { MdClose, MdImage } from 'react-icons/md';
 import { approveListing, rejectListing, getUserById } from '../../../../services/adminService';
 import { resolveImageUrl, normalizeArray } from '../../../../utils/imageUtils';
 import ApproveListing from './ApproveListing';
@@ -17,6 +17,8 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [imageError, setImageError] = useState({});
+  const [videoError, setVideoError] = useState({});
 
 
   // Minimum swipe distance (in px)
@@ -130,6 +132,15 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
     .filter(Boolean)
     .filter((image, index, array) => array.indexOf(image) === index);
 
+  // Enhanced video handling - extract URLs from various object formats
+  const extractVideoUrl = (video) => {
+    if (!video) return null;
+    if (typeof video === 'string') return resolveImageUrl(video);
+    // Handle video objects with different field names
+    const url = video.url || video.uri || video.src || video.location || video.key || video.Key || video.filename;
+    return url ? resolveImageUrl(url) : null;
+  };
+
   const videos = normalizeArray(
     listing?.rawData?.propertyVideos && listing.rawData.propertyVideos.length > 0 
       ? listing.rawData.propertyVideos 
@@ -138,7 +149,7 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
       : listing?.propertyVideos && listing.propertyVideos.length > 0
       ? listing.propertyVideos
       : []
-  ).map(vid => resolveImageUrl(vid)).filter(Boolean);
+  ).map(extractVideoUrl).filter(Boolean);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-8">
@@ -462,13 +473,22 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                 {/* Main Image Display */}
                 <div 
                   className="w-full h-[300px] mb-4 bg-neutral-100 rounded-[10px] overflow-hidden border border-neutral-200 cursor-zoom-in group relative"
-                  onClick={() => setShowFullScreen(true)}
+                  onClick={() => !imageError[currentImageIndex] && setShowFullScreen(true)}
                 >
-                  <img
-                    src={images[currentImageIndex]}
-                    alt={`Listing ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {imageError[currentImageIndex] ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                      <MdImage className="w-12 h-12 mb-2" />
+                      <span className="text-sm">Image failed to load</span>
+                    </div>
+                  ) : (
+                    <img
+                      src={images[currentImageIndex]}
+                      alt={`Listing ${currentImageIndex + 1}`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      onError={() => setImageError(prev => ({ ...prev, [currentImageIndex]: true }))}
+                      onLoad={() => setImageError(prev => ({ ...prev, [currentImageIndex]: false }))}
+                    />
+                  )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <span className="bg-black/50 text-white px-4 py-2 rounded-full text-sm backdrop-blur-sm">Click to view full screen</span>
                   </div>
@@ -480,15 +500,26 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-2">
                     {images.map((image, index) => (
-                      <img
+                      <div
                         key={index}
-                        src={image}
-                        alt={`Listing ${index + 1}`}
                         onClick={() => setCurrentImageIndex(index)}
-                        className={`w-24 h-24 rounded-[10px] border-4 flex-shrink-0 cursor-pointer transition-all object-cover ${
+                        className={`w-24 h-24 rounded-[10px] border-4 flex-shrink-0 cursor-pointer transition-all overflow-hidden ${
                           index === currentImageIndex ? 'border-indigo-400' : 'border-neutral-300'
                         }`}
-                      />
+                      >
+                        {imageError[index] ? (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                            <MdImage className="w-6 h-6" />
+                          </div>
+                        ) : (
+                          <img
+                            src={image}
+                            alt={`Listing ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={() => setImageError(prev => ({ ...prev, [index]: true }))}
+                          />
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -501,12 +532,22 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                 <h4 className="text-black text-base font-semibold font-aeonik mb-3">Videos</h4>
                 <div className="flex flex-col gap-4">
                     {videos.map((videoUrl, index) => (
-                      <video
-                        key={index}
-                        src={videoUrl}
-                        controls
-                        className="w-full h-[300px] mb-4 bg-black rounded-[10px] overflow-hidden"
-                      />
+                      <div key={index} className="relative">
+                        {videoError[index] ? (
+                          <div className="w-full h-[300px] bg-black rounded-[10px] flex flex-col items-center justify-center text-gray-400">
+                            <MdImage className="w-12 h-12 mb-2" />
+                            <span className="text-sm">Video failed to load</span>
+                            <span className="text-xs text-gray-500 mt-1">{videoUrl}</span>
+                          </div>
+                        ) : (
+                          <video
+                            src={videoUrl}
+                            controls
+                            className="w-full h-[300px] bg-black rounded-[10px] overflow-hidden"
+                            onError={() => setVideoError(prev => ({ ...prev, [index]: true }))}
+                          />
+                        )}
+                      </div>
                     ))}
                 </div>
               </div>

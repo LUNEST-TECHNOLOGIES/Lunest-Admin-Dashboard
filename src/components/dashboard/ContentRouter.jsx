@@ -26,6 +26,7 @@ import {
 import SupportCenter from './management/support/SupportCenter';
 import DisputesReports from './management/support/DisputesReports';
 import FinancialTransactionActions from './management/finance/FinancialTransactionActions';
+import SystemHealth from '../../pages/SystemHealth';
 // Libraries loaded via CDN in index.html
 const { jsPDF } = window.jspdf || {};
 const autoTable = window.jspdf?.autoTable;
@@ -206,17 +207,19 @@ export const FinancialManagementContent = () => {
     const totalCouponRefunds = Number(overview.totalCouponRefunds) || 0; // NEW: Total refunds as coupons
     const extensionHostEarnings = Number(overview.extensionHostEarnings) || 0;
     const extensionAppFees = Number(overview.extensionAppFees) || 0;
+    const extensionVat = Number(overview.extensionVat) || 0;
 
     // Calculated metrics with proper financial logic
     const processedVolume = totalInflow + totalOutflow;              // Total transaction volume
-    const grossRevenue = platformFees;                              // Total platform revenue
-    const netRevenue = appFeesOnly;                                 // Revenue after tax
-    const taxCollected = vatRevenue;                                 // VAT collected
+    const grossRevenue = platformFees;                              // Total platform revenue (now includes extension fees)
+    const netRevenue = appFeesOnly + extensionAppFees;             // Revenue after tax (now includes extension app fees)
+    const taxCollected = vatRevenue + extensionVat;                  // VAT collected (now includes extension VAT)
     const activeTransactions = (overview.totalTransactions || 0) - failedCount; // Successful transactions
     
     // Validation checks for financial integrity
-    const revenueIntegrity = Math.abs((appFeesOnly + vatRevenue) - platformFees) < 0.01;
-    const allPositive = [totalInflow, totalOutflow, platformFees, appFeesOnly, vatRevenue, hostEarnings, withdrawals, escrowedFunds, extensionHostEarnings, extensionAppFees].every(val => val >= 0);
+    // Platform fees now include extension fees, so validation must account for them
+    const revenueIntegrity = Math.abs((appFeesOnly + vatRevenue + extensionAppFees + extensionVat) - platformFees) < 0.01;
+    const allPositive = [totalInflow, totalOutflow, platformFees, appFeesOnly, vatRevenue, hostEarnings, withdrawals, escrowedFunds, extensionHostEarnings, extensionAppFees, extensionVat].every(val => val >= 0);
 
     return {
       // Revenue Metrics
@@ -274,22 +277,29 @@ export const FinancialManagementContent = () => {
     const totalCouponRefunds = overview.totalCouponRefunds || 0;
     const extensionHostEarnings = overview.extensionHostEarnings || 0;
     const extensionAppFees = overview.extensionAppFees || 0;
+    const extensionVat = overview.extensionVat || 0;
     
     // Calculate derived values to match stat cards
     const processedVolume = totalInflow + totalOutflow;
+    const totalAppFeesWithExtension = appFeesOnly + extensionAppFees;
+    const totalVatWithExtension = vatRevenue + extensionVat;
+    
+    // VAT ratio validation helper
+    const isValidVatRatio = totalAppFeesWithExtension > 0 ? (totalVatWithExtension / totalAppFeesWithExtension > 0.05 && totalVatWithExtension / totalAppFeesWithExtension < 0.1) : true;
     
     // Validation checks matching stat cards
     const validations = {
-      // Gross Revenue (platformFees) should equal appFeesOnly + vatRevenue
-      grossRevenueMatch: Math.abs((appFeesOnly + vatRevenue) - platformFees) < 0.01,
+      // Gross Revenue (platformFees) should equal appFeesOnly + vatRevenue + extensionAppFees + extensionVat
+      grossRevenueMatch: Math.abs((appFeesOnly + vatRevenue + extensionAppFees + extensionVat) - platformFees) < 0.01,
       
       // Net App Fees should be positive and less than gross revenue
-      netAppFeesValid: appFeesOnly >= 0 && appFeesOnly <= platformFees,
+      netAppFeesValid: totalAppFeesWithExtension >= 0 && totalAppFeesWithExtension <= platformFees,
       
       // Host Earnings should be positive
       hostEarningsValid: hostEarnings >= 0,
       extensionEarningsValid: extensionHostEarnings >= 0,
       extensionAppFeesValid: extensionAppFees >= 0,
+      extensionVatValid: extensionVat >= 0,
       
       // Withdrawals should be positive and not exceed total outflow
       withdrawalsValid: withdrawals >= 0 && withdrawals <= totalOutflow,
@@ -297,8 +307,8 @@ export const FinancialManagementContent = () => {
       // Escrowed Funds should be positive
       escrowedFundsValid: escrowedFunds >= 0,
       
-      // VAT should be ~7.5% of app fees
-      vatRatioValid: appFeesOnly > 0 ? vatRevenue / appFeesOnly > 0.05 && vatRevenue / appFeesOnly < 0.1 : true,
+      // VAT should be ~7.5% of app fees (including extension)
+      vatRatioValid: isValidVatRatio,
       
       // Processed Volume should equal totalInflow + totalOutflow
       processedVolumeValid: processedVolume >= 0,
@@ -323,11 +333,11 @@ export const FinancialManagementContent = () => {
     console.log('[FinancialManagement] Validation Results:', validations);
     console.log('[FinancialManagement] Stat Card Values:', {
       grossRevenue: platformFees,
-      netAppFees: appFeesOnly,
+      netAppFees: appFeesOnly + extensionAppFees,
       hostEarnings: hostEarnings,
       withdrawals: withdrawals,
       escrowedFunds: escrowedFunds,
-      vatCollected: vatRevenue,
+      vatCollected: vatRevenue + extensionVat,
       totalInflow: totalInflow,
       processedVolume: processedVolume,
       failedTransactions: failedCount,
@@ -339,26 +349,39 @@ export const FinancialManagementContent = () => {
       totalPenalties,
       totalCouponRefunds,
       extensionHostEarnings,
-      extensionAppFees
+      extensionAppFees,
+      extensionVat
     });
     
     // Return validated and corrected data
     return {
       totalRevenue: platformFees,           // Gross Revenue stat card
-      appFees: appFeesOnly,                 // Net App Fees stat card
+      appFees: appFeesOnly + extensionAppFees, // Net App Fees stat card (now includes extension)
+      vat: vatRevenue + extensionVat,       // VAT Collected stat card (now includes extension)
+      revenueIntegrity,
+      
+      // Transaction Metrics
+      failedTransactions: failedCount,       // Failed Trans. stat card
+      processedVolume: processedVolume,      // Used in Processed Volume display
+      appFeeTransactionCount: appFeeCount,   // App Fee Count stat card
+      
+      // Balance Metrics
+      funding: totalInflow,                  // Total Inflow stat card
+      
+      // Payout Metrics
       hostPayments: hostEarnings,            // Host Earnings stat card
       extensionHostEarnings,
       extensionAppFees,
+      extensionVat,
       withdrawals: withdrawals,              // Withdrawals stat card
-      failedTransactions: failedCount,       // Failed Trans. stat card
-      processedVolume: processedVolume,      // Used in Processed Volume display
-      funding: totalInflow,                  // Total Inflow stat card
-      vat: vatRevenue,                       // VAT Collected stat card
       escrow: escrowedFunds,                 // Escrowed Funds stat card
+      
+      // Discount Metrics
       couponValue: couponValue,              // Coupon Value stat card
-      appFeeTransactionCount: appFeeTransactionCount, // App Fee Count stat card
-      bookingAppFees: bookingAppFees,               // Booking-specific fees
-      bookingVAT: bookingVAT,                       // Booking-specific VAT
+      
+      // Booking-specific metrics
+      bookingAppFees: bookingAppFees,       // Booking-specific fees
+      bookingVAT: bookingVAT,               // Booking-specific VAT
       totalRefunds,
       totalPenalties,
       totalCouponRefunds,
@@ -376,6 +399,8 @@ export const FinancialManagementContent = () => {
         filters.type = 'DEBIT';
         break;
       case 'Host Earnings':
+        // Only show HOST_EARNING to avoid duplicates
+        // RENT and SERVICE_CHARGE are legacy categories that are now part of HOST_EARNING
         filters.category = 'HOST_EARNING';
         filters.type = 'CREDIT';
         break;
@@ -1474,9 +1499,10 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
   // Check if this is a booking transaction that should show breakdown
   // Expanded detection for LUNEST_ reference prefix as confirmed in user data
   // Exclude PLATFORM_FEE, VAT, HOST_EARNING, RENT, and SERVICE_CHARGE as they don't need a breakdown themselves
+  // Also exclude RENT_AND_SERVICE to prevent showing duplicates
   const isBookingTransaction = 
     (tx.category === 'BOOKING' || tx.reference?.startsWith('LUNEST_') || tx.bookingId) && 
-    !['PLATFORM_FEE', 'VAT', 'HOST_EARNING', 'RENT', 'SERVICE_CHARGE'].includes(tx.category);
+    !['PLATFORM_FEE', 'VAT', 'HOST_EARNING', 'RENT', 'SERVICE_CHARGE', 'RENT_AND_SERVICE'].includes(tx.category);
 
   // Function to render a single row of the transaction table
   const renderRow = (transaction, isSubRow = false, subType = '') => {
@@ -2122,6 +2148,7 @@ export function ContentRouter({ activeMenu, stats }) {
     'Messages Oversight': <MessagesContent />,
     'Audit Logs': <AuditLogsContent />,
     'Profile': <ProfileContent />,
+    'System Health': <SystemHealth />,
   };
 
   return contentMap[activeMenu] || contentMap['Dashboard'];
