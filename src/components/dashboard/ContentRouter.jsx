@@ -204,6 +204,8 @@ export const FinancialManagementContent = () => {
     const totalRefunds = Number(overview.totalRefunds) || 0; // NEW: Total refunds processed
     const totalPenalties = Number(overview.totalPenalties) || 0; // NEW: Total cancellation penalties
     const totalCouponRefunds = Number(overview.totalCouponRefunds) || 0; // NEW: Total refunds as coupons
+    const extensionHostEarnings = Number(overview.extensionHostEarnings) || 0;
+    const extensionAppFees = Number(overview.extensionAppFees) || 0;
 
     // Calculated metrics with proper financial logic
     const processedVolume = totalInflow + totalOutflow;              // Total transaction volume
@@ -214,7 +216,7 @@ export const FinancialManagementContent = () => {
     
     // Validation checks for financial integrity
     const revenueIntegrity = Math.abs((appFeesOnly + vatRevenue) - platformFees) < 0.01;
-    const allPositive = [totalInflow, totalOutflow, platformFees, appFeesOnly, vatRevenue, hostEarnings, withdrawals, escrowedFunds].every(val => val >= 0);
+    const allPositive = [totalInflow, totalOutflow, platformFees, appFeesOnly, vatRevenue, hostEarnings, withdrawals, escrowedFunds, extensionHostEarnings, extensionAppFees].every(val => val >= 0);
 
     return {
       // Revenue Metrics
@@ -233,6 +235,8 @@ export const FinancialManagementContent = () => {
       
       // Payout Metrics
       hostPayments: hostEarnings,            // Host Earnings stat card
+      extensionHostEarnings,
+      extensionAppFees,
       withdrawals: withdrawals,              // Withdrawals stat card
       escrow: escrowedFunds,                 // Escrowed Funds stat card
       
@@ -268,6 +272,8 @@ export const FinancialManagementContent = () => {
     const totalRefunds = overview.totalRefunds || 0;
     const totalPenalties = overview.totalPenalties || 0;
     const totalCouponRefunds = overview.totalCouponRefunds || 0;
+    const extensionHostEarnings = overview.extensionHostEarnings || 0;
+    const extensionAppFees = overview.extensionAppFees || 0;
     
     // Calculate derived values to match stat cards
     const processedVolume = totalInflow + totalOutflow;
@@ -282,6 +288,8 @@ export const FinancialManagementContent = () => {
       
       // Host Earnings should be positive
       hostEarningsValid: hostEarnings >= 0,
+      extensionEarningsValid: extensionHostEarnings >= 0,
+      extensionAppFeesValid: extensionAppFees >= 0,
       
       // Withdrawals should be positive and not exceed total outflow
       withdrawalsValid: withdrawals >= 0 && withdrawals <= totalOutflow,
@@ -308,7 +316,7 @@ export const FinancialManagementContent = () => {
       appFeeCountValid: appFeeTransactionCount >= 0,
       
       // All values should be positive numbers
-      allPositive: [totalInflow, totalOutflow, platformFees, appFeesOnly, vatRevenue, hostEarnings, withdrawals, escrowedFunds, couponValue, bookingAppFees, bookingVAT, totalRefunds, totalPenalties, totalCouponRefunds].every(val => val >= 0)
+      allPositive: [totalInflow, totalOutflow, platformFees, appFeesOnly, vatRevenue, hostEarnings, withdrawals, escrowedFunds, couponValue, bookingAppFees, bookingVAT, totalRefunds, totalPenalties, totalCouponRefunds, extensionHostEarnings, extensionAppFees].every(val => val >= 0)
     };
     
     // Log validation results with stat card correspondence
@@ -329,7 +337,9 @@ export const FinancialManagementContent = () => {
       bookingVAT,
       totalRefunds,
       totalPenalties,
-      totalCouponRefunds
+      totalCouponRefunds,
+      extensionHostEarnings,
+      extensionAppFees
     });
     
     // Return validated and corrected data
@@ -337,6 +347,8 @@ export const FinancialManagementContent = () => {
       totalRevenue: platformFees,           // Gross Revenue stat card
       appFees: appFeesOnly,                 // Net App Fees stat card
       hostPayments: hostEarnings,            // Host Earnings stat card
+      extensionHostEarnings,
+      extensionAppFees,
       withdrawals: withdrawals,              // Withdrawals stat card
       failedTransactions: failedCount,       // Failed Trans. stat card
       processedVolume: processedVolume,      // Used in Processed Volume display
@@ -364,7 +376,7 @@ export const FinancialManagementContent = () => {
         filters.type = 'DEBIT';
         break;
       case 'Host Earnings':
-        filters.category = 'HOST_EARNING,RENT,SERVICE_CHARGE,BOOKING';
+        filters.category = 'HOST_EARNING';
         filters.type = 'CREDIT';
         break;
       case 'Withdrawals':
@@ -665,6 +677,8 @@ export const FinancialManagementContent = () => {
         <StatsCard icon={<Banknote />} label="Gross Revenue" value={financeStats.totalRevenue} description="fees + VAT" bgColor="violet" iconColor="indigo" isCurrency={true} />
         <StatsCard icon={<Wallet />} label="Net App Fees" value={financeStats.appFees} description="excluding tax" bgColor="blue" iconColor="blue" isCurrency={true} />
         <StatsCard icon={<CreditCard />} label="Host Earnings" value={financeStats.hostPayments} description="processed funds" bgColor="green" iconColor="green" isCurrency={true} />
+        <StatsCard icon={<CreditCard />} label="Extension Earnings (Host)" value={financeStats.extensionHostEarnings} description="stay extensions" bgColor="green" iconColor="green" isCurrency={true} />
+        <StatsCard icon={<Wallet />} label="Extension App Revenue" value={financeStats.extensionAppFees} description="stay extensions" bgColor="blue" iconColor="blue" isCurrency={true} />
         <StatsCard icon={<AlertTriangle />} label="Escrowed Funds" value={financeStats.escrow} description="active holds" bgColor="amber" iconColor="amber" isCurrency={true} />
         <StatsCard icon={<ArrowDownLeft />} label="Withdrawals" value={financeStats.withdrawals} description="successful" bgColor="orange" iconColor="orange" isCurrency={true} />
         

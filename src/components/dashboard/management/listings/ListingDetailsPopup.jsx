@@ -117,13 +117,18 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
     return '12 Months'; // Fallback
   };
 
-  const images = normalizeArray(
-    listing?.rawData?.propertyImages && listing.rawData.propertyImages.length > 0 
-      ? listing.rawData.propertyImages 
-      : listing?.images && listing.images.length > 0 
-      ? listing.images 
-      : []
-  ).map(img => resolveImageUrl(img) || 'https://placehold.co/101x101');
+  // The admin list response can expose images at either level and S3 may
+  // return objects rather than URL strings. Keep every valid candidate.
+  const images = [
+    listing?.rawData?.propertyImages,
+    listing?.rawData?.images,
+    listing?.propertyImages,
+    listing?.images,
+  ]
+    .flatMap(normalizeArray)
+    .map(resolveImageUrl)
+    .filter(Boolean)
+    .filter((image, index, array) => array.indexOf(image) === index);
 
   const videos = normalizeArray(
     listing?.rawData?.propertyVideos && listing.rawData.propertyVideos.length > 0 

@@ -96,8 +96,10 @@ const ListingManagement = () => {
               id: listing._id?.toString() || listing.id?.toString() || listing.id || `temp-${index}`,
               title: listing.propertyName || listing.propertyTitle || listing.title || 'Untitled Listing',
               hostName: listing.host?.fullName || listing.host?.name || listing.hostName || 'Unknown Host',
-              hostId: listing.host?._id || listing.hostId,
-              hostUserId: listing.host?.userID || (listing.host?._id ? `LNT${listing.host._id.toString().substring(0, 7).toUpperCase()}` : `LNT${String(index + 1).padStart(7, '0')}`),
+              hostId: listing.host?._id?.toString() || listing.hostId?.toString() || null,
+              // Never manufacture an ID from the row index: it makes unrelated
+              // listings appear to belong to the same user.
+              hostUserId: listing.host?.userID || listing.hostUserId || 'N/A',
               hostEmail: listing.host?.emailAddress || listing.host?.email || listing.hostEmail || 'N/A',
               hostPhone: listing.host?.phoneNumber || listing.host?.phone || listing.hostPhone || 'N/A',
               hostActive: listing.host?.active || false,

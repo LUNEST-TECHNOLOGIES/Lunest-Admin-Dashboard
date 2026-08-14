@@ -6,6 +6,16 @@
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/v1';
 const BASE_URL = API_URL.replace(/\/v1\/?$/, ''); // Remove /v1 for static uploads access
+const CLOUDFRONT_URL = (import.meta.env.VITE_CLOUDFRONT_URL || 'https://d1eoci8rrogdfp.cloudfront.net').replace(/\/$/, '');
+
+const warnUnresolvableImage = (img) => {
+  if (import.meta.env.DEV) console.warn('[imageUtils] Unable to resolve image', img);
+};
+
+const cloudFrontUrlForKey = (key) => {
+  const normalizedKey = String(key || '').replace(/^\/+/, '').replace(/^uploads\//, '');
+  return normalizedKey ? `${CLOUDFRONT_URL}/${normalizedKey}` : null;
+};
 
 /**
  * Resolves an image path or URL to a valid, reachable absolute URL.
@@ -18,38 +28,59 @@ export const resolveImageUrl = (img) => {
 
   // If image is an object, try common fields recursively
   if (typeof img === 'object') {
-    const candidate = img.url || img.uri || img.path || img.src || img.file || img.filename || img.name;
+    const candidate = img.url || img.uri || img.path || img.src || img.location || img.Location || img.key || img.Key || img.file || img.filename;
     if (candidate) return resolveImageUrl(candidate);
+    warnUnresolvableImage(img);
     return null;
   }
 
   // At this point img should be a string
-  if (typeof img !== 'string') return null;
+  if (typeof img !== 'string') {
+    warnUnresolvableImage(img);
+    return null;
+  }
+  const value = img.trim();
+  if (!value) return null;
 
   // Skip local file URIs (cannot be loaded from browser)
-  if (img.startsWith('file://')) return null;
+  if (value.startsWith('file://')) return null;
 
   // Skip Android content:// URIs (cannot be loaded from browser)
-  if (img.startsWith('content://')) return null;
+  if (value.startsWith('content://')) return null;
 
   // Allow base64 data URIs directly
-  if (img.startsWith('data:image/')) return img;
+  if (value.startsWith('data:image/')) return value;
 
   // If it's an absolute HTTP URL, check if it contains /uploads/
-  if (/^https?:\/\//i.test(img)) {
+  if (/^https?:\/\//i.test(value)) {
     // If it points to our uploads directory, force it to use our current BASE_URL
     // This fixes issues where the DB has an old IP address (e.g. from local development)
-    if (img.includes('/uploads/')) {
-      const pathAfterUploads = img.split('/uploads/')[1];
+    if (value.includes('/uploads/')) {
+      const pathAfterUploads = value.split('/uploads/')[1];
       const cleanBase = BASE_URL.replace(/\/$/, '');
       return `${cleanBase}/uploads/${pathAfterUploads}`;
     }
-    return img;
+    try {
+      const parsed = new URL(value);
+      const isS3Url = /\.s3[.-]/i.test(parsed.hostname) || /amazonaws\.com$/i.test(parsed.hostname);
+      const isCloudFrontUrl = /\.cloudfront\.net$/i.test(parsed.hostname);
+      if (isS3Url || (isCloudFrontUrl && parsed.origin !== CLOUDFRONT_URL)) {
+        return cloudFrontUrlForKey(decodeURIComponent(parsed.pathname));
+      }
+    } catch {
+      warnUnresolvableImage(img);
+      return null;
+    }
+    return value;
+  }
+
+  if (/^(?:uploads\/)?(?:properties|listings|images|avatars|host-applications)\//i.test(value)) {
+    return cloudFrontUrlForKey(value);
   }
 
   // Otherwise treat as relative path and prepend BASE_URL
   const cleanBase = BASE_URL.replace(/\/$/, '');
-  return `${cleanBase}${img.startsWith('/') ? '' : '/'}${img}`;
+  return `${cleanBase}${value.startsWith('/') ? '' : '/'}${value}`;
 };
 
 /**

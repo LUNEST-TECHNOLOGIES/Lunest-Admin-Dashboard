@@ -143,6 +143,11 @@ export const rejectHostApplication = async(userId, reason) => {
     return response.data;
 };
 
+export const revokeHostAccess = async(userId, reason) => {
+    const response = await apiClient.post('/users/' + userId + '/revoke-host', { reason });
+    return response.data;
+};
+
 export const getHostApplication = async(userId) => {
     const response = await apiClient.get('/users/' + userId + '/host-application');
     return response.data;

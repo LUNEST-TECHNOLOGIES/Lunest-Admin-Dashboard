@@ -8,7 +8,7 @@ import RejectHostModal from './RejectHostModal';
 import ViewHostApplicationModal from './ViewHostApplicationModal';
 import DeactivateUserModal from './DeactivateUserModal';
 import ViewUserModal from './ViewUserModal';
-import { getUsers, banUser, unbanUser, approveHostApplication, rejectHostApplication } from '../../../../services/adminService';
+import { getUsers, banUser, unbanUser, approveHostApplication, rejectHostApplication, revokeHostAccess } from '../../../../services/adminService';
 
 const UsersManagement = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -204,6 +204,18 @@ const UsersManagement = () => {
     } catch (err) {
       console.error('Error rejecting host:', err);
       throw err;
+    }
+  };
+
+  const handleRevokeHostAccess = async (user) => {
+    const reason = window.prompt(`Reason for revoking host access from ${user.name}:`);
+    if (reason === null) return;
+    try {
+      await revokeHostAccess(user.id, reason);
+      await fetchUsers();
+    } catch (err) {
+      console.error('Error revoking host access:', err);
+      window.alert(err.response?.data?.message || 'Unable to revoke host access.');
     }
   };
 
@@ -519,6 +531,21 @@ const UsersManagement = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
                               <div className="text-xs font-bold">Approve Host</div>
+                            </button>
+                          )}
+
+                          {user.role === 'Host' && (
+                            <button
+                              onClick={() => {
+                                handleRevokeHostAccess(user);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-rose-50 hover:text-rose-700 transition-all group cursor-pointer"
+                            >
+                              <svg className="w-4.5 h-4.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                              </svg>
+                              <div className="text-xs font-bold">Revoke Host Access</div>
                             </button>
                           )}
 
