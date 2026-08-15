@@ -31,6 +31,8 @@ const UsersManagement = () => {
   const [sortOrder, setSortOrder] = useState('desc'); // Descending order (highest first) by default
   const [statusFilter, setStatusFilter] = useState('All');
   const [subscriptionFilter, setSubscriptionFilter] = useState('All');
+  const [kycFilter, setKycFilter] = useState('All');
+  const [hostAppFilter, setHostAppFilter] = useState('All');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -184,6 +186,18 @@ const UsersManagement = () => {
       subscriptionMatch = user.subscription === subscriptionFilter;
     }
 
+    // Filter by KYC status dropdown selection
+    let kycMatch = true;
+    if (kycFilter !== 'All') {
+      kycMatch = user.kycStatus === kycFilter;
+    }
+
+    // Filter by Host Application status dropdown selection
+    let hostAppMatch = true;
+    if (hostAppFilter !== 'All') {
+      hostAppMatch = user.hostApplicationStatus === hostAppFilter;
+    }
+
     // Smart tokenized search matching
     const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
     const searchMatch = searchTerms.every(term => {
@@ -194,11 +208,13 @@ const UsersManagement = () => {
         (user.phone && user.phone.toLowerCase().includes(term)) ||
         (user.role && user.role.toLowerCase().includes(term)) ||
         (user.status && user.status.toLowerCase().includes(term)) ||
-        (user.subscription && user.subscription.toLowerCase().includes(term))
+        (user.subscription && user.subscription.toLowerCase().includes(term)) ||
+        (user.kycStatus && user.kycStatus.toLowerCase().includes(term)) ||
+        (user.hostApplicationStatus && user.hostApplicationStatus.toLowerCase().includes(term))
       );
     });
 
-    return roleMatch && statusMatch && subscriptionMatch && searchMatch;
+    return roleMatch && statusMatch && subscriptionMatch && kycMatch && hostAppMatch && searchMatch;
   });
 
   const totalFilteredEarnings = filteredUsers.reduce((sum, user) => {
@@ -370,6 +386,38 @@ const UsersManagement = () => {
               <option value="Free">Free</option>
               <option value="Basic">Basic</option>
               <option value="Premium">Premium</option>
+            </select>
+
+            {/* KYC Status Filter */}
+            <select
+              value={kycFilter}
+              onChange={(e) => {
+                setKycFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+            >
+              <option value="All">All KYC Statuses</option>
+              <option value="NONE">KYC: None</option>
+              <option value="PENDING">KYC: Pending</option>
+              <option value="VERIFIED">KYC: Verified</option>
+              <option value="REJECTED">KYC: Rejected</option>
+            </select>
+
+            {/* Host Application Filter */}
+            <select
+              value={hostAppFilter}
+              onChange={(e) => {
+                setHostAppFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+            >
+              <option value="All">All Host Applications</option>
+              <option value="NONE">Host App: None</option>
+              <option value="PENDING">Host App: Pending</option>
+              <option value="APPROVED">Host App: Approved</option>
+              <option value="REJECTED">Host App: Rejected</option>
             </select>
 
             {/* Date Filters */}
