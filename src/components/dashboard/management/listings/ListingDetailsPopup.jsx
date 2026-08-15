@@ -4,6 +4,7 @@ import { approveListing, rejectListing, getUserById, unlistListing, relistListin
 import { resolveImageUrl, normalizeArray } from '../../../../utils/imageUtils';
 import ApproveListing from './ApproveListing';
 import RejectListing from './RejectListing';
+import UnlistListing from './UnlistListing';
 import { useNotification } from '../../../ui/NotificationProvider';
 
 const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
@@ -14,6 +15,7 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
   const [showFullScreen, setShowFullScreen] = useState(false);
   const [showApprovePopup, setShowApprovePopup] = useState(false);
   const [showRejectPopup, setShowRejectPopup] = useState(false);
+  const [showUnlistPopup, setShowUnlistPopup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -619,43 +621,19 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                 <div className="flex gap-4">
                   {listing?.status === 'Unlisted' || listing?.status === 'UNLISTED' ? (
                     <button
-                      onClick={async () => {
-                        try {
-                          setIsLoading(true);
-                          await relistListing(listing?.id);
-                          notify.success('Listing Relisted', `${listing?.title} is now active and visible on explore.`);
-                          if (onListingUpdated) onListingUpdated();
-                          onClose();
-                        } catch (err) {
-                          notify.error('Relist Failed', err?.message || 'Failed to relist listing');
-                        } finally {
-                          setIsLoading(false);
-                        }
-                      }}
+                      onClick={() => setShowUnlistPopup(true)}
                       disabled={isLoading}
                       className="flex-1 py-3 bg-emerald-600 text-white rounded-[10px] font-aeonik font-bold text-base hover:bg-emerald-700 transition-colors disabled:opacity-50 cursor-pointer"
                     >
-                      {isLoading ? 'Relisting...' : 'Relist Property'}
+                      Relist Property
                     </button>
                   ) : (
                     <button
-                      onClick={async () => {
-                        try {
-                          setIsLoading(true);
-                          await unlistListing(listing?.id, 'Unlisted by admin');
-                          notify.success('Listing Unlisted', `${listing?.title} has been unlisted and hidden from explore.`);
-                          if (onListingUpdated) onListingUpdated();
-                          onClose();
-                        } catch (err) {
-                          notify.error('Unlist Failed', err?.message || 'Failed to unlist listing');
-                        } finally {
-                          setIsLoading(false);
-                        }
-                      }}
+                      onClick={() => setShowUnlistPopup(true)}
                       disabled={isLoading}
                       className="flex-1 py-3 border-2 border-amber-600 text-amber-700 bg-amber-50 rounded-[10px] font-aeonik font-bold text-base hover:bg-amber-100 transition-colors disabled:opacity-50 cursor-pointer"
                     >
-                      {isLoading ? 'Unlisting...' : 'Unlist Property'}
+                      Unlist Property
                     </button>
                   )}
                 </div>
@@ -719,6 +697,45 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
               notify.error(
                 'Rejection Failed',
                 error.response?.data?.message || error.message || 'Failed to reject listing'
+              );
+            } finally {
+              setIsLoading(false);
+            }
+          }}
+        />
+      )}
+
+      {showUnlistPopup && (
+        <UnlistListing
+          listing={listing}
+          isRelist={listing?.status === 'UNLISTED' || listing?.status === 'Unlisted'}
+          isLoading={isLoading}
+          onClose={() => setShowUnlistPopup(false)}
+          onConfirm={async (reason) => {
+            const isRelist = listing?.status === 'UNLISTED' || listing?.status === 'Unlisted';
+            try {
+              setIsLoading(true);
+              if (isRelist) {
+                await relistListing(listing?.id);
+                notify.success(
+                  'Listing Relisted!',
+                  `ID: ${listing?.id} - ${listing?.title} has been successfully relisted.`
+                );
+              } else {
+                await unlistListing(listing?.id, reason || 'Unlisted by admin');
+                notify.success(
+                  'Listing Unlisted!',
+                  `ID: ${listing?.id} - ${listing?.title} has been successfully unlisted.`
+                );
+              }
+              setShowUnlistPopup(false);
+              if (onListingUpdated) onListingUpdated();
+              onClose(); // Close the details popup too
+            } catch (error) {
+              console.error('Error modifying listing status:', error);
+              notify.error(
+                isRelist ? 'Relist Failed' : 'Unlist Failed',
+                error.response?.data?.message || error.message || 'Failed to update listing status'
               );
             } finally {
               setIsLoading(false);
