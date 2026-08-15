@@ -277,6 +277,16 @@ export const suspendListing = async(listingId, reason) => {
     return response.data;
 };
 
+export const unlistListing = async(listingId, reason) => {
+    const response = await apiClient.post('/listings/' + listingId + '/unlist', { reason });
+    return response.data;
+};
+
+export const relistListing = async(listingId) => {
+    const response = await apiClient.post('/listings/' + listingId + '/relist');
+    return response.data;
+};
+
 export const deleteListing = async(listingId) => {
     const response = await apiClient.delete('/listings/delete/' + listingId);
     return response.data;

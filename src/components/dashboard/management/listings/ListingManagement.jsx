@@ -211,6 +211,7 @@ const ListingManagement = () => {
         'REJECTED': 'Rejected',
         'SUSPENDED': 'Suspended',
         'DRAFT': 'Draft',
+        'UNLISTED': 'Unlisted',
       };
       return statusMap[status] || status || 'Pending';
     } catch (e) {
@@ -229,6 +230,7 @@ const ListingManagement = () => {
         'REJECTED': 'rose',
         'SUSPENDED': 'red',
         'DRAFT': 'slate',
+        'UNLISTED': 'amber',
       };
       return colorMap[status] || 'amber';
     } catch (e) {

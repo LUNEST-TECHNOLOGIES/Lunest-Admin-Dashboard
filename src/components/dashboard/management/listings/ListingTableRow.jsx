@@ -23,6 +23,7 @@ const ListingTableRow = ({ listing, isSelected, onSelect, showSelectMode, onList
         return 'bg-rose-50 text-rose-700 border-rose-200';
       case 'Paused':
       case 'Draft':
+      case 'Unlisted':
         return 'bg-slate-50 text-slate-700 border-slate-200';
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200';

@@ -18,7 +18,7 @@ const ListingFiltersDropdown = ({ activeFilters, hostOptions = ['All'], onApplyF
 
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  const statusOptions = ['All', 'Available', 'Booked', 'Pending', 'Paused', 'Rejected', 'Suspended'];
+  const statusOptions = ['All', 'Available', 'Booked', 'Pending', 'Unlisted', 'Paused', 'Rejected', 'Suspended'];
   const typeOptions = ['All', 'Rent', 'Sale'];
   const planOptions = ['All', 'Free', 'Premium', 'Plus', 'Professional'];
 

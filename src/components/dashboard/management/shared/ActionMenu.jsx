@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MdMoreVert } from 'react-icons/md';
+import { MdMoreVert, MdVisibilityOff, MdVisibility } from 'react-icons/md';
 import ListingDetailsPopup from '../listings/ListingDetailsPopup';
 import ApproveListing from '../listings/ApproveListing';
 import RejectListing from '../listings/RejectListing';
@@ -7,7 +7,7 @@ import EditListing from '../listings/EditListing';
 import DeleteListing from '../listings/DeleteListing';
 import AlertNotification from './AlertNotification';
 import { useNotification } from '../../../ui/NotificationProvider';
-import { approveListing, rejectListing, updateListing, deleteListing } from '../../../../services/adminService';
+import { approveListing, rejectListing, updateListing, deleteListing, unlistListing, relistListing } from '../../../../services/adminService';
 
 const ActionMenu = ({ listing, onListingUpdated, isLastItem }) => {
   const notify = useNotification();
@@ -99,6 +99,49 @@ const ActionMenu = ({ listing, onListingUpdated, isLastItem }) => {
                 <img src="/assets/icons/action-menu/vuesax/outline/edit.svg" alt="Edit Info" className="w-4.5 h-4.5 opacity-70 group-hover:opacity-100" />
                 <div className="text-xs font-bold font-aeonik">Edit Info</div>
               </button>
+
+              {/* Unlist / Relist */}
+              {listing?.status === 'UNLISTED' || listing?.status === 'Unlisted' ? (
+                <button 
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      setIsMenuOpen(false);
+                      await relistListing(listing?.id);
+                      notify.success('Property Relisted', `${listing?.title} is now active and visible on explore.`);
+                      if (onListingUpdated) onListingUpdated();
+                    } catch (err) {
+                      notify.error('Relist Failed', err?.message || 'Failed to relist property');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  className="w-full px-3 py-2.5 rounded-lg flex justify-start items-center gap-3 hover:bg-emerald-50 hover:text-emerald-700 transition-all group cursor-pointer"
+                >
+                  <MdVisibility className="w-4.5 h-4.5 text-emerald-600" />
+                  <div className="text-xs font-bold font-aeonik text-emerald-700">Relist Property</div>
+                </button>
+              ) : (
+                <button 
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      setIsMenuOpen(false);
+                      await unlistListing(listing?.id, 'Unlisted by admin');
+                      notify.success('Property Unlisted', `${listing?.title} has been unlisted from the app.`);
+                      if (onListingUpdated) onListingUpdated();
+                    } catch (err) {
+                      notify.error('Unlist Failed', err?.message || 'Failed to unlist property');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  className="w-full px-3 py-2.5 rounded-lg flex justify-start items-center gap-3 hover:bg-amber-50 hover:text-amber-700 transition-all group cursor-pointer"
+                >
+                  <MdVisibilityOff className="w-4.5 h-4.5 text-amber-600" />
+                  <div className="text-xs font-bold font-aeonik text-amber-700">Unlist Property</div>
+                </button>
+              )}
               
               <div className="my-1 border-t border-slate-50"></div>
 
