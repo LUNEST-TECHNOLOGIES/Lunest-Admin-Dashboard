@@ -478,7 +478,7 @@ const UsersManagement = () => {
               <div className="w-20 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Bookings</div>
               <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Wallet</div>
               <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center cursor-pointer select-none hover:text-indigo-600 flex items-center justify-center gap-1 transition-colors" onClick={() => toggleSort('earnings')}>
-                <span>Host Earnings</span>
+                <span>Booking Earning</span>
                 {sortBy === 'earnings' && (
                   <span className="text-[10px]">{sortOrder === 'asc' ? '▲' : '▼'}</span>
                 )}
