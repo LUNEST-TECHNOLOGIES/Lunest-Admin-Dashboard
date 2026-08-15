@@ -29,6 +29,8 @@ const UsersManagement = () => {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('earnings'); // Sort by host earnings by default to track highest earning host
   const [sortOrder, setSortOrder] = useState('desc'); // Descending order (highest first) by default
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [subscriptionFilter, setSubscriptionFilter] = useState('All');
 
   const toggleSort = (field) => {
     if (sortBy === field) {
@@ -163,15 +165,34 @@ const UsersManagement = () => {
     } else if (activeTab === 'pending-hosts') {
       roleMatch = user.hostApplicationStatus === 'PENDING';
     }
-    // Tab 'all' shows all users
 
-    // Filter by search query
-    const searchMatch = 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.walletId.toLowerCase().includes(searchQuery.toLowerCase());
+    // Filter by status dropdown selection
+    let statusMatch = true;
+    if (statusFilter !== 'All') {
+      statusMatch = user.status === statusFilter;
+    }
 
-    return roleMatch && searchMatch;
+    // Filter by subscription dropdown selection
+    let subscriptionMatch = true;
+    if (subscriptionFilter !== 'All') {
+      subscriptionMatch = user.subscription === subscriptionFilter;
+    }
+
+    // Smart tokenized search matching
+    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    const searchMatch = searchTerms.every(term => {
+      return (
+        (user.name && user.name.toLowerCase().includes(term)) ||
+        (user.email && user.email.toLowerCase().includes(term)) ||
+        (user.walletId && user.walletId.toLowerCase().includes(term)) ||
+        (user.phone && user.phone.toLowerCase().includes(term)) ||
+        (user.role && user.role.toLowerCase().includes(term)) ||
+        (user.status && user.status.toLowerCase().includes(term)) ||
+        (user.subscription && user.subscription.toLowerCase().includes(term))
+      );
+    });
+
+    return roleMatch && statusMatch && subscriptionMatch && searchMatch;
   });
 
   const sortedUsers = [...filteredUsers].sort((a, b) => {
@@ -310,11 +331,37 @@ const UsersManagement = () => {
             />
           </div>
 
-          {/* Filter Button */}
-          <button className="px-4 py-2 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex justify-center items-center gap-1.5 hover:bg-slate-100 transition-all cursor-pointer font-bold text-xs shadow-sm">
-            <MdTune className="w-4 h-4" />
-            <span className="hidden sm:inline">Priority Filters</span>
-          </button>
+          {/* Interactive Filters Dropdowns */}
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Banned">Banned</option>
+            </select>
+
+            {/* Subscription Filter */}
+            <select
+              value={subscriptionFilter}
+              onChange={(e) => {
+                setSubscriptionFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+            >
+              <option value="All">All Subscriptions</option>
+              <option value="Free">Free</option>
+              <option value="Basic">Basic</option>
+              <option value="Premium">Premium</option>
+            </select>
+          </div>
         </div>
 
         {/* Table Content with Horizontal Scroll */}
