@@ -27,6 +27,18 @@ const UsersManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortBy, setSortBy] = useState('earnings'); // Sort by host earnings by default to track highest earning host
+  const [sortOrder, setSortOrder] = useState('desc'); // Descending order (highest first) by default
+
+  const toggleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+    setCurrentPage(1);
+  };
 
   // Format currency with 2 decimal places
   const formatCurrency = (amount) => {
@@ -66,6 +78,7 @@ const UsersManagement = () => {
           subscription: user.subscription || 'Free',
           bookings: user.bookingsCount || 0,
           walletBalance: user.walletBalance || 0,
+          hostEarnings: user.hostEarnings || 0,
           status: user.active !== false ? 'Active' : 'Banned', // Default to Active if undefined
           lastActivity: formatLastActivity(user.updatedAt || user.createdAt),
           rawUserType: user.userType,
@@ -161,9 +174,23 @@ const UsersManagement = () => {
     return roleMatch && searchMatch;
   });
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    let comparison = 0;
+    if (sortBy === 'earnings') {
+      comparison = (a.hostEarnings || 0) - (b.hostEarnings || 0);
+    } else if (sortBy === 'bookings') {
+      comparison = (a.bookings || 0) - (b.bookings || 0);
+    } else if (sortBy === 'wallet') {
+      comparison = (a.walletBalance || 0) - (b.walletBalance || 0);
+    } else {
+      comparison = a.name.localeCompare(b.name);
+    }
+    return sortOrder === 'asc' ? comparison : -comparison;
+  });
+
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedUsers = sortedUsers.slice(startIndex, startIndex + itemsPerPage);
 
   // Handle ban user
   const handleBanUser = async (userId, reason) => {
@@ -292,7 +319,7 @@ const UsersManagement = () => {
 
         {/* Table Content with Horizontal Scroll */}
         <div className="w-full overflow-x-auto scrollbar-hide">
-          <div className="min-w-[1320px]">
+          <div className="min-w-[1450px]">
             {/* Table Header */}
             <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 flex justify-between items-center gap-4">
               <div className="w-10 flex-shrink-0"></div>
@@ -301,6 +328,12 @@ const UsersManagement = () => {
               <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Subscription</div>
               <div className="w-20 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Bookings</div>
               <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Wallet</div>
+              <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center cursor-pointer select-none hover:text-indigo-600 flex items-center justify-center gap-1 transition-colors" onClick={() => toggleSort('earnings')}>
+                <span>Host Earnings</span>
+                {sortBy === 'earnings' && (
+                  <span className="text-[10px]">{sortOrder === 'asc' ? '▲' : '▼'}</span>
+                )}
+              </div>
               <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">KYC Status</div>
               <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Status</div>
               <div className="w-40 text-xs font-bold text-slate-600 uppercase tracking-wider">Last Activity</div>
@@ -399,6 +432,11 @@ const UsersManagement = () => {
                   {/* Wallet Balance */}
                   <div className="w-32 text-slate-900 text-xs font-bold flex-shrink-0 flex justify-center tabular-nums">
                     {formatCurrency(user.walletBalance.toString())}
+                  </div>
+
+                  {/* Host Earnings */}
+                  <div className="w-32 text-emerald-600 text-xs font-bold flex-shrink-0 flex justify-center tabular-nums">
+                    {formatCurrency(user.hostEarnings.toString())}
                   </div>
 
                   {/* KYC Status */}
