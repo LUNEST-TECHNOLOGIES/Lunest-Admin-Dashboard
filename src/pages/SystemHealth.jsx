@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, Server, Database, Clock, CheckCircle, XCircle, AlertTriangle, Play, RefreshCw, User, Users } from 'lucide-react';
-import { getAdminTransactionSummary } from '../services/adminService';
+import React, { useState, useEffect, useRef } from 'react';
+import { Activity, Server, Database, Clock, CheckCircle, XCircle, AlertTriangle, Play, RefreshCw, User, Users, Search, X, Check, ShieldCheck, Mail, Phone, BadgeCheck } from 'lucide-react';
+import { getAdminTransactionSummary, getUsers } from '../services/adminService';
+import apiClient from '../api/client';
 
 const SystemHealth = () => {
   const [healthData, setHealthData] = useState({
@@ -19,36 +20,113 @@ const SystemHealth = () => {
   const [selectedUser, setSelectedUser] = useState('');
   const [cronScope, setCronScope] = useState('all'); // 'all' or 'individual'
 
+  // Individual user search & population state
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchingUser, setIsSearchingUser] = useState(false);
+  const [selectedUserData, setSelectedUserData] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchDropdownRef = useRef(null);
+
+  // Debounced user search
+  useEffect(() => {
+    if (cronScope !== 'individual') {
+      setSelectedUserData(null);
+      setSelectedUser('');
+      setUserSearchQuery('');
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    if (!userSearchQuery.trim() || userSearchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    // Don't search if query matches currently selected user
+    if (selectedUserData && userSearchQuery === `${selectedUserData.fullName || selectedUserData.firstName} (${selectedUserData.userID || selectedUserData.emailAddress})`) {
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingUser(true);
+      try {
+        const res = await getUsers({ search: userSearchQuery.trim() });
+        const usersList = res?.body?.users || res?.users || (Array.isArray(res) ? res : []);
+        setSearchResults(usersList.slice(0, 8));
+        setShowDropdown(true);
+      } catch (err) {
+        console.error('Error searching users for cron:', err);
+      } finally {
+        setIsSearchingUser(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [userSearchQuery, cronScope, selectedUserData]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectUser = (user) => {
+    setSelectedUserData(user);
+    const userIdVal = user._id || user.userID || user.id;
+    setSelectedUser(userIdVal);
+    setUserSearchQuery(`${user.fullName || user.firstName || 'User'} (${user.userID || user.emailAddress || ''})`);
+    setShowDropdown(false);
+  };
+
+  const handleClearUser = () => {
+    setSelectedUserData(null);
+    setSelectedUser('');
+    setUserSearchQuery('');
+    setSearchResults([]);
+    setShowDropdown(false);
+  };
+
   const checkSystemHealth = async () => {
     setRefreshing(true);
     try {
-      // Check API status by calling transaction summary
-      const response = await getAdminTransactionSummary({});
-      
-      if (response && response.success) {
-        const overview = response.body?.overview || {};
-        
-        setHealthData(prev => ({
-          ...prev,
-          apiStatus: 'healthy',
-          databaseStatus: 'healthy',
-          lastTransactionCheck: new Date().toISOString(),
-          systemMetrics: {
-            totalTransactions: overview.totalTransactions || 0,
-            failedTransactions: overview.failedTransactionCount || 0,
-            successRate: overview.totalTransactions > 0 
-              ? ((overview.totalTransactions - (overview.failedTransactionCount || 0)) / overview.totalTransactions * 100).toFixed(2)
-              : 100
-          }
-        }));
-      } else {
-        setHealthData(prev => ({
-          ...prev,
-          apiStatus: 'unhealthy',
-          databaseStatus: 'unknown',
-          lastTransactionCheck: new Date().toISOString()
-        }));
+      // 1. Check API health
+      let apiHealthy = false;
+      try {
+        const healthRes = await apiClient.get('/health');
+        apiHealthy = healthRes.status === 200;
+      } catch (err) {
+        try {
+          const statsRes = await apiClient.get('/admin/stats');
+          apiHealthy = statsRes.status === 200;
+        } catch (e) {
+          apiHealthy = false;
+        }
       }
+
+      // 2. Fetch transaction stats
+      const txStats = await getAdminTransactionSummary();
+      
+      setHealthData({
+        apiStatus: apiHealthy ? 'healthy' : 'unhealthy',
+        databaseStatus: apiHealthy ? 'healthy' : 'unhealthy',
+        lastTransactionCheck: new Date().toISOString(),
+        recentTransactions: txStats?.recentTransactions || [],
+        systemMetrics: {
+          totalTransactions: txStats?.totalCount || 0,
+          failedTransactions: txStats?.failedCount || 0,
+          successRate: txStats?.totalCount > 0 
+            ? Math.round(((txStats.totalCount - (txStats.failedCount || 0)) / txStats.totalCount) * 100)
+            : 100
+        }
+      });
     } catch (error) {
       console.error('System health check failed:', error);
       setHealthData(prev => ({
@@ -65,30 +143,22 @@ const SystemHealth = () => {
   const runCronJob = async (jobName) => {
     setRunningCron(jobName);
     try {
-      // Call cron job endpoint (to be implemented in backend)
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/v1';
-      const payload = cronScope === 'individual' && selectedUser 
-        ? { userId: selectedUser }
+      const targetUserId = selectedUserData?._id || selectedUserData?.userID || selectedUser;
+      const payload = cronScope === 'individual' && targetUserId 
+        ? { userId: targetUserId }
         : {};
 
-      const response = await fetch(`${API_URL}/admin/cron/${jobName}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': localStorage.getItem('adminToken')
-        },
-        body: JSON.stringify(payload)
-      });
+      const response = await apiClient.post(`/admin/cron/${jobName}`, payload);
       
-      if (response.ok) {
-        const result = await response.json();
-        alert(`${jobName} executed successfully: ${result.message || 'Done'}`);
+      if (response.data && response.data.success) {
+        alert(`${jobName} executed successfully: ${response.data.message || 'Done'}`);
       } else {
-        alert(`Failed to run ${jobName}: ${response.statusText}`);
+        alert(`Failed to run ${jobName}: ${response.data?.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error(`Cron job ${jobName} failed:`, error);
-      alert(`Error running ${jobName}: ${error.message}`);
+      const errMsg = error.response?.data?.message || error.message;
+      alert(`Error running ${jobName}: ${errMsg}`);
     } finally {
       setRunningCron(null);
     }
@@ -320,15 +390,134 @@ const SystemHealth = () => {
               </label>
             </div>
             {cronScope === 'individual' && (
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-slate-400" />
-                <input
-                  type="text"
-                  value={selectedUser}
-                  onChange={(e) => setSelectedUser(e.target.value)}
-                  placeholder="Enter User ID or UserID (e.g., LNT1074596)"
-                  className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+              <div className="space-y-3" ref={searchDropdownRef}>
+                <div className="relative">
+                  <div className="flex items-center gap-2">
+                    <Search className="w-5 h-5 text-slate-400 absolute left-3 z-10" />
+                    <input
+                      type="text"
+                      value={userSearchQuery}
+                      onChange={(e) => {
+                        setUserSearchQuery(e.target.value);
+                        if (selectedUserData) setSelectedUserData(null);
+                      }}
+                      onFocus={() => {
+                        if (searchResults.length > 0) setShowDropdown(true);
+                      }}
+                      placeholder="Search user by name, email, or User ID (e.g. Tayo, tayo@gmail.com, LNT...)"
+                      className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                    />
+                    {isSearchingUser ? (
+                      <RefreshCw className="w-4 h-4 text-indigo-600 animate-spin absolute right-3" />
+                    ) : userSearchQuery ? (
+                      <button
+                        onClick={handleClearUser}
+                        className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 absolute right-3"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    ) : null}
+                  </div>
+
+                  {/* Autocomplete Results Dropdown */}
+                  {showDropdown && searchResults.length > 0 && (
+                    <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-72 overflow-y-auto divide-y divide-slate-100">
+                      {searchResults.map((user) => {
+                        const name = user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unnamed User';
+                        const email = user.emailAddress || user.email || 'No email';
+                        const userId = user.userID || user._id;
+                        const role = user.userType || 'GUEST';
+                        const isKyc = user.verified || user.kycStatus === 'VERIFIED';
+
+                        return (
+                          <div
+                            key={user._id || userId}
+                            onClick={() => handleSelectUser(user)}
+                            className="p-3 hover:bg-indigo-50/70 cursor-pointer transition-colors flex items-center justify-between gap-3"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-semibold flex items-center justify-center text-sm shrink-0">
+                                {user.avatar ? (
+                                  <img src={user.avatar} alt={name} className="w-9 h-9 rounded-full object-cover" />
+                                ) : (
+                                  name.charAt(0).toUpperCase()
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-sm text-slate-900 truncate">{name}</span>
+                                  {isKyc && (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800">
+                                      <ShieldCheck className="w-3 h-3 mr-0.5" /> Verified
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-slate-500 truncate flex items-center gap-2">
+                                  <span>{email}</span>
+                                  {user.userID && <span className="text-slate-400 font-mono">ID: {user.userID}</span>}
+                                </div>
+                              </div>
+                            </div>
+                            <span className="shrink-0 px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-700 uppercase">
+                              {role}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Populated Selected User Card */}
+                {selectedUserData && (
+                  <div className="p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-xl flex items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-base shrink-0 shadow-sm">
+                        {selectedUserData.avatar ? (
+                          <img src={selectedUserData.avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          (selectedUserData.fullName || selectedUserData.firstName || 'U').charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h5 className="font-semibold text-sm text-slate-900 truncate">
+                            {selectedUserData.fullName || `${selectedUserData.firstName || ''} ${selectedUserData.lastName || ''}`.trim()}
+                          </h5>
+                          <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-indigo-100 text-indigo-800 uppercase">
+                            {selectedUserData.userType || 'GUEST'}
+                          </span>
+                          {(selectedUserData.verified || selectedUserData.kycStatus === 'VERIFIED') && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                              <ShieldCheck className="w-3 h-3 mr-0.5" /> Verified
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-600 mt-0.5">
+                          <span className="flex items-center gap-1">
+                            <Mail className="w-3.5 h-3.5 text-slate-400" />
+                            {selectedUserData.emailAddress || selectedUserData.email || 'N/A'}
+                          </span>
+                          {selectedUserData.phoneNumber && (
+                            <span className="flex items-center gap-1">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              {selectedUserData.phoneNumber}
+                            </span>
+                          )}
+                          <span className="text-slate-500 font-mono">
+                            ID: {selectedUserData.userID || selectedUserData._id}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleClearUser}
+                      className="px-2.5 py-1 text-xs font-medium text-rose-600 hover:text-rose-700 bg-white border border-rose-200 hover:bg-rose-50 rounded-lg transition-colors shrink-0"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
