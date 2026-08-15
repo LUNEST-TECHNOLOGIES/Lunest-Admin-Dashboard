@@ -31,6 +31,8 @@ const UsersManagement = () => {
   const [sortOrder, setSortOrder] = useState('desc'); // Descending order (highest first) by default
   const [statusFilter, setStatusFilter] = useState('All');
   const [subscriptionFilter, setSubscriptionFilter] = useState('All');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const toggleSort = (field) => {
     if (sortBy === field) {
@@ -50,16 +52,20 @@ const UsersManagement = () => {
     return `₦${numericAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
   };
 
-  // Fetch users from backend
+  // Fetch users from backend on mount or date filters change
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [startDate, endDate]);
 
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getUsers();
+      const filters = {};
+      if (startDate) filters.startDate = startDate;
+      if (endDate) filters.endDate = endDate;
+      
+      const response = await getUsers(filters);
       console.log('Users response:', response);
       
       // Transform backend data to match UI format
@@ -195,6 +201,10 @@ const UsersManagement = () => {
     return roleMatch && statusMatch && subscriptionMatch && searchMatch;
   });
 
+  const totalFilteredEarnings = filteredUsers.reduce((sum, user) => {
+    return sum + (user.hostEarnings || 0);
+  }, 0);
+
   const sortedUsers = [...filteredUsers].sort((a, b) => {
     let comparison = 0;
     if (sortBy === 'earnings') {
@@ -315,9 +325,9 @@ const UsersManagement = () => {
       {/* Main Content Container - Removed overflow-hidden to prevent clipping dropdowns */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col relative">
         {/* Search and Filter Bar */}
-        <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div className="p-6 border-b border-slate-100 flex flex-col xl:flex-row gap-4 justify-between items-stretch xl:items-center">
           {/* Search Input */}
-          <div className="relative w-full md:max-w-md">
+          <div className="relative w-full xl:max-w-md">
             <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
@@ -331,8 +341,8 @@ const UsersManagement = () => {
             />
           </div>
 
-          {/* Interactive Filters Dropdowns */}
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          {/* Interactive Filters Dropdowns & Date Filters & Total Summary */}
+          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
             {/* Status Filter */}
             <select
               value={statusFilter}
@@ -361,6 +371,50 @@ const UsersManagement = () => {
               <option value="Basic">Basic</option>
               <option value="Premium">Premium</option>
             </select>
+
+            {/* Date Filters */}
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 shadow-sm">
+              <span className="text-[10px] font-bold text-slate-500 uppercase">From</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="bg-transparent text-xs font-semibold text-slate-750 outline-none border-none cursor-pointer"
+              />
+              <span className="text-[10px] font-bold text-slate-500 uppercase">To</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="bg-transparent text-xs font-semibold text-slate-750 outline-none border-none cursor-pointer"
+              />
+              {(startDate || endDate) && (
+                <button
+                  onClick={() => {
+                    setStartDate('');
+                    setEndDate('');
+                    setCurrentPage(1);
+                  }}
+                  className="text-xs text-rose-500 font-bold hover:text-rose-700 ml-1 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {/* Total Earnings Summary Card */}
+            <div className="px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center gap-2 shadow-sm">
+              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Total Earnings:</span>
+              <span className="text-sm font-black text-emerald-600 tabular-nums">
+                {formatCurrency(totalFilteredEarnings)}
+              </span>
+            </div>
           </div>
         </div>
 
