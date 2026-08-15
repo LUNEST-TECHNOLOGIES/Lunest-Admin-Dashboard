@@ -475,8 +475,18 @@ const UsersManagement = () => {
               <div className="flex-1 min-w-[200px] text-xs font-bold text-slate-600 uppercase tracking-wider">User Details</div>
               <div className="w-24 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Role</div>
               <div className="w-28 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Subscription</div>
-              <div className="w-20 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Bookings</div>
-              <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center">Wallet</div>
+              <div className="w-20 text-xs font-bold text-slate-600 uppercase tracking-wider text-center cursor-pointer select-none hover:text-indigo-600 flex items-center justify-center gap-1 transition-colors" onClick={() => toggleSort('bookings')}>
+                <span>Bookings</span>
+                {sortBy === 'bookings' && (
+                  <span className="text-[10px]">{sortOrder === 'asc' ? '▲' : '▼'}</span>
+                )}
+              </div>
+              <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center cursor-pointer select-none hover:text-indigo-600 flex items-center justify-center gap-1 transition-colors" onClick={() => toggleSort('wallet')}>
+                <span>Wallet</span>
+                {sortBy === 'wallet' && (
+                  <span className="text-[10px]">{sortOrder === 'asc' ? '▲' : '▼'}</span>
+                )}
+              </div>
               <div className="w-32 text-xs font-bold text-slate-600 uppercase tracking-wider text-center cursor-pointer select-none hover:text-indigo-600 flex items-center justify-center gap-1 transition-colors" onClick={() => toggleSort('earnings')}>
                 <span>Booking Earning</span>
                 {sortBy === 'earnings' && (
