@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MdClose, MdImage } from 'react-icons/md';
-import { approveListing, rejectListing, getUserById } from '../../../../services/adminService';
+import { approveListing, rejectListing, getUserById, unlistListing, relistListing } from '../../../../services/adminService';
 import { resolveImageUrl, normalizeArray } from '../../../../utils/imageUtils';
 import ApproveListing from './ApproveListing';
 import RejectListing from './RejectListing';
@@ -590,7 +590,7 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
             )}
 
             {/* Admin Action Buttons */}
-            {listing?.status === 'Pending' && (
+            {listing?.status === 'Pending' ? (
               <div className="mt-8 pt-8 border-t border-neutral-200 flex flex-col gap-3">
                 <h4 className="text-black text-base font-semibold font-aeonik">Admin Actions</h4>
                 <div className="flex gap-4">
@@ -611,6 +611,56 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                 </div>
                 <p className="text-xs text-gray-500 font-aeonik text-center">
                   Hosts will receive an email notification upon approval or rejection.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-8 pt-8 border-t border-neutral-200 flex flex-col gap-3">
+                <h4 className="text-black text-base font-semibold font-aeonik">Listing Management</h4>
+                <div className="flex gap-4">
+                  {listing?.status === 'Unlisted' || listing?.status === 'UNLISTED' ? (
+                    <button
+                      onClick={async () => {
+                        try {
+                          setIsLoading(true);
+                          await relistListing(listing?.id);
+                          notify.success('Listing Relisted', `${listing?.title} is now active and visible on explore.`);
+                          if (onListingUpdated) onListingUpdated();
+                          onClose();
+                        } catch (err) {
+                          notify.error('Relist Failed', err?.message || 'Failed to relist listing');
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="flex-1 py-3 bg-emerald-600 text-white rounded-[10px] font-aeonik font-bold text-base hover:bg-emerald-700 transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      {isLoading ? 'Relisting...' : 'Relist Property'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        try {
+                          setIsLoading(true);
+                          await unlistListing(listing?.id, 'Unlisted by admin');
+                          notify.success('Listing Unlisted', `${listing?.title} has been unlisted and hidden from explore.`);
+                          if (onListingUpdated) onListingUpdated();
+                          onClose();
+                        } catch (err) {
+                          notify.error('Unlist Failed', err?.message || 'Failed to unlist listing');
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="flex-1 py-3 border-2 border-amber-600 text-amber-700 bg-amber-50 rounded-[10px] font-aeonik font-bold text-base hover:bg-amber-100 transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      {isLoading ? 'Unlisting...' : 'Unlist Property'}
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 font-aeonik text-center">
+                  Unlisted properties remain in the database and admin dashboard, but are hidden from guest explore and searches.
                 </p>
               </div>
             )}
