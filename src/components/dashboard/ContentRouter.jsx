@@ -1516,16 +1516,16 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
 
     if (isBooking && !isSubRow) {
       if (activeTab === 'App Fees') {
-        const fee = transaction.metadata?.guestFee || (Math.abs(displayAmount) / 1.05375 * 0.05);
-        displayAmount = fee;
+        const fee = transaction.metadata?.guestFee ?? transaction.metadata?.hostFee ?? (Math.abs(displayAmount) > 0 ? (Math.abs(displayAmount) / 1.05375 * 0.05) : 0);
+        displayAmount = Number(fee) || 0;
         isBundledDisplay = true;
       } else if (activeTab === 'VAT') {
-        const vat = transaction.metadata?.guestVat || (Math.abs(displayAmount) / 1.05375 * 0.05 * 0.075);
-        displayAmount = vat;
+        const vat = transaction.metadata?.guestVat ?? transaction.metadata?.hostVat ?? transaction.metadata?.vat ?? (Math.abs(displayAmount) > 0 ? (Math.abs(displayAmount) / 1.05375 * 0.05 * 0.075) : 0);
+        displayAmount = Number(vat) || 0;
         isBundledDisplay = true;
       } else if (activeTab === 'Host Earnings') {
-        const hostEarnings = transaction.metadata?.hostEarnings || (Math.abs(displayAmount) * 0.97);
-        displayAmount = hostEarnings;
+        const hostEarnings = transaction.metadata?.hostEarnings ?? (Math.abs(displayAmount) > 0 ? (Math.abs(displayAmount) * 0.97) : 0);
+        displayAmount = Number(hostEarnings) || 0;
         isBundledDisplay = true;
       }
     }
