@@ -52,22 +52,22 @@ const DisputesReports = () => {
                 let filters = {};
                 if (activeTab === 'Pending') {
                     filters['$or'] = [
-                        { 'securityDepositResolution.status': { $in: ['DISPUTED', 'PENDING'] } },
-                        { 'status': 'DISPUTED' }
+                        { 'securityDepositResolution.status': 'DISPUTED' },
+                        { 'status': 'DISPUTED' },
+                        { 'disputeRaised': true }
                     ];
-                    filters['disputeRaised'] = true; // Only show identified disputes
                 } else if (activeTab === 'Resolved') {
                     filters['$or'] = [
                         { 'securityDepositResolution.status': { $in: ['RELEASED_TO_GUEST', 'RELEASED_TO_HOST', 'RESOLVED_BY_ADMIN'] } },
-                        { 'resolutionStatus': 'RESOLVED_BY_ADMIN' }
+                        { 'resolutionStatus': { $in: ['RESOLVED', 'RESOLVED_BY_ADMIN'] } }
                     ];
                 } else if (activeTab === 'All Disputes') {
                     filters['$or'] = [
-                        { 'securityDepositResolution.status': { $in: ['DISPUTED', 'PENDING', 'RELEASED_TO_GUEST', 'RELEASED_TO_HOST', 'RESOLVED_BY_ADMIN'] } },
+                        { 'securityDepositResolution.status': { $in: ['DISPUTED', 'RELEASED_TO_GUEST', 'RELEASED_TO_HOST', 'RESOLVED_BY_ADMIN'] } },
                         { 'status': 'DISPUTED' },
-                        { 'resolutionStatus': 'RESOLVED_BY_ADMIN' }
+                        { 'resolutionStatus': { $in: ['RESOLVED', 'RESOLVED_BY_ADMIN'] } },
+                        { 'disputeRaised': true }
                     ];
-                    filters['disputeRaised'] = true;
                 }
 
                 const response = await getBookings(filters);

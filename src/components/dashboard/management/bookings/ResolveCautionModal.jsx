@@ -63,8 +63,8 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
 
         <div className="p-8 flex-1 flex flex-col gap-6">
           {/* Booking Info Summary */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <div className="flex justify-between items-center mb-2">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
+            <div className="flex justify-between items-center">
               <span className="text-slate-500 text-sm font-aeonik">Booking Reference</span>
               <span className="text-slate-900 font-bold font-aeonik">{booking?.id || 'N/A'}</span>
             </div>
@@ -74,6 +74,16 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
                 {symbol}{cautionAmount.toLocaleString()}
               </span>
             </div>
+            {(booking?.securityDepositResolution?.reason || booking?.disputeReason) && (
+              <div className="pt-2 border-t border-slate-200/60 mt-2">
+                <span className="text-amber-700 text-xs font-bold font-aeonik uppercase tracking-wider block mb-1">
+                  Submitted Dispute Reason ({booking?.securityDepositResolution?.resolvedBy || 'Claimant'}):
+                </span>
+                <p className="text-slate-700 text-sm font-medium bg-amber-50/70 p-2.5 rounded-lg border border-amber-200/50">
+                  {booking?.securityDepositResolution?.reason || booking?.disputeReason}
+                </p>
+              </div>
+            )}
           </div>
           
           {/* Zero Caution Fee Message */}
