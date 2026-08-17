@@ -65,8 +65,8 @@ const ListingManagement = () => {
       if (raw === 'REJECTED') counts.REJECTED++;
     });
 
-    // In default Active view, Active count includes Available + Live plus Pending on top
-    counts.ACTIVE = counts.ACTIVE + counts.PENDING;
+    // In default Active view, Active count includes Available + Live + Booked plus Pending on top
+    counts.ACTIVE = counts.ACTIVE + counts.BOOKED + counts.PENDING;
 
     return counts;
   }, [listings]);
@@ -94,7 +94,7 @@ const ListingManagement = () => {
       let matchesTab = true;
 
       if (selectedStatusTab === 'ACTIVE') {
-        matchesTab = ['AVAILABLE', 'ACTIVE', 'LIVE', 'PENDING'].includes(rawStatus);
+        matchesTab = ['AVAILABLE', 'ACTIVE', 'LIVE', 'BOOKED', 'PENDING'].includes(rawStatus);
       } else if (selectedStatusTab === 'PENDING') {
         matchesTab = rawStatus === 'PENDING';
       } else if (selectedStatusTab === 'DRAFT') {
