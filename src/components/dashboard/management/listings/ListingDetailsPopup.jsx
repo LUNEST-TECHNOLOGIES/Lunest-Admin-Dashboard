@@ -19,8 +19,43 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  const [imageError, setImageError] = useState({});
   const [videoError, setVideoError] = useState({});
+  const [loadingAgreement, setLoadingAgreement] = useState(false);
+
+  const handleViewAgreement = async () => {
+    const directUrl = listing?.rawData?.agreementUrl || listing?.agreementUrl;
+    if (directUrl) {
+      window.open(directUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const targetId = listing?._id || listing?.id || listing?.rawData?._id;
+    if (!targetId) return;
+
+    try {
+      setLoadingAgreement(true);
+      const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+      const apiBase = process.env.REACT_APP_API_BASE_URL || 'https://api.lunest.app/v1';
+      const res = await fetch(`${apiBase}/listings/${targetId}/agreement`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await res.json();
+      const agreementUrl = data?.data?.url || data?.data?.agreementUrl || data?.url;
+      if (agreementUrl) {
+        window.open(agreementUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        notify.error("Legal agreement is not yet generated or available.");
+      }
+    } catch (err) {
+      console.error("Error opening legal agreement:", err);
+      notify.error("Failed to load legal agreement document.");
+    } finally {
+      setLoadingAgreement(false);
+    }
+  };
 
 
   // Minimum swipe distance (in px)
@@ -397,33 +432,32 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
               </div>
             )}
 
-            {/* Documentation & Agreements */}
-            {(listing?.rawData?.agreementUrl || listing?.rawData?.agreementAt) && (
-              <div className="pb-5 border-b border-neutral-200">
-                <h4 className="text-black text-base font-semibold font-aeonik mb-3">Documentation</h4>
-                <div className="space-y-2 text-sm font-aeonik">
-                  {listing?.rawData?.agreementAt && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-black">Agreement Signed:</span>
-                      <span className="text-xs text-black">{new Date(listing.rawData.agreementAt).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                  {listing?.rawData?.agreementUrl && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-black">Agreement Doc:</span>
-                      <a 
-                        href={listing.rawData.agreementUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs text-indigo-600 hover:underline font-bold flex items-center gap-1"
-                      >
-                        View Legal Agreement
-                      </a>
-                    </div>
-                  )}
+            {/* Documentation & Legal */}
+            <div className="pb-5 border-b border-neutral-200">
+              <h4 className="text-black text-base font-semibold font-aeonik mb-3">Documentation & Legal Agreement</h4>
+              <div className="space-y-3 text-sm font-aeonik">
+                {(listing?.rawData?.agreementAt || listing?.agreementAt) && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-black">Agreement Certified:</span>
+                    <span className="text-xs text-black">{new Date(listing?.rawData?.agreementAt || listing?.agreementAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-black">Agreement Doc:</span>
+                  <button
+                    type="button"
+                    onClick={handleViewAgreement}
+                    disabled={loadingAgreement}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-semibold transition-colors border border-indigo-200 cursor-pointer"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {loadingAgreement ? 'Loading Agreement...' : 'View Legal Agreement'}
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Host Information */}
             <div>
