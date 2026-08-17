@@ -73,8 +73,9 @@ export default function Dashboard() {
         navigate('/login');
     };
 
-    // Calculate stats from dashboard stats with backend data
-    const totalBookings = (dashboardStats?.bookings?.total) ?? (dashboardStats?.totalBookings) ?? bookings.length ?? 0;
+    // Calculate stats from dashboard stats with backend data (exclude EXPIRED, FAILED, CANCELLED)
+    const validBookings = (Array.isArray(bookings) ? bookings : []).filter(b => !['EXPIRED', 'FAILED', 'CANCELLED', 'PENDING_PAYMENT'].includes((b.status || '').toUpperCase()) && (b.paymentStatus || '').toUpperCase() !== 'FAILED');
+    const totalBookings = (dashboardStats?.bookings?.total) ?? (dashboardStats?.totalBookings) ?? validBookings.length ?? 0;
     const totalRevenue = (dashboardStats?.platformFees) ?? (dashboardStats?.totalRevenue) ?? 0;
     const totalUsers = (dashboardStats?.users?.total) ?? (dashboardStats?.totalUsers) ?? 0;
     const totalGuests = (dashboardStats?.users?.guests) ?? (dashboardStats?.totalGuests) ?? 0;

@@ -712,9 +712,9 @@ const getFallbackStats = async() => {
             totalListings: listings.length,
             activeListings: listings.filter(l => l.status === 'AVAILABLE').length,
             pendingListings: listings.filter(l => l.status === 'PENDING').length,
-            totalBookings: bookings.length,
-            activeBookings: bookings.filter(b => ['CONFIRMED', 'ONGOING'].includes(b.status)).length,
-            pendingBookings: bookings.filter(b => b.status === 'PENDING').length,
+            totalBookings: bookings.filter(b => !['EXPIRED', 'FAILED', 'CANCELLED', 'PENDING_PAYMENT'].includes((b.status || '').toUpperCase()) && (b.paymentStatus || '').toUpperCase() !== 'FAILED').length,
+            activeBookings: bookings.filter(b => ['CONFIRMED', 'ONGOING'].includes((b.status || '').toUpperCase())).length,
+            pendingBookings: bookings.filter(b => (b.status || '').toUpperCase() === 'PENDING').length,
             pendingKYC: users.filter(u => !u.verified && u.active).length,
             unreadNotifications: 0,
         };
