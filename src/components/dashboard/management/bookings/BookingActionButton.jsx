@@ -199,15 +199,15 @@ const BookingActionButton = ({ booking, refresh, isLastItems }) => {
               <span className="text-xs font-bold">Penalize Host</span>
             </button>
 
-            {/* Resolve Caution Button - Only for COMPLETED bookings with HELD caution fee */}
-            {booking.rawStatus === 'COMPLETED' && (booking.cautionFeeStatus === 'HELD' || booking.cautionFeeStatus === 'DISPUTED') && (
+            {/* Resolve Caution Dispute Button - ONLY for COMPLETED bookings where a DISPUTE was raised on caution fee */}
+            {booking.rawStatus === 'COMPLETED' && (booking.disputeRaised || booking.cautionFeeStatus === 'DISPUTED') && (
               <>
                 <div className="my-1 border-t border-slate-50"></div>
                 <button
                   onClick={handleResolveCaution}
                   className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg flex justify-start items-center gap-3 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 cursor-pointer"
                 >
-                  <span className="text-xs font-bold">Resolve Caution</span>
+                  <span className="text-xs font-bold">Resolve Caution Dispute</span>
                 </button>
               </>
             )}
