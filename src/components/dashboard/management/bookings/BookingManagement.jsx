@@ -131,7 +131,7 @@ const BookingManagement = () => {
         isAddressClickable: formatAddress(booking.listing) !== 'Address not available',
         cautionFeeRaw: booking.pricingBreakdown?.securityDeposit || 0,
         currency: booking.totalAmount?.currency || 'NGN',
-        cautionFeeStatus: (booking.securityDepositStatus || 'HELD').toUpperCase(),
+        cautionFeeStatus: (booking.securityDepositResolution?.status || booking.securityDepositStatus || 'HELD').toUpperCase(),
         disputeRaised: !!booking.disputeRaised,
         referenceCode: booking.referenceCode,
         securityDepositResolution: booking.securityDepositResolution || null,
