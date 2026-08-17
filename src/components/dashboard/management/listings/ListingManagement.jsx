@@ -5,7 +5,7 @@ import ListingTableRow from './ListingTableRow';
 import ListingTooltip from './ListingTooltip';
 import ListingFiltersDropdown from './ListingFiltersDropdown';
 import MassApprovalModal from './MassApprovalModal';
-import { getListings, massApproveListing, massRejectListing } from '../../../../services/adminService';
+import { getListings, massApproveListing, massRejectListing, massUnlistListing } from '../../../../services/adminService';
 import apiClient from '../../../../api/client';
 
 const ListingManagement = () => {
@@ -420,6 +420,8 @@ const ListingManagement = () => {
     try {
       if (massActionType === 'approve') {
         await massApproveListing(selectedIds);
+      } else if (massActionType === 'unlist') {
+        await massUnlistListing(selectedIds, 'Unlisted by admin');
       } else {
         await massRejectListing(selectedIds, 'Rejected by admin');
       }
@@ -514,6 +516,21 @@ const ListingManagement = () => {
               }`}
             >
               Reject
+            </button>
+            
+            <button 
+              disabled={selectedRows.size === 0}
+              onClick={() => {
+                setMassActionType('unlist');
+                setShowMassApprovalModal(true);
+              }}
+              className={`px-4 py-2 rounded-lg transition-colors cursor-pointer text-xs font-bold whitespace-nowrap shadow-sm ${
+                selectedRows.size > 0 
+                  ? 'bg-amber-600 text-white hover:bg-amber-700' 
+                  : 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed'
+              }`}
+            >
+              Unlist
             </button>
             
             <button 

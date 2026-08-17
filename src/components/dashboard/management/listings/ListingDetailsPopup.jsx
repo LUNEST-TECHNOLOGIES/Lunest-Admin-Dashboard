@@ -713,19 +713,20 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
           onClose={() => setShowUnlistPopup(false)}
           onConfirm={async (reason) => {
             const isRelist = listing?.status === 'UNLISTED' || listing?.status === 'Unlisted';
+            const targetId = listing?._id || listing?.id || listing?.rawData?._id;
             try {
               setIsLoading(true);
               if (isRelist) {
-                await relistListing(listing?.id);
+                await relistListing(targetId);
                 notify.success(
                   'Listing Relisted!',
-                  `ID: ${listing?.id} - ${listing?.title} has been successfully relisted.`
+                  `ID: ${listing?.id || targetId} - ${listing?.title || 'Property'} has been successfully relisted.`
                 );
               } else {
-                await unlistListing(listing?.id, reason || 'Unlisted by admin');
+                await unlistListing(targetId, reason || 'Unlisted by admin');
                 notify.success(
                   'Listing Unlisted!',
-                  `ID: ${listing?.id} - ${listing?.title} has been successfully unlisted.`
+                  `ID: ${listing?.id || targetId} - ${listing?.title || 'Property'} has been successfully unlisted.`
                 );
               }
               setShowUnlistPopup(false);

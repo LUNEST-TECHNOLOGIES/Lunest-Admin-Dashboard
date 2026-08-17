@@ -290,19 +290,21 @@ const ActionMenu = ({ listing, onListingUpdated, isLastItem }) => {
           onClose={() => setShowUnlistPopup(false)}
           onConfirm={async (reason) => {
             const isRelist = listing?.status === 'UNLISTED' || listing?.status === 'Unlisted';
+            const targetId = listing?._id || listing?.id || listing?.rawData?._id;
             try {
               setIsLoading(true);
               if (isRelist) {
-                await relistListing(listing?.id);
-                notify.success('Property Relisted', `${listing?.title} is now active and visible on explore.`);
+                await relistListing(targetId);
+                notify.success('Property Relisted', `${listing?.title || 'Property'} is now active and visible on explore.`);
               } else {
-                await unlistListing(listing?.id, reason || 'Unlisted by admin');
-                notify.success('Property Unlisted', `${listing?.title} has been unlisted from the app.`);
+                await unlistListing(targetId, reason || 'Unlisted by admin');
+                notify.success('Property Unlisted', `${listing?.title || 'Property'} has been unlisted from the app.`);
               }
               setShowUnlistPopup(false);
               if (onListingUpdated) onListingUpdated();
             } catch (err) {
-              notify.error(isRelist ? 'Relist Failed' : 'Unlist Failed', err?.message || 'Failed to update listing status');
+              console.error('Error updating listing status:', err);
+              notify.error(isRelist ? 'Relist Failed' : 'Unlist Failed', err?.response?.data?.message || err?.message || 'Failed to update listing status');
             } finally {
               setIsLoading(false);
             }

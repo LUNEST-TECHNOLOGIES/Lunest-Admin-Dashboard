@@ -312,6 +312,13 @@ export const massRejectListing = async(listingIds, reason) => {
     return results;
 };
 
+export const massUnlistListing = async(listingIds, reason = 'Unlisted by admin') => {
+    const results = await Promise.all(
+        listingIds.map(id => unlistListing(id, reason))
+    );
+    return results;
+};
+
 // ============================================
 // BOOKINGS MANAGEMENT
 // ============================================
