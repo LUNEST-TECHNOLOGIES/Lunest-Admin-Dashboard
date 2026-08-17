@@ -138,6 +138,7 @@ const BookingManagement = () => {
         cancelReason: booking.cancelReason || '',
         cancelNote: booking.cancelNote || '',
         isRefunded: !!booking.isRefunded || ['CANCELLED', 'REFUNDED', 'EXPIRED', 'FAILED'].includes(booking.status) || booking.refundStatus === 'REFUNDED' || booking.resolutionStatus === 'RESOLVED_BY_ADMIN',
+        refundRequested: booking.status === 'REFUND_REQUESTED' || !!booking.refundRequested || booking.refundStatus === 'REQUESTED' || (!!booking.disputeRaised && !booking.isRefunded),
         extensionsCount: Array.isArray(booking.extensions) ? booking.extensions.length : 0
       }));
       setBookings(transformedBookings);
