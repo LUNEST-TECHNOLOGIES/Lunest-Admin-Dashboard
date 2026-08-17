@@ -12,6 +12,7 @@ const ListingManagement = () => {
   console.log('🔍 ListingManagement component mounted');
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatusTab, setSelectedStatusTab] = useState('ACTIVE');
   const [currentPage, setCurrentPage] = useState(1);
   const [showFiltersPopup, setShowFiltersPopup] = useState(false);
   const [activeFilters, setActiveFilters] = useState({ status: null, type: null, plan: null, hostName: null });
@@ -27,6 +28,134 @@ const ListingManagement = () => {
   const itemsPerPage = 8;
   const MAX_RETRIES = 3;
   const hasFetched = useRef(false);
+
+  // Status Tab Definitions
+  const STATUS_TABS = [
+    { id: 'ACTIVE', label: 'Active / Live' },
+    { id: 'PENDING', label: 'Pending Review' },
+    { id: 'DRAFT', label: 'Drafts' },
+    { id: 'UNLISTED', label: 'Unlisted' },
+    { id: 'BOOKED', label: 'Booked' },
+    { id: 'PAUSED', label: 'Paused / Suspended' },
+    { id: 'REJECTED', label: 'Rejected' },
+    { id: 'ALL', label: 'All Listings' },
+  ];
+
+  // Calculate badge counts for tabs
+  const tabCounts = React.useMemo(() => {
+    const counts = {
+      ACTIVE: 0,
+      PENDING: 0,
+      DRAFT: 0,
+      UNLISTED: 0,
+      BOOKED: 0,
+      PAUSED: 0,
+      REJECTED: 0,
+      ALL: listings.length,
+    };
+
+    listings.forEach((l) => {
+      const raw = (l.rawData?.status || l.status || '').toUpperCase();
+      if (raw === 'PENDING') counts.PENDING++;
+      if (['AVAILABLE', 'ACTIVE', 'LIVE'].includes(raw)) counts.ACTIVE++;
+      if (raw === 'DRAFT') counts.DRAFT++;
+      if (raw === 'UNLISTED') counts.UNLISTED++;
+      if (raw === 'BOOKED') counts.BOOKED++;
+      if (['PAUSED', 'SUSPENDED'].includes(raw)) counts.PAUSED++;
+      if (raw === 'REJECTED') counts.REJECTED++;
+    });
+
+    // In default Active view, Active count includes Available + Live plus Pending on top
+    counts.ACTIVE = counts.ACTIVE + counts.PENDING;
+
+    return counts;
+  }, [listings]);
+
+  // Filter & Sort listings by tab, search, and secondary filters
+  const filteredListings = React.useMemo(() => {
+    const searchTerms = searchQuery.toLowerCase().trim();
+
+    const filtered = listings.filter((listing) => {
+      if (!listing) return false;
+
+      // 1. Search filter
+      const matchesSearch =
+        !searchTerms ||
+        (listing.title || '').toLowerCase().includes(searchTerms) ||
+        (listing.hostName || '').toLowerCase().includes(searchTerms) ||
+        (listing.hostUserId || '').toLowerCase().includes(searchTerms) ||
+        (listing.hostId || '').toLowerCase().includes(searchTerms) ||
+        (listing.id || '').toLowerCase().includes(searchTerms);
+
+      if (!matchesSearch) return false;
+
+      // 2. Status Tab filter
+      const rawStatus = (listing.rawData?.status || listing.status || '').toUpperCase();
+      let matchesTab = true;
+
+      if (selectedStatusTab === 'ACTIVE') {
+        matchesTab = ['AVAILABLE', 'ACTIVE', 'LIVE', 'PENDING'].includes(rawStatus);
+      } else if (selectedStatusTab === 'PENDING') {
+        matchesTab = rawStatus === 'PENDING';
+      } else if (selectedStatusTab === 'DRAFT') {
+        matchesTab = rawStatus === 'DRAFT';
+      } else if (selectedStatusTab === 'UNLISTED') {
+        matchesTab = rawStatus === 'UNLISTED';
+      } else if (selectedStatusTab === 'BOOKED') {
+        matchesTab = rawStatus === 'BOOKED';
+      } else if (selectedStatusTab === 'PAUSED') {
+        matchesTab = ['PAUSED', 'SUSPENDED'].includes(rawStatus);
+      } else if (selectedStatusTab === 'REJECTED') {
+        matchesTab = rawStatus === 'REJECTED';
+      } else if (selectedStatusTab === 'ALL') {
+        matchesTab = true;
+      }
+
+      if (!matchesTab) return false;
+
+      // 3. Secondary dropdown filters
+      const matchesStatusDropdown =
+        !activeFilters.status ||
+        activeFilters.status === 'All' ||
+        rawStatus === activeFilters.status.toUpperCase();
+
+      const matchesType =
+        !activeFilters.type ||
+        activeFilters.type === 'All' ||
+        (listing.intent && listing.intent.toLowerCase() === activeFilters.type.toLowerCase());
+
+      const matchesPlan =
+        !activeFilters.plan ||
+        activeFilters.plan === 'All' ||
+        listing.planTier === activeFilters.plan;
+
+      const matchesHost =
+        !activeFilters.hostName ||
+        activeFilters.hostName === 'All' ||
+        listing.hostName === activeFilters.hostName;
+
+      return matchesStatusDropdown && matchesType && matchesPlan && matchesHost;
+    });
+
+    // Smart sorting:
+    // When in 'ACTIVE' tab: Pending reviews always float to the top, then sorted by createdAt
+    return filtered.sort((a, b) => {
+      if (selectedStatusTab === 'ACTIVE') {
+        const aRaw = (a.rawData?.status || a.status || '').toUpperCase();
+        const bRaw = (b.rawData?.status || b.status || '').toUpperCase();
+        const aIsPending = aRaw === 'PENDING';
+        const bIsPending = bRaw === 'PENDING';
+
+        if (aIsPending && !bIsPending) return -1;
+        if (!aIsPending && bIsPending) return 1;
+      }
+
+      // Default: sort newest first
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [listings, searchQuery, selectedStatusTab, activeFilters]);
 
   // Fetch listings from backend
   useEffect(() => {
@@ -263,42 +392,11 @@ const ListingManagement = () => {
 
 
 
-  // Filter listings by search and active filters
-  const filteredListings = listings.filter(listing => {
-    try {
-      if (!listing) return false;
-      
-      const searchTerms = searchQuery.toLowerCase();
-      const matchesSearch = (listing.title || '').toLowerCase().includes(searchTerms) ||
-                            (listing.hostName || '').toLowerCase().includes(searchTerms) ||
-                            (listing.hostUserId || '').toLowerCase().includes(searchTerms) ||
-                            (listing.hostId || '').toLowerCase().includes(searchTerms) ||
-                            (listing.id || '').toLowerCase().includes(searchTerms);
-      
-      // Use original raw status for precise matching
-      const rawStatus = listing.rawData?.status || '';
-      const matchesStatus = !activeFilters.status || activeFilters.status === 'All' || rawStatus === activeFilters.status;
-      
-      const matchesType = !activeFilters.type || activeFilters.type === 'All' || 
-                          (listing.intent && listing.intent.toLowerCase() === activeFilters.type.toLowerCase());
-      
-      const matchesPlan = !activeFilters.plan || activeFilters.plan === 'All' || listing.planTier === activeFilters.plan;
-      
-      const matchesHost = !activeFilters.hostName || activeFilters.hostName === 'All' || listing.hostName === activeFilters.hostName;
-      
-      return matchesSearch && matchesStatus && matchesType && matchesPlan && matchesHost;
-    } catch (filterErr) {
-      console.error('Error filtering listing:', filterErr, listing);
-      return false;
-    }
-  });
-
   // Handle filter changes from dropdown
   const handleApplyFilters = (newFilters) => {
     console.log('🎯 Applying filters:', newFilters);
     
     // Normalize status to uppercase for backend/raw matching if needed
-    // However, if we match against rawData.status, we should use the backend version
     const normalizedFilters = { ...newFilters };
     if (normalizedFilters.status && normalizedFilters.status !== 'All') {
       normalizedFilters.status = normalizedFilters.status.toUpperCase();
@@ -363,6 +461,7 @@ const ListingManagement = () => {
 
       {/* Main Content Container */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+        {/* Top Control Bar: Search & Action Buttons */}
         <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center">
           {/* Search Input */}
           <div className="relative w-full md:max-w-md">
@@ -438,12 +537,64 @@ const ListingManagement = () => {
               className="px-4 py-2 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex justify-center items-center gap-1.5 hover:bg-slate-100 transition-all cursor-pointer relative font-bold text-xs shadow-sm"
             >
               <MdTune className="w-4 h-4" />
-              <span className="hidden sm:inline">Filters</span>
+              <span className="hidden sm:inline">More Filters</span>
               {(activeFilters.status || activeFilters.type || activeFilters.plan) && (
                 <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white"></div>
               )}
             </button>
           </div>
+        </div>
+
+        {/* Smart Status Filter Tabs */}
+        <div className="px-6 py-3 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between overflow-x-auto scrollbar-hide gap-2">
+          <div className="flex items-center gap-2 flex-nowrap">
+            {STATUS_TABS.map((tab) => {
+              const isActive = selectedStatusTab === tab.id;
+              const count = tabCounts[tab.id] || 0;
+              const isPendingTab = tab.id === 'PENDING';
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setSelectedStatusTab(tab.id);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                    isActive
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : isPendingTab && count > 0
+                        ? 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span
+                    className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${
+                      isActive
+                        ? 'bg-white/20 text-white'
+                        : isPendingTab && count > 0
+                          ? 'bg-amber-200 text-amber-900'
+                          : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {(activeFilters.type || activeFilters.plan || activeFilters.hostName) && (
+            <button
+              onClick={() => {
+                setActiveFilters({ status: null, type: null, plan: null, hostName: null });
+                setCurrentPage(1);
+              }}
+              className="text-xs text-rose-600 hover:text-rose-700 font-medium whitespace-nowrap px-2 py-1 underline cursor-pointer flex-shrink-0"
+            >
+              Reset Filters
+            </button>
+          )}
         </div>
 
         {/* Filters Popup */}
