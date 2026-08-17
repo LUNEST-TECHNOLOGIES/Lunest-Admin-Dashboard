@@ -19,6 +19,7 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [imageError, setImageError] = useState({});
   const [videoError, setVideoError] = useState({});
   const [loadingAgreement, setLoadingAgreement] = useState(false);
 
