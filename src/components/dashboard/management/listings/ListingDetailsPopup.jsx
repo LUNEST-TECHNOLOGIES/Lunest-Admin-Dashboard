@@ -35,7 +35,7 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
 
     try {
       setLoadingAgreement(true);
-      const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token') || localStorage.getItem('adminToken');
       const apiBase = process.env.REACT_APP_API_BASE_URL || 'https://api.lunest.app/v1';
       const res = await fetch(`${apiBase}/listings/${targetId}/agreement`, {
         headers: {
