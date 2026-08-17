@@ -1448,7 +1448,9 @@ const FinancialManagement = () => {
                                 ? 'bg-blue-50 text-blue-700 border-blue-100' 
                                 : 'bg-gray-100 text-gray-800 border-gray-200'
                             }`}>
-                              {transaction.category?.replace(/_/g, ' ') || transaction.type}
+                              {transaction.category === 'CANCELLATION_REFUND' && (transaction.description?.includes('Caution') || transaction.metadata?.isCautionRefund || transaction.metadata?.cautionPaid) 
+                                ? 'Caution Fee Refund' 
+                                : (transaction.category?.replace(/_/g, ' ') || transaction.type)}
                               {transaction._bookingRef && (
                                 <span className="ml-1 text-blue-600 font-semibold">
                                   (#{transaction._bookingRef.slice(-8)})
