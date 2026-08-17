@@ -148,6 +148,11 @@ export const revokeHostAccess = async(userId, reason) => {
     return response.data;
 };
 
+export const sendKycReminder = async(userId) => {
+    const response = await apiClient.post('/users/' + userId + '/send-kyc-reminder');
+    return response.data;
+};
+
 export const getHostApplication = async(userId) => {
     const response = await apiClient.get('/users/' + userId + '/host-application');
     return response.data;
