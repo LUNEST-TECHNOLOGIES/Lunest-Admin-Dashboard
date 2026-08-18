@@ -237,9 +237,9 @@ const BookingManagement = () => {
 
         {/* Table Content with Horizontal Scroll */}
         <div className="w-full overflow-x-auto scrollbar-hide">
-          <div className="min-w-[1100px]">
+          <div className="min-w-[1150px]">
             {/* Table Header */}
-            <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_40px] items-center gap-8">
+            <div className="w-full px-6 py-4 bg-indigo-50/50 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_60px] items-center gap-6">
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Booking ID</div>
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Stakeholders</div>
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Amount</div>
@@ -255,7 +255,7 @@ const BookingManagement = () => {
                 paginatedBookings.map((booking, idx) => {
                   const isLastItems = idx >= paginatedBookings.length - 2 && idx >= 3;
                   return (
-                    <div key={idx} className="relative w-full px-6 py-5 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_40px] items-center hover:bg-slate-50/80 hover:z-50 transition-all gap-8 group">
+                    <div key={idx} className="relative w-full px-6 py-5 border-b border-slate-100 grid grid-cols-[115px_1.8fr_1fr_1fr_1.4fr_1fr_1fr_60px] items-center hover:bg-slate-50/80 hover:z-50 transition-all gap-6 group">
                       {/* Booking ID */}
                       <div className="pl-2">
                         <div className="text-slate-900 text-xs font-black tracking-tight uppercase select-all">{booking.id}</div>

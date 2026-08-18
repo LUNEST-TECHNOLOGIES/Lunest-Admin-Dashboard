@@ -139,11 +139,11 @@ const BookingActionButton = ({ booking, refresh, isLastItems }) => {
   };
 
   return (
-    <div className={`w-8 h-8 flex-shrink-0 relative ${isMenuOpen ? 'z-[60]' : 'z-50'}`} ref={menuRef}>
+    <div className={`w-8 h-8 flex-shrink-0 relative ${isMenuOpen ? 'z-[100]' : 'z-30'}`} ref={menuRef}>
       {/* Action Button Trigger */}
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className={`w-full h-full flex items-center justify-center rounded-lg border transition-all cursor-pointer shadow-sm ${
+        className={`w-full h-full flex items-center justify-center rounded-lg border transition-all cursor-pointer shadow-xs ${
           isMenuOpen 
             ? 'bg-indigo-50 border-indigo-200 text-indigo-700' 
             : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
@@ -154,7 +154,7 @@ const BookingActionButton = ({ booking, refresh, isLastItems }) => {
 
       {/* Action Menu Dropdown */}
       {isMenuOpen && (
-        <div className={`absolute right-0 ${isLastItems ? 'bottom-full mb-2' : 'top-full mt-2'} bg-white rounded-xl border border-slate-100 shadow-2xl shadow-slate-200/60 z-50 p-1.5 w-44 animate-in fade-in zoom-in duration-200`}>
+        <div className={`absolute right-0 ${isLastItems ? 'bottom-full mb-2' : 'top-full mt-2'} bg-white rounded-xl border border-slate-200 shadow-2xl shadow-slate-900/10 z-[100] p-1.5 w-52 animate-in fade-in zoom-in-95 duration-150`}>
           <div className="flex flex-col gap-0.5">
             
             {/* Refund Action - Only available when a refund has been explicitly requested and has not been processed */}
