@@ -390,7 +390,7 @@ const CouponManagement = () => {
                       <td className="px-6 py-4">{statusBadge(status)}</td>
                       <td className="px-6 py-4 text-slate-600 text-sm">{formatDate(coupon.createdAt)}</td>
                       <td className="px-6 py-4 text-right">
-                        {status === 'active' && !coupon.isUsed ? (
+                        {!coupon.isUsed ? (
                           showDeleteConfirm === coupon._id ? (
                             <div className="flex justify-end gap-2">
                               <button
@@ -416,7 +416,7 @@ const CouponManagement = () => {
                             </button>
                           )
                         ) : (
-                          <span className="text-xs text-slate-400">-</span>
+                          <span className="text-xs text-slate-400 font-medium">Used</span>
                         )}
                       </td>
                     </tr>
