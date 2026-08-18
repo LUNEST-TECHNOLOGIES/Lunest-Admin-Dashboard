@@ -10,7 +10,8 @@ import {
   MdOutlineClose,
   MdOutlineCheckCircle,
   MdOutlineCancel,
-  MdOutlineAccessTime
+  MdOutlineAccessTime,
+  MdOutlinePriceCheck
 } from 'react-icons/md';
 import StatsCard from '../../StatsCard';
 import { useNotification } from '../../../ui/NotificationProvider';
@@ -87,6 +88,9 @@ const CouponManagement = () => {
       if (res.success && res.body) {
         setCoupons(res.body.coupons || []);
         setPagination(res.body.pagination || { page: 1, pages: 1, total: 0 });
+        if (res.body.summary) {
+          setStats((prev) => ({ ...prev, ...res.body.summary }));
+        }
       }
     } catch (err) {
       console.error('Failed to fetch coupons:', err);
@@ -112,10 +116,10 @@ const CouponManagement = () => {
         discountValue: Number(formData.discountValue),
         discountType: formData.discountType,
         currency: formData.currency,
-        validityDays: validityDays,
+        validityDays: validityDays === 0 ? null : validityDays,
+        code: formData.code.trim() ? formData.code.trim().toUpperCase() : undefined,
+        userId: formData.userId.trim() ? formData.userId.trim() : undefined
       };
-      if (formData.code.trim()) payload.code = formData.code.trim();
-      if (formData.userId.trim()) payload.userId = formData.userId.trim();
 
       const res = await adminCreateCoupon(payload);
       if (res.success) {
@@ -199,7 +203,7 @@ const CouponManagement = () => {
     const icons = {
       active: <MdOutlineCheckCircle className="w-3.5 h-3.5" />,
       used: <MdOutlineConfirmationNumber className="w-3.5 h-3.5" />,
-      expired: <MdOutlineAccessTime className="w-3.5 h-3.5" />
+      expired: <MdOutlineCancel className="w-3.5 h-3.5" />
     };
     return (
       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${styles[status]}`}>
@@ -221,7 +225,7 @@ const CouponManagement = () => {
       label: 'Total Coupons',
       value: stats.totalCoupons,
       growth: '',
-      description: 'all time',
+      description: 'all time created',
       icon: <MdOutlineConfirmationNumber />,
       bgColor: 'indigo',
       iconColor: 'indigo'
@@ -252,13 +256,22 @@ const CouponManagement = () => {
       icon: <MdOutlineCancel />,
       bgColor: 'red',
       iconColor: 'red'
+    },
+    {
+      label: 'Total Value Redeemed',
+      value: `₦${(stats.totalDiscountUsed || 0).toLocaleString()}`,
+      growth: '',
+      description: 'total discount used',
+      icon: <MdOutlinePriceCheck />,
+      bgColor: 'purple',
+      iconColor: 'purple'
     }
   ];
 
   return (
     <div className="p-6 bg-slate-50 min-h-screen font-aeonik">
       {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {statsCards.map((stat, idx) => (
           <StatsCard key={idx} {...stat} />
         ))}
@@ -329,7 +342,8 @@ const CouponManagement = () => {
                 <tr>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Code</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Owner</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Discount</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Discount & Balance</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Value Used</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Source</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Validity</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
@@ -340,6 +354,10 @@ const CouponManagement = () => {
               <tbody className="divide-y divide-slate-100 text-sm">
                 {coupons.map((coupon, idx) => {
                   const status = getCouponStatus(coupon);
+                  const isFixed = coupon.discount?.type === 'FIXED';
+                  const remaining = isFixed ? (coupon.remainingBalance ?? coupon.discount?.value ?? 0) : null;
+                  const discountUsed = coupon.totalDiscountUsed || 0;
+
                   return (
                     <tr key={coupon._id || idx} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-6 py-4">
@@ -366,7 +384,19 @@ const CouponManagement = () => {
                               : `₦${(coupon.discount?.value || 0).toLocaleString()}`}
                           </span>
                           <span className="text-xs text-slate-500">
-                            {coupon.discount?.type === 'PERCENTAGE' ? 'percentage off' : 'fixed amount'}
+                            {isFixed
+                              ? `₦${remaining.toLocaleString()} left`
+                              : 'percentage off'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className={`font-bold ${discountUsed > 0 ? 'text-emerald-700 font-mono' : 'text-slate-500'}`}>
+                            ₦{discountUsed.toLocaleString()}
+                          </span>
+                          <span className="text-[11px] text-slate-400">
+                            {coupon.usageCount ? `${coupon.usageCount} redemption(s)` : (coupon.isUsed ? 'Fully used' : 'Not used yet')}
                           </span>
                         </div>
                       </td>
