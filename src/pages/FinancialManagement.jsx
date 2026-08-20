@@ -454,6 +454,10 @@ const FinancialManagement = () => {
       case 'completed': return 'bg-green-100 text-green-600';
       case 'failed': return 'bg-red-100 text-red-600';
       case 'processing': return 'bg-blue-100 text-blue-600';
+      case 'cancelled': return 'bg-gray-100 text-gray-500';
+      case 'released to host': return 'bg-indigo-100 text-indigo-600';
+      case 'refunded to guest': return 'bg-emerald-100 text-emerald-600';
+      case 'held for dispute': return 'bg-amber-100 text-amber-600';
       default: return 'bg-gray-100 text-gray-600';
     }
   };
@@ -707,9 +711,136 @@ const FinancialManagement = () => {
     return grouped;
   };
 
+  /**
+   * Deduplicate transactions for Caution Fees tab:
+   * Group by bookingId so each caution resolution shows as one row, not multiple.
+   * Consolidate multiple PLATFORM_FEE rows per booking into one for App Fees tab.
+   */
+  const deduplicateTransactions = (txns) => {
+    if (!txns || txns.length === 0) return txns;
+
+    // For Caution Fees tab: group by bookingId and keep only the most meaningful row
+    if (activeTab === 'Caution Fees') {
+      const byBooking = {};
+      const standalone = [];
+
+      txns.forEach(txn => {
+        const bId = txn.bookingId?._id || txn.bookingId || txn.metadata?.bookingId;
+        if (!bId) {
+          standalone.push(txn);
+          return;
+        }
+
+        if (!byBooking[bId]) {
+          byBooking[bId] = [];
+        }
+        byBooking[bId].push(txn);
+      });
+
+      const deduped = [];
+      Object.values(byBooking).forEach(group => {
+        if (group.length === 1) {
+          deduped.push(group[0]);
+          return;
+        }
+
+        // Pick the primary row: prefer the one with reconciliation status,
+        // otherwise the DEBIT (original hold), then fallback to first
+        const withReconciliation = group.find(t => t.metadata?.reconciliation?.cautionFeeStatus);
+        const primaryDebit = group.find(t => t.type === 'DEBIT' && !t.metadata?.isDisclosure);
+        const primary = withReconciliation || primaryDebit || group[0];
+
+        // Mark remaining as sub-rows
+        const others = group.filter(t => t !== primary);
+        deduped.push({
+          ...primary,
+          _isBookingParent: true,
+          _bookingRef: primary.reference,
+          _relatedCount: others.length,
+          _relatedTransactions: others
+        });
+
+        // If expanded, add sub-rows
+        if (expandedBookings[primary.reference]) {
+          others.forEach((sub, idx) => {
+            deduped.push({
+              ...sub,
+              _isRelated: true,
+              _parentRef: primary.reference,
+              _relatedIndex: idx
+            });
+          });
+        }
+      });
+
+      return [...deduped, ...standalone];
+    }
+
+    // For App Fees tab: consolidate PLATFORM_FEE transactions per booking
+    if (activeTab === 'App Fees') {
+      const byBooking = {};
+      const standalone = [];
+
+      txns.forEach(txn => {
+        const bId = txn.bookingId?._id || txn.bookingId || txn.metadata?.bookingId;
+        if (!bId) {
+          standalone.push(txn);
+          return;
+        }
+
+        if (!byBooking[bId]) {
+          byBooking[bId] = [];
+        }
+        byBooking[bId].push(txn);
+      });
+
+      const consolidated = [];
+      Object.values(byBooking).forEach(group => {
+        if (group.length === 1) {
+          consolidated.push(group[0]);
+          return;
+        }
+
+        // Sum all app fees for this booking into one parent row
+        const totalFee = group.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        const primary = group[0]; // Use first as template
+        const others = group.slice(1);
+
+        consolidated.push({
+          ...primary,
+          amount: totalFee,
+          description: `Total App Fee (${group.length} charges combined)`,
+          _isBookingParent: true,
+          _bookingRef: primary.reference,
+          _relatedCount: others.length,
+          _relatedTransactions: others
+        });
+
+        // If expanded, show individual fee sub-rows
+        if (expandedBookings[primary.reference]) {
+          others.forEach((sub, idx) => {
+            consolidated.push({
+              ...sub,
+              _isRelated: true,
+              _parentRef: primary.reference,
+              _relatedIndex: idx
+            });
+          });
+        }
+      });
+
+      return [...consolidated, ...standalone];
+    }
+
+    return txns;
+  };
+
   // Get booking-related transactions with breakdown
   const getBookingBreakdownData = () => {
-    if (activeTab !== 'Booking Breakdown') return { mainTransactions: transactions, hasBreakdown: false };
+    // Apply deduplication for applicable tabs
+    const dedupedTransactions = deduplicateTransactions(transactions);
+
+    if (activeTab !== 'Booking Breakdown') return { mainTransactions: dedupedTransactions, hasBreakdown: activeTab === 'Caution Fees' || activeTab === 'App Fees' };
     
     // If no transactions, return empty
     if (!transactions || transactions.length === 0) {
@@ -978,8 +1109,10 @@ const FinancialManagement = () => {
     {
       title: 'Host Payouts',
       value: formatCurrency(financeMetrics?.hostEarnings || 0),
-      change: `${formatCurrency(financeMetrics?.hostRentEarnings || 0)} Host Earning`,
-      changeText: `${formatCurrency(financeMetrics?.hostServiceChargeEarnings || 0)} Service - ${formatCurrency(financeMetrics?.hostVatRevenue || 0)} VAT`,
+      change: financeMetrics?.hostCautionEarnings > 0 
+        ? `${formatCurrency(financeMetrics?.hostRentEarnings || 0)} Rent + ${formatCurrency(financeMetrics?.hostCautionEarnings || 0)} Caution`
+        : `${formatCurrency(financeMetrics?.hostRentEarnings || 0)} Rent Payouts`,
+      changeText: `${formatCurrency(financeMetrics?.hostServiceChargeEarnings || 0)} Service Fee - ${formatCurrency(financeMetrics?.hostVatRevenue || 0)} Host VAT`,
       changeColor: 'text-cyan-600',
       icon: '👨‍💼',
       critical: false,
