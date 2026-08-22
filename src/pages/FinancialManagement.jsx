@@ -1420,13 +1420,13 @@ const FinancialManagement = () => {
                   <thead className="bg-slate-100/80 border-b border-slate-200 text-[11px] uppercase tracking-wider font-black text-slate-600">
                     <tr>
                       <th className="px-3.5 py-2.5 min-w-[130px]">Reference</th>
-                      <th className="px-3.5 py-2.5 min-w-[160px]">User Details</th>
-                      <th className="px-3 py-2.5 min-w-[110px]">Category</th>
+                      <th className="px-3.5 py-2.5 min-w-[150px]">User Details</th>
+                      <th className="px-3 py-2.5 min-w-[100px]">Category</th>
                       <th className="px-3 py-2.5 min-w-[90px]">Amount</th>
                       <th className="px-3.5 py-2.5 min-w-[160px]">Description</th>
-                      <th className="px-3.5 py-2.5 min-w-[110px]">Date</th>
-                      <th className="px-3 py-2.5 min-w-[80px]">Status</th>
-                      <th className="px-3.5 py-2.5 text-right min-w-[100px]">Actions</th>
+                      <th className="px-4 py-2.5 min-w-[145px]">Date</th>
+                      <th className="px-2 py-2.5 text-center w-20">Status</th>
+                      <th className="px-3 py-2.5 text-right w-24">Actions</th>
                     </tr>
                   </thead>
 
@@ -1567,16 +1567,16 @@ const FinancialManagement = () => {
                           <td className="px-3.5 py-2 text-[11px] text-slate-600 max-w-[260px] leading-snug break-words">
                             {transaction.description}
                           </td>
-                          <td className="px-3.5 py-2 whitespace-nowrap">
+                          <td className="px-4 py-2 whitespace-nowrap">
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-slate-700">
+                              <span className="text-[11px] font-bold text-slate-700">
                                 {new Date(transaction.createdAt || transaction.timestamp).toLocaleDateString('en-NG', {
                                   month: 'short',
                                   day: 'numeric',
                                   year: 'numeric'
                                 })}
                               </span>
-                              <span className="text-[9px] text-slate-400 font-mono">
+                              <span className="text-[10px] text-slate-400 font-mono font-medium">
                                 {new Date(transaction.createdAt || transaction.timestamp).toLocaleTimeString('en-NG', {
                                   hour: '2-digit',
                                   minute: '2-digit',
@@ -1586,12 +1586,12 @@ const FinancialManagement = () => {
                               </span>
                             </div>
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(transaction.status)}`}>
+                          <td className="px-2 py-2 text-center whitespace-nowrap">
+                            <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[9px] font-bold ${getStatusColor(transaction.status)}`}>
                               {transaction.status}
                             </span>
                           </td>
-                          <td className="px-3.5 py-2 text-right">
+                          <td className="px-3 py-2 text-right">
                             {!transaction._isRelated && (
                               <FinancialTransactionActions 
                                 transaction={transaction}

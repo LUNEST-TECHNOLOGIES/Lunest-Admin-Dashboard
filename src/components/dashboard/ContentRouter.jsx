@@ -1609,18 +1609,18 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
         <td className="px-3 py-2.5">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{transaction.channel || 'WALLET'}</span>
         </td>
-        <td className="px-3 py-2.5">
+        <td className="px-4 py-2.5 whitespace-nowrap min-w-[145px]">
           <div className="flex flex-col">
             <span className="text-[11px] font-bold text-slate-700">
               {new Date(transaction.createdAt || transaction.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
             </span>
-            <span className="text-[9px] text-slate-400 font-mono font-medium">
+            <span className="text-[10px] text-slate-400 font-mono font-medium">
               {new Date(transaction.createdAt || transaction.timestamp).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
             </span>
           </div>
         </td>
-        <td className="px-3 py-2.5">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${getStatusColor(transaction.status)}`}>
+        <td className="px-2 py-2.5 text-center whitespace-nowrap w-20">
+          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[9px] font-bold ${getStatusColor(transaction.status)}`}>
             {transaction.status}
           </span>
         </td>
