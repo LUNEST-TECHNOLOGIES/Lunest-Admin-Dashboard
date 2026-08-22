@@ -776,63 +776,44 @@ const FinancialManagement = () => {
       return [...deduped, ...standalone];
     }
 
-    // For App Fees tab: consolidate PLATFORM_FEE transactions per booking
+    // For App Fees tab: Show individual audited fees (Guest Fee & Host Fee) directly as distinct rows
     if (activeTab === 'App Fees') {
-      const byBooking = {};
-      const standalone = [];
-
-      txns.forEach(txn => {
-        const bId = txn.bookingId?._id || txn.bookingId || txn.metadata?.bookingId;
-        if (!bId) {
-          standalone.push(txn);
-          return;
-        }
-
-        if (!byBooking[bId]) {
-          byBooking[bId] = [];
-        }
-        byBooking[bId].push(txn);
-      });
-
-      const consolidated = [];
-      Object.values(byBooking).forEach(group => {
-        if (group.length === 1) {
-          consolidated.push(group[0]);
-          return;
-        }
-
-        // Sum all app fees for this booking into one parent row
-        const totalFee = group.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-        const primary = group[0]; // Use first as template
-        const others = group.slice(1);
-
-        consolidated.push({
-          ...primary,
-          amount: totalFee,
-          description: `Total App Fee (${group.length} charges combined)`,
-          _isBookingParent: true,
-          _bookingRef: primary.reference,
-          _relatedCount: others.length,
-          _relatedTransactions: others
-        });
-
-        // If expanded, show individual fee sub-rows
-        if (expandedBookings[primary.reference]) {
-          others.forEach((sub, idx) => {
-            consolidated.push({
-              ...sub,
-              _isRelated: true,
-              _parentRef: primary.reference,
-              _relatedIndex: idx
-            });
-          });
-        }
-      });
-
-      return [...consolidated, ...standalone];
+      return txns;
     }
 
     return txns;
+  };
+
+  // Define accounting sort priority for booking breakdown sub-rows
+  const getSubRowPriority = (txn) => {
+    const cat = txn.category || '';
+    const desc = (txn.description || '').toLowerCase();
+    const isGuest = txn.type === 'DEBIT' || txn.metadata?.guestSide || txn.metadata?.type === 'GUEST' || desc.includes('guest');
+    
+    // 1. Guest Rent & Service Charge
+    if (cat === 'RENT_AND_SERVICE' || (cat === 'RENT' && isGuest) || (cat === 'SERVICE_CHARGE' && isGuest)) return 1;
+    // 2. Guest Platform App Fee
+    if (cat === 'PLATFORM_FEE' && isGuest) return 2;
+    // 3. Guest VAT
+    if (cat === 'VAT' && isGuest) return 3;
+    // 4. Initial Caution Escrow Deposit (Guest hold)
+    if (cat === 'SECURITY_DEPOSIT' && isGuest && !txn.metadata?.isDisclosure) return 4;
+    
+    // 5. Host Rent Income
+    if (cat === 'RENT' && !isGuest) return 5;
+    // 6. Host Service Charge Income
+    if (cat === 'SERVICE_CHARGE' && !isGuest) return 6;
+    // 7. Host Platform App Fee / Commission
+    if (cat === 'PLATFORM_FEE' && !isGuest) return 7;
+    // 8. Host VAT
+    if (cat === 'VAT' && !isGuest) return 8;
+    // 9. Host Net Rental Earnings Summary
+    if (cat === 'HOST_EARNING') return 9;
+    
+    // 10. Caution Deposit Resolution (Host Damage Claim or Guest Refund)
+    if (cat === 'SECURITY_DEPOSIT' || cat === 'REFUND') return 10;
+    
+    return 20;
   };
 
   // Get booking-related transactions with breakdown
@@ -840,7 +821,7 @@ const FinancialManagement = () => {
     // Apply deduplication for applicable tabs
     const dedupedTransactions = deduplicateTransactions(transactions);
 
-    if (activeTab !== 'Booking Breakdown') return { mainTransactions: dedupedTransactions, hasBreakdown: activeTab === 'Caution Fees' || activeTab === 'App Fees' };
+    if (activeTab !== 'Booking Breakdown') return { mainTransactions: dedupedTransactions, hasBreakdown: activeTab === 'Caution Fees' };
     
     // If no transactions, return empty
     if (!transactions || transactions.length === 0) {
@@ -850,17 +831,10 @@ const FinancialManagement = () => {
     const grouped = groupTransactionsByBooking(transactions);
     const result = [];
     
-    // Debug logging
-    console.log('[Booking Breakdown] Grouped bookings:', Object.keys(grouped));
-    console.log('[Booking Breakdown] Total transactions:', transactions.length);
-    console.log('[Booking Breakdown] Sample transaction:', transactions[0]?.reference, transactions[0]?.category);
-    
     Object.entries(grouped).forEach(([bookingRef, data]) => {
-      // All groups should have a parent now (BOOKING, RENT, or SERVICE_CHARGE)
       const parentTxn = data.booking;
       
       if (parentTxn) {
-        // Pre-calculate synthetic sub-rows to get an accurate count
         const related = data.relatedTransactions || [];
         const metadata = parentTxn.metadata || {};
         
@@ -878,7 +852,7 @@ const FinancialManagement = () => {
             category: 'RENT_AND_SERVICE',
             amount: metadata.discountedSubtotal || metadata.subtotalBeforeCoupon,
             type: 'DEBIT',
-            description: `Net subtotal (Extracted)`,
+            description: `Rent & Service Charge (Extracted)`,
             userId: parentTxn.userId,
             createdAt: parentTxn.createdAt,
             status: 'COMPLETED',
@@ -895,7 +869,7 @@ const FinancialManagement = () => {
             category: 'PLATFORM_FEE',
             amount: metadata.guestFee,
             type: 'DEBIT',
-            description: `App Fee (Extracted)`,
+            description: `Guest Service Fee (Extracted)`,
             userId: parentTxn.userId,
             createdAt: parentTxn.createdAt,
             status: 'COMPLETED',
@@ -912,7 +886,7 @@ const FinancialManagement = () => {
             category: 'VAT',
             amount: metadata.guestVat,
             type: 'DEBIT',
-            description: `VAT (Extracted)`,
+            description: `VAT on Fee (Extracted)`,
             userId: parentTxn.userId,
             createdAt: parentTxn.createdAt,
             status: 'COMPLETED',
@@ -929,7 +903,7 @@ const FinancialManagement = () => {
             category: 'SECURITY_DEPOSIT',
             amount: metadata.securityDeposit,
             type: 'DEBIT',
-            description: `Caution Fee (Extracted)`,
+            description: `Caution Deposit (Held in Escrow)`,
             userId: parentTxn.userId,
             createdAt: parentTxn.createdAt,
             status: 'COMPLETED',
@@ -939,19 +913,21 @@ const FinancialManagement = () => {
           });
         }
 
-        const totalRelatedCount = related.length + syntheticSubRows.length;
+        // Sort all sub-rows in live transaction sequence
+        const allSubRows = [...related, ...syntheticSubRows].sort((a, b) => {
+          return getSubRowPriority(a) - getSubRowPriority(b);
+        });
 
         result.push({
           ...parentTxn,
           _isBookingParent: true,
           _bookingRef: bookingRef,
-          _relatedCount: totalRelatedCount,
-          _relatedTransactions: related
+          _relatedCount: allSubRows.length,
+          _relatedTransactions: allSubRows
         });
         
-        // Add all sub-rows if expanded
+        // Add sorted sub-rows if expanded
         if (expandedBookings[bookingRef]) {
-          const allSubRows = [...related, ...syntheticSubRows];
           allSubRows.forEach((relatedTxn, idx) => {
             result.push({
               ...relatedTxn,
