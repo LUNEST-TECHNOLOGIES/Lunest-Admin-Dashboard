@@ -45,8 +45,13 @@ export default function Login() {
 
         // Store user data for profile display
         if (response.body.user) {
-          localStorage.setItem("adminUser", JSON.stringify(response.body.user));
-          console.log("User data stored:", response.body.user);
+          const userObj = { ...response.body.user };
+          // If returned email looks encrypted (det:... or hex/colons) or is missing, use login input email
+          if (!userObj.emailAddress || userObj.emailAddress.startsWith('det:') || userObj.emailAddress.includes(':') || userObj.emailAddress.length > 55) {
+            userObj.emailAddress = formData.emailAddress.trim().toLowerCase();
+          }
+          localStorage.setItem("adminUser", JSON.stringify(userObj));
+          console.log("User data stored:", userObj);
         }
 
         // Small delay to show success before redirect

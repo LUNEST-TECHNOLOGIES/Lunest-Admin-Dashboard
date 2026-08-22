@@ -292,22 +292,23 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {}, isMobileOp
             {isOpen && <span className="truncate">Logout</span>}
           </button>
         </div>
-
-        <LogoutModal 
-          isOpen={showLogoutModal}
-          onClose={() => setShowLogoutModal(false)}
-          onConfirm={async () => {
-            try {
-              await logoutUser();
-              window.location.href = '/login';
-            } catch (err) {
-              console.error('Logout failed:', err);
-              localStorage.removeItem('authToken');
-              window.location.href = '/login';
-            }
-          }}
-        />
       </aside>
+
+      {/* Global Sign Out Modal */}
+      <LogoutModal 
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={async () => {
+          try {
+            await logoutUser();
+            window.location.href = '/login';
+          } catch (err) {
+            console.error('Logout failed:', err);
+            localStorage.removeItem('authToken');
+            window.location.href = '/login';
+          }
+        }}
+      />
     </>
   )
 }

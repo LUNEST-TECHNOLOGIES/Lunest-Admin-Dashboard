@@ -29,6 +29,7 @@ const CouponManagement = () => {
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(null);
   const notify = useNotification();
 
   const [stats, setStats] = useState({
@@ -361,9 +362,33 @@ const CouponManagement = () => {
                   return (
                     <tr key={coupon._id || idx} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-full text-xs font-bold text-indigo-700 font-mono">
-                          {coupon.code}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2.5 py-1 bg-indigo-50 border border-indigo-200/80 rounded-lg text-xs font-bold text-indigo-700 font-mono tracking-wider">
+                            {coupon.code}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(coupon.code);
+                              setCopiedCode(coupon.code);
+                              notify.success('Copied', `Coupon code "${coupon.code}" copied to clipboard`);
+                              setTimeout(() => setCopiedCode(null), 2000);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer"
+                            title="Copy coupon code"
+                          >
+                            {copiedCode === coupon.code ? (
+                              <svg className="w-3.5 h-3.5 text-emerald-600 animate-in zoom-in-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            ) : (
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         {coupon.owner ? (

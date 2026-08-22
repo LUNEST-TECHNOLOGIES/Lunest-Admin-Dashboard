@@ -1255,7 +1255,7 @@ const FinancialManagement = () => {
                   </div>
                   <div>
                     <h3 className="text-slate-400 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5">{stat.title}</h3>
-                    <p className="text-sm sm:text-base font-black text-slate-900 font-mono leading-none my-1">{stat.value}</p>
+                    <p className="text-sm sm:text-base font-black text-slate-900 font-mono leading-none my-1 truncate" title={String(stat.value)}>{stat.value}</p>
                     <p className="text-[9px] text-slate-400 leading-tight break-words mt-0.5">{stat.changeText}</p>
                     
                     {stat.critical && !stat.integrity && (
@@ -1287,7 +1287,7 @@ const FinancialManagement = () => {
                   </div>
                   <div>
                     <h3 className="text-slate-400 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5">{stat.title}</h3>
-                    <p className={`text-sm sm:text-base font-black ${stat.changeColor} font-mono leading-none my-1`}>{stat.value}</p>
+                    <p className={`text-sm sm:text-base font-black ${stat.changeColor} font-mono leading-none my-1 truncate`} title={String(stat.value)}>{stat.value}</p>
                     <p className="text-[9px] text-slate-400 leading-tight break-words mt-0.5">{stat.changeText}</p>
                   </div>
                 </div>

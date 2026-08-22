@@ -31,6 +31,9 @@ const Navbar = ({ activeMenu = 'Dashboard', onMenuSelect, onToggleMobileMenu }) 
   // Get display name and role from admin user data
   const displayName = adminUser?.fullName || 'Admin User'
   const displayRole = adminUser?.userType?.toLowerCase() || 'admin'
+  const displayEmail = adminUser?.emailAddress && !adminUser.emailAddress.startsWith('det:') && !adminUser.emailAddress.includes(':') && adminUser.emailAddress.length < 55
+    ? adminUser.emailAddress
+    : (adminUser?.email || '');
   const initials = displayName
     .split(' ')
     .map(n => n[0])
@@ -218,7 +221,7 @@ const Navbar = ({ activeMenu = 'Dashboard', onMenuSelect, onToggleMobileMenu }) 
                 {/* Role Header */}
                 <div className="px-3.5 py-2.5 bg-slate-50/80 rounded-xl mb-1 border border-slate-100">
                   <div className="text-slate-900 text-xs font-bold font-aeonik capitalize">{displayRole}</div>
-                  <div className="text-slate-400 text-[11px] font-medium font-aeonik truncate">{adminUser?.emailAddress || ''}</div>
+                  <div className="text-slate-400 text-[11px] font-medium font-aeonik truncate">{displayEmail}</div>
                 </div>
 
                 {/* Menu Items */}

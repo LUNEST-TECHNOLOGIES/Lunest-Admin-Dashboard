@@ -1740,8 +1740,24 @@ export const ProfileContent = () => {
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Listen to changes in local storage
+  // Fetch fresh profile from backend on mount and listen to storage
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const { getAdminProfile } = await import('../../services/adminService');
+        const res = await getAdminProfile();
+        if (res && res.body) {
+          const freshUser = res.body;
+          setAdminUser(prev => ({ ...prev, ...freshUser }));
+          const existing = JSON.parse(localStorage.getItem('adminUser') || '{}');
+          localStorage.setItem('adminUser', JSON.stringify({ ...existing, ...freshUser }));
+        }
+      } catch (e) {
+        console.warn('[ProfileContent] Could not refresh profile from backend:', e);
+      }
+    };
+    fetchProfile();
+
     const handleStorageChange = () => {
       const stored = localStorage.getItem('adminUser');
       try {
@@ -1766,6 +1782,11 @@ export const ProfileContent = () => {
       setNin(adminUser.nin || '');
     }
   }, [adminUser]);
+
+  // Clean email formatting helper
+  const cleanEmail = adminUser?.emailAddress && !adminUser.emailAddress.startsWith('det:') && !adminUser.emailAddress.includes(':') && adminUser.emailAddress.length < 55
+    ? adminUser.emailAddress
+    : (adminUser?.email || 'admin@lunest.com');
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -1847,60 +1868,60 @@ export const ProfileContent = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-7">
         
         {/* Left Column: Glassmorphism Avatar & Info Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col items-center text-center">
-          <div className="w-24 h-24 bg-gradient-to-tr from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-md relative">
+        <div className="bg-white rounded-2xl shadow-xs border border-slate-100 p-6 flex flex-col items-center text-center">
+          <div className="w-20 h-20 bg-gradient-to-tr from-indigo-600 to-indigo-800 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md shadow-indigo-500/20 relative">
             {fullName ? fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'AD'}
-            <div className="w-6 h-6 bg-green-500 rounded-full absolute bottom-1 right-1 border-4 border-white" />
+            <div className="w-4 h-4 bg-emerald-500 rounded-full absolute -bottom-1 -right-1 border-2 border-white shadow-xs" />
           </div>
           
-          <h2 className="mt-4 text-lg font-bold text-slate-800 font-aeonik">{fullName || 'Admin User'}</h2>
-          <span className="mt-1 px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-100 capitalize">
+          <h2 className="mt-3.5 text-base font-bold text-slate-900 font-aeonik">{fullName || 'Admin User'}</h2>
+          <span className="mt-1 px-2.5 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full border border-indigo-100 capitalize">
             {adminUser?.userType?.toLowerCase() || 'admin'}
           </span>
-          <p className="mt-2 text-sm text-slate-400 font-aeonik">{adminUser?.emailAddress || 'No Email'}</p>
+          <p className="mt-1.5 text-xs text-slate-400 font-aeonik break-all">{cleanEmail}</p>
           
-          <div className="w-full border-t border-slate-100 my-5"></div>
+          <div className="w-full border-t border-slate-100 my-4"></div>
           
           {/* Permissions Grid */}
           <div className="w-full text-left">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Assigned Permissions</h3>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Assigned Permissions</h3>
             {permissionsList.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {permissionsList.map((perm, idx) => (
                   <span 
                     key={idx} 
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-700 text-xs font-medium rounded-md border border-slate-200"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 text-slate-700 text-[11px] font-bold rounded-lg border border-slate-200/60"
                   >
-                    <span className="text-green-500 font-bold">✓</span> {perm.replace(/_/g, ' ')}
+                    <span className="text-emerald-500 font-bold">✓</span> {perm.replace(/_/g, ' ')}
                   </span>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-400 italic">No custom permissions assigned. Full access control.</p>
+              <p className="text-xs text-slate-400 italic">Full administrative access privileges.</p>
             )}
           </div>
         </div>
 
         {/* Right Column: Profile & Settings Tabs */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-xs border border-slate-100 overflow-hidden">
           {/* Tab Headers */}
-          <div className="flex border-b border-slate-200 bg-slate-50/50">
+          <div className="flex border-b border-slate-100 bg-slate-50/50 p-1.5 gap-2">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex-1 py-4 text-center text-sm font-semibold transition-colors border-b-2 font-aeonik ${
+              className={`flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all font-aeonik cursor-pointer ${
                 activeTab === 'profile'
-                  ? 'border-indigo-600 text-indigo-600 bg-white shadow-sm'
-                  : 'border-transparent text-slate-400 hover:text-slate-600'
+                  ? 'bg-white text-indigo-900 shadow-xs border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               Profile Details
             </button>
             <button
               onClick={() => setActiveTab('security')}
-              className={`flex-1 py-4 text-center text-sm font-semibold transition-colors border-b-2 font-aeonik ${
+              className={`flex-1 py-2 text-center text-xs font-bold rounded-xl transition-all font-aeonik cursor-pointer ${
                 activeTab === 'security'
-                  ? 'border-indigo-600 text-indigo-600 bg-white shadow-sm'
-                  : 'border-transparent text-slate-400 hover:text-slate-600'
+                  ? 'bg-white text-indigo-900 shadow-xs border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               Security Settings
@@ -1912,12 +1933,12 @@ export const ProfileContent = () => {
             {activeTab === 'profile' && (
               <form onSubmit={handleUpdateProfile} className="space-y-4">
                 {profileSuccess && (
-                  <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg flex items-center gap-2">
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-xl flex items-center gap-2">
                     <span>✅</span> {profileSuccess}
                   </div>
                 )}
                 {profileError && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
+                  <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl flex items-center gap-2">
                     <span>❌</span> {profileError}
                   </div>
                 )}
@@ -1931,7 +1952,7 @@ export const ProfileContent = () => {
                       onChange={(e) => setFullName(e.target.value)}
                       required
                       placeholder="e.g. John Doe"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
                     />
                   </div>
 
@@ -1939,9 +1960,9 @@ export const ProfileContent = () => {
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address (Read-only)</label>
                     <input
                       type="email"
-                      value={adminUser?.emailAddress || ''}
+                      value={cleanEmail}
                       disabled
-                      className="w-full px-3 py-2 border border-slate-100 bg-slate-50 rounded-lg text-sm text-slate-400 cursor-not-allowed outline-none"
+                      className="w-full px-3 py-2 border border-slate-100 bg-slate-50 rounded-xl text-xs text-slate-500 cursor-not-allowed outline-none font-medium"
                     />
                   </div>
 

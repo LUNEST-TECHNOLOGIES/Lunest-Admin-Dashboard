@@ -838,14 +838,19 @@ export const adminDeleteCoupon = async (couponId) => {
 // PROFILE & SECURITY MANAGEMENT
 // ============================================
 
+export const getAdminProfile = async () => {
+    const response = await apiClient.get('/users/profile');
+    return response.data;
+};
+
 export const updateAdminProfile = async (data) => {
     const response = await apiClient.patch('/users/profile', data);
     return response.data;
 };
 
-export const updateAdminPassword = async (currentPassword, newPassword, confirmPassword) => {
-    const response = await apiClient.post('/users/update-password', {
-        currentPassword,
+export const updateAdminPassword = async (oldPassword, newPassword, confirmPassword) => {
+    const response = await apiClient.post('/users/change-password', {
+        oldPassword,
         newPassword,
         confirmPassword
     });

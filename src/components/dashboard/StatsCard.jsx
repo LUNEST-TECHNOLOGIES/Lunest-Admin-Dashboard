@@ -60,7 +60,14 @@ export default function StatsCard({
         <p className="font-aeonik font-bold text-[11px] uppercase tracking-wider text-slate-400 mb-0.5 truncate">
           {label}
         </p>
-        <h3 className={`font-aeonik font-black text-slate-900 tracking-tight break-words text-lg sm:text-xl lg:text-2xl ${isCurrency ? 'font-mono' : ''}`}>
+        <h3 
+          title={typeof value === 'number' 
+            ? (isCurrency 
+                ? `₦${value.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                : value.toLocaleString('en-NG'))
+            : String(value)}
+          className={`font-aeonik font-black text-slate-900 tracking-tight break-words text-base sm:text-lg lg:text-xl xl:text-2xl truncate ${isCurrency ? 'font-mono' : ''}`}
+        >
           {typeof value === 'number' 
             ? (isCurrency 
                 ? `₦${value.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
