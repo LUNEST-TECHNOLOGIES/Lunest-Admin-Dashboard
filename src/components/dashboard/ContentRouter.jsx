@@ -1530,6 +1530,20 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
       }
     }
 
+    // Calculate Commission / Platform App Fee for this transaction:
+    let commission = 0;
+    if (transaction.category === 'PLATFORM_FEE') {
+      commission = Math.abs(transaction.amount || 0);
+    } else if (transaction.fee && Number(transaction.fee) > 0) {
+      commission = Number(transaction.fee);
+    } else if (transaction.metadata?.guestFee || transaction.metadata?.hostFee) {
+      commission = Number(transaction.metadata?.guestFee || transaction.metadata?.hostFee || 0);
+    } else if (transaction.metadata?.platformFee) {
+      commission = Number(transaction.metadata?.platformFee || 0);
+    } else if (transaction.bookingId?.pricingBreakdown?.guestFee) {
+      commission = Number(transaction.bookingId?.pricingBreakdown?.guestFee || 0);
+    }
+
     return (
       <tr key={transaction._id || `${index}-${subType}`} className={`group hover:bg-blue-50/30 transition-all duration-200 ${isSubRow ? 'bg-slate-50/50' : ''}`}>
         <td className="px-3.5 py-2.5">
@@ -1604,7 +1618,9 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
            </span>
         </td>
         <td className="px-3 py-2.5 text-center">
-           <span className="text-slate-500 font-mono text-[11px]">₦{(transaction.fee || 0).toLocaleString()}</span>
+           <span className={`font-mono text-[11px] ${commission > 0 ? 'font-bold text-slate-700' : 'text-slate-400'}`}>
+             {commission > 0 ? `₦${commission.toLocaleString('en-NG', { minimumFractionDigits: 2 })}` : '—'}
+           </span>
         </td>
         <td className="px-3 py-2.5">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{transaction.channel || 'WALLET'}</span>

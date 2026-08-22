@@ -428,13 +428,13 @@ export const getTransactions = async(filters = {}) => {
 // ADMIN TRANSACTIONS (New Refactored)
 // ============================================
 
-export const getAdminTransactions = async(params = {}) => {
-    const response = await apiClient.get('/admin/transactions', { params });
+export const getAdminTransactions = async(params = {}, signal) => {
+    const response = await apiClient.get('/admin/transactions', { params, signal });
     return response.data;
 };
 
-export const getAdminTransactionSummary = async(params = {}) => {
-    const response = await apiClient.get('/admin/transactions/summary', { params });
+export const getAdminTransactionSummary = async(params = {}, signal) => {
+    const response = await apiClient.get('/admin/transactions/summary', { params, signal });
     return response.data;
 };
 
