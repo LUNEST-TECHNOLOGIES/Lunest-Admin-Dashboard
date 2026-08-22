@@ -60,10 +60,8 @@ const FinancialManagement = () => {
     
     switch (tab) {
       case 'Booking Breakdown':
-        // Show all booking-related split transactions (RENT_AND_SERVICE, PLATFORM_FEE, VAT, SECURITY_DEPOSIT)
-        // BOOKING is now internal summary to avoid double-counting
-        filters.category = 'RENT_AND_SERVICE,PLATFORM_FEE,VAT,SECURITY_DEPOSIT';
-        filters.type = 'DEBIT';
+        // Show full booking trail (Guest Payment, Host Payout, Platform Fees, VAT, Caution)
+        filters.category = 'BOOKING,RENT_AND_SERVICE,RENT,SERVICE_CHARGE,PLATFORM_FEE,VAT,SECURITY_DEPOSIT,HOST_EARNING';
         filters.groupByBooking = true;
         break;
       case 'Guest Payments':
