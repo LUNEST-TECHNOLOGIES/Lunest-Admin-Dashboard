@@ -813,7 +813,16 @@ const FinancialManagement = () => {
       const parentTxn = data.booking;
       
       if (parentTxn) {
-        const related = data.relatedTransactions || [];
+        const related = (data.relatedTransactions || []).filter(r => {
+          // Filter out internal interim dispute disclosure rows
+          if (r.reference?.startsWith('DIS_G_') || r.reference?.startsWith('FEE_CF_') || r.reference?.startsWith('VAT_CF_')) {
+            return false;
+          }
+          if (r.category === 'SECURITY_DEPOSIT' && r.status === 'RESOLVED' && r.reference?.includes('_security_deposit')) {
+            return false;
+          }
+          return true;
+        });
         const metadata = parentTxn.metadata || {};
         
         const hasExplicitFee = related.some(r => r.category === 'PLATFORM_FEE');
