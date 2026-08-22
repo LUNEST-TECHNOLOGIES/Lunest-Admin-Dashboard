@@ -1218,23 +1218,23 @@ const FinancialManagement = () => {
               <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">Financial Overview</h2>
             </div>
             {/* Compact Main Stats Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 mb-5">
               {mainStats.map((stat, index) => (
                 <div key={index} className={`bg-white rounded-xl shadow-xs border ${stat.critical && !stat.integrity ? 'border-red-300 bg-red-50/20' : 'border-slate-200/80'} p-3 hover:shadow-md transition-all relative flex flex-col justify-between`}>
                   {stat.critical && (
                     <div className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${stat.integrity ? 'bg-green-500' : 'bg-red-500'}`} title={stat.integrity ? 'Data Integrity OK' : 'Data Integrity Issue'}></div>
                   )}
                   
-                  <div className="flex items-center justify-between mb-2">
-                    <div className={`w-7 h-7 ${stat.critical && !stat.integrity ? 'bg-red-50' : 'bg-blue-50/80'} rounded-lg flex items-center justify-center text-xs shadow-xs`}>
+                  <div className="flex items-start justify-between gap-1 mb-2">
+                    <div className={`w-6 h-6 ${stat.critical && !stat.integrity ? 'bg-red-50' : 'bg-blue-50/80'} rounded-lg flex items-center justify-center text-xs shadow-xs shrink-0`}>
                       {stat.icon}
                     </div>
-                    <span className={`text-[10px] font-bold ${stat.changeColor} truncate ml-1`}>{stat.change}</span>
+                    <span className={`text-[10px] font-bold ${stat.changeColor} text-right leading-tight break-words`}>{stat.change}</span>
                   </div>
                   <div>
-                    <h3 className="text-slate-500 text-[10px] font-bold uppercase tracking-wider truncate mb-0.5" title={stat.title}>{stat.title}</h3>
-                    <p className="text-sm sm:text-base font-black text-slate-900 font-mono truncate">{stat.value}</p>
-                    <p className="text-[9px] text-slate-400 truncate mt-0.5" title={stat.changeText}>{stat.changeText}</p>
+                    <h3 className="text-slate-500 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5">{stat.title}</h3>
+                    <p className="text-sm sm:text-base font-black text-slate-900 font-mono leading-none my-1">{stat.value}</p>
+                    <p className="text-[9px] text-slate-400 leading-tight break-words mt-0.5">{stat.changeText}</p>
                     
                     {stat.critical && !stat.integrity && (
                       <div className="mt-1 text-[9px] text-red-600 font-bold">
@@ -1250,23 +1250,23 @@ const FinancialManagement = () => {
             <div className="mb-2">
               <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">Cancellations &amp; Refunds</h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-5">
               {cancellationStats.map((stat, index) => (
                 <div key={index} className={`bg-white rounded-xl shadow-xs border ${stat.borderColor} p-3 hover:shadow-md transition-all flex flex-col justify-between`}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className={`w-7 h-7 ${stat.bgColor} rounded-lg flex items-center justify-center text-xs`}>
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <div className={`w-6 h-6 ${stat.bgColor} rounded-lg flex items-center justify-center text-xs shrink-0`}>
                       {stat.icon}
                     </div>
                     {stat.count !== null && (
-                      <span className="text-[10px] font-bold text-slate-500 bg-slate-100 rounded-md px-1.5 py-0.5">
+                      <span className="text-[9px] font-bold text-slate-500 bg-slate-100 rounded-md px-1.5 py-0.2">
                         {stat.count} {stat.countLabel}
                       </span>
                     )}
                   </div>
                   <div>
-                    <h3 className="text-slate-500 text-[10px] font-bold uppercase tracking-wider truncate mb-0.5">{stat.title}</h3>
-                    <p className={`text-sm sm:text-base font-black ${stat.changeColor} font-mono truncate`}>{stat.value}</p>
-                    <p className="text-[9px] text-slate-400 truncate mt-0.5">{stat.changeText}</p>
+                    <h3 className="text-slate-500 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5">{stat.title}</h3>
+                    <p className={`text-sm sm:text-base font-black ${stat.changeColor} font-mono leading-none my-1`}>{stat.value}</p>
+                    <p className="text-[9px] text-slate-400 leading-tight break-words mt-0.5">{stat.changeText}</p>
                   </div>
                 </div>
               ))}
