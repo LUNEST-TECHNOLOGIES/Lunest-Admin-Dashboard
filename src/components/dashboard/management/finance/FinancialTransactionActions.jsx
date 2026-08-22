@@ -164,24 +164,45 @@ const FinancialTransactionActions = ({ transaction, onActionComplete }) => {
       details['Booking ID'] = transaction.metadata.bookingId || 'N/A';
       details['Booking Reference'] = transaction.metadata.bookingReference || transaction.metadata.referenceCode || `LNS-${transaction.metadata.bookingId?.slice(-8).toUpperCase()}`;
       
+      const escrow = transaction.metadata.escrowBreakdown;
+      const reconciliation = transaction.metadata.reconciliation;
+      const cautionStatus = reconciliation?.cautionFeeStatus || escrow?.resolution;
+
       // Show release destination if resolved
-      if (transaction.metadata.reconciliation?.cautionFeeStatus && transaction.metadata.reconciliation?.cautionFeeStatus !== 'ON_HOLD') {
+      if (cautionStatus && cautionStatus !== 'ON_HOLD') {
         const releaseMap = {
           'RELEASED_TO_GUEST': '↩️ Released to Guest',
-          'RELEASED_TO_HOST': '→ Released to Host',
+          'RELEASED_TO_HOST': '→ Released to Host (Damage Claim)',
+          'CLAIMED_BY_HOST': '→ Claimed by Host (Damage Claim)',
+          'SPLIT': '⚖️ Split Resolution',
           'DISPUTED': '⚠️ Under Dispute'
         };
-        details['💰 Release Status'] = releaseMap[transaction.metadata.reconciliation.cautionFeeStatus] || transaction.metadata.reconciliation.cautionFeeStatus;
+        details['💰 Resolution Status'] = releaseMap[cautionStatus] || cautionStatus;
       }
-      if (transaction.metadata.reconciliation?.releasedTo) {
-        details['Released To'] = transaction.metadata.reconciliation.releasedTo === 'GUEST' ? 'Guest Wallet' : 
-                                  transaction.metadata.reconciliation.releasedTo === 'HOST' ? 'Host Wallet' : transaction.metadata.reconciliation.releasedTo;
+
+      if (escrow) {
+        details['Original Caution Deposit'] = formatCurrency(escrow.originalDeposit);
+        if (escrow.damageClaim > 0) {
+          details['Approved Damage Claim'] = formatCurrency(escrow.damageClaim);
+        }
+        if (escrow.escrowFee > 0 || escrow.hostFee > 0) {
+          details['LUNEST Processing Fee'] = `-${formatCurrency(escrow.escrowFee || escrow.hostFee)}`;
+        }
+        if (escrow.escrowVat > 0 || escrow.hostVat > 0) {
+          details['VAT on Processing Fee'] = `-${formatCurrency(escrow.escrowVat || escrow.hostVat)}`;
+        }
+        if (cautionStatus === 'RELEASED_TO_HOST' || cautionStatus === 'CLAIMED_BY_HOST' || transaction.type === 'CREDIT') {
+          details['Net Payout Credited to Host'] = formatCurrency(escrow.netRefund || transaction.amount);
+        } else {
+          details['Net Refund to Guest'] = formatCurrency(escrow.netRefund || transaction.amount);
+        }
       }
-      if (transaction.metadata.reconciliation?.releasedAt) {
-        details['Released At'] = new Date(transaction.metadata.reconciliation.releasedAt).toLocaleString('en-NG');
+
+      if (reconciliation?.resolutionReason) {
+        details['Resolution Reason'] = reconciliation.resolutionReason;
       }
-      if (transaction.metadata.reconciliation?.releaseReference) {
-        details['Release Reference'] = transaction.metadata.reconciliation.releaseReference;
+      if (reconciliation?.releasedAt) {
+        details['Released At'] = new Date(reconciliation.releasedAt).toLocaleString('en-NG');
       }
     }
 

@@ -973,13 +973,15 @@ const FinancialManagement = () => {
     
     transactions.forEach(txn => {
       const txnId = txn._id || txn.reference;
-      if (!groupedTxnIds.has(txnId)) {
-        // Show ungrouped transactions as standalone parents
-        // EXCLUDE COUPON_PAYMENT from showing breakdown
-        const isCoupon = txn.category === 'COUPON_PAYMENT';
+        // EXCLUDE COUPON_PAYMENT, TOP_UP, and ADDED_FUNDS from showing breakdown
+        const isExcluded = txn.category === 'COUPON_PAYMENT' || 
+                           txn.category === 'TOP_UP' || 
+                           txn.type === 'TOP_UP' ||
+                           txn.category === 'ADDED_FUNDS' ||
+                           txn.category === 'WITHDRAWAL';
         result.push({
           ...txn,
-          _isBookingParent: !isCoupon, // COUPON_PAYMENT is not a parent
+          _isBookingParent: !isExcluded,
           _bookingRef: txn.reference,
           _relatedCount: 0,
           _relatedTransactions: []
@@ -1577,13 +1579,16 @@ const FinancialManagement = () => {
                               transaction.category === 'CANCELLATION_PENALTY' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                               transaction.category === 'CANCELLATION_REFUND' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                               transaction.category === 'CANCELLATION_CREDIT' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                              transaction.category === 'TOP_UP' || transaction.type === 'TOP_UP' ? 'bg-cyan-50 text-cyan-700 border-cyan-200' :
                               transaction._isRelated 
                                 ? 'bg-blue-50 text-blue-700 border-blue-100' 
                                 : 'bg-gray-100 text-gray-800 border-gray-200'
                             }`}>
-                              {transaction.category === 'CANCELLATION_REFUND' && (transaction.description?.includes('Caution') || transaction.metadata?.isCautionRefund || transaction.metadata?.cautionPaid) 
-                                ? 'Caution Fee Refund' 
-                                : (transaction.category?.replace(/_/g, ' ') || transaction.type)}
+                              {transaction.category === 'TOP_UP' || transaction.type === 'TOP_UP' || transaction.category === 'ADDED_FUNDS'
+                                ? 'Wallet Funding'
+                                : transaction.category === 'CANCELLATION_REFUND' && (transaction.description?.includes('Caution') || transaction.metadata?.isCautionRefund || transaction.metadata?.cautionPaid) 
+                                  ? 'Caution Fee Refund' 
+                                  : (transaction.category?.replace(/_/g, ' ') || transaction.type)}
                               {transaction._bookingRef && (
                                 <span className="ml-1 text-blue-600 font-semibold">
                                   (#{transaction._bookingRef.slice(-8)})
