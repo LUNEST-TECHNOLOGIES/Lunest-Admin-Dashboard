@@ -23,7 +23,7 @@ import {
 import { getCurrentUser, logoutUser } from '../../services/adminService';
 import LogoutModal from './LogoutModal';
 
-const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
+const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {}, isMobileOpen = false, setIsMobileOpen = () => {} }) => {
   const [isOpen, setIsOpen] = useState(true)
   const [expandedSubmenu, setExpandedSubmenu] = useState(null)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
@@ -87,191 +87,228 @@ const Sidebar = ({ activeMenu = 'Dashboard', onMenuSelect = () => {} }) => {
     return item;
   }).filter(Boolean);
 
+  const handleSelect = (label) => {
+    onMenuSelect(label);
+    if (setIsMobileOpen) setIsMobileOpen(false);
+  };
+
   return (
-    <div className={`transition-all duration-300 ease-in-out ${
-      isOpen ? 'w-72' : 'w-20'
-    } min-h-screen bg-gray-50 border-r-[0.50px] border-slate-200 flex flex-col justify-between`}>
-      
-      {/* Header */}
-      <div className="border-b-[0.50px] border-slate-200 py-4 px-2.5">
-        {/* Logo */}
-        <div className="flex items-center justify-center h-8 flex-shrink-0 mb-3">
-          {isOpen ? (
-            <LogoOpenIcon />
-          ) : (
-            <LogoCollapsedIcon />
+    <>
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div 
+          onClick={() => setIsMobileOpen(false)}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
+        />
+      )}
+
+      <aside className={`fixed lg:static top-0 bottom-0 left-0 z-50 transition-all duration-300 ease-in-out ${
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      } ${
+        isOpen ? 'w-72' : 'w-20'
+      } min-h-screen bg-white/95 backdrop-blur-md border-r border-slate-200/80 flex flex-col justify-between shadow-xl lg:shadow-none`}>
+        
+        {/* Header */}
+        <div className="border-b border-slate-100 py-4 px-3.5 flex flex-col gap-2">
+          {/* Logo & Toggle */}
+          <div className="flex items-center justify-between h-9 flex-shrink-0">
+            <div className={`flex items-center transition-all ${isOpen ? 'justify-start pl-1' : 'justify-center w-full'}`}>
+              {isOpen ? (
+                <LogoOpenIcon />
+              ) : (
+                <LogoCollapsedIcon />
+              )}
+            </div>
+
+            {/* Desktop Collapse Toggle */}
+            {isOpen && (
+              <button
+                onClick={() => {
+                  setIsOpen(!isOpen)
+                  setExpandedSubmenu(null)
+                }}
+                className="hidden lg:flex w-7 h-7 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-lg transition-colors cursor-pointer items-center justify-center"
+                title="Collapse Sidebar"
+              >
+                <ChevronLeftIcon />
+              </button>
+            )}
+          </div>
+
+          {!isOpen && (
+            <button
+              onClick={() => {
+                setIsOpen(true)
+              }}
+              className="hidden lg:flex w-full p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-lg transition-colors cursor-pointer items-center justify-center mt-1"
+              title="Expand Sidebar"
+            >
+              <ChevronRightIcon />
+            </button>
           )}
         </div>
+        
+        {/* Navigation Menu */}
+        <div className={`flex-1 py-4 px-3 overflow-y-auto scrollbar-hide`}>
+          <nav className="flex flex-col gap-1.5">
+            {filteredMenuItems.map((item, idx) => {
+              const IconComponent = item.iconComponent
+              const hasSubmenu = item.submenu && item.submenu.length > 0
+              const isSubmenuOpen = expandedSubmenu === item.label
+              
+              const isMenuActive = item.label === activeMenu || 
+                (hasSubmenu && item.submenu.some(sub => sub.label === activeMenu))
 
-        {/* Toggle Button */}
-        <button
-          onClick={() => {
-            setIsOpen(!isOpen)
-            setExpandedSubmenu(null) // Reset on toggle
-          }}
-          className="w-full p-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer text-slate-600 flex items-center justify-center"
-        >
-          {isOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-        </button>
-      </div>
-      
-      {/* Navigation Menu */}
-      <div className={`flex-1 py-6 px-2.5 ${isOpen ? 'overflow-y-auto' : ''}`}>
-        <nav className="flex flex-col gap-3">
-          {filteredMenuItems.map((item, idx) => {
-            const IconComponent = item.iconComponent
-            const hasSubmenu = item.submenu && item.submenu.length > 0
-            const isSubmenuOpen = expandedSubmenu === item.label
-            
-            // Check if this menu or any of its submenus are active
-            const isMenuActive = item.label === activeMenu || 
-              (hasSubmenu && item.submenu.some(sub => sub.label === activeMenu))
-
-            return (
-              <div key={idx} className="relative group">
-                {/* Main Menu Item */}
-                <button
-                  onClick={() => {
-                    if (hasSubmenu) {
-                      setExpandedSubmenu(isSubmenuOpen ? null : item.label)
-                    } else {
-                      onMenuSelect(item.label)
-                    }
-                  }}
-                  className={`flex items-center gap-3 px-2.5 py-2 rounded-lg transition-all duration-200 cursor-pointer w-full ${
-                    isMenuActive
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                      : 'text-slate-400 hover:bg-white hover:text-slate-600'
-                  } ${isOpen ? 'justify-between' : 'justify-center'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-slate-600">
-                      <IconComponent />
+              return (
+                <div key={idx} className="relative group">
+                  {/* Main Menu Item */}
+                  <button
+                    onClick={() => {
+                      if (hasSubmenu) {
+                        setExpandedSubmenu(isSubmenuOpen ? null : item.label)
+                      } else {
+                        handleSelect(item.label)
+                      }
+                    }}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer w-full text-left font-aeonik text-xs font-bold ${
+                      isMenuActive
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                    } ${isOpen ? 'justify-between' : 'justify-center'}`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-5 h-5 flex items-center justify-center flex-shrink-0 ${
+                        isMenuActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-700'
+                      }`}>
+                        <IconComponent />
+                      </div>
+                      {isOpen && (
+                        <span className="truncate">{item.label}</span>
+                      )}
                     </div>
-                    {isOpen && (
-                      <span className="text-sm font-medium whitespace-nowrap font-aeonik">{item.label}</span>
+                    
+                    {/* Submenu Chevron */}
+                    {hasSubmenu && isOpen && (
+                      <div className={`transition-transform duration-200 ${isSubmenuOpen ? 'rotate-180' : ''}`}>
+                        <MdOutlineKeyboardArrowDown className={`w-4 h-4 ${isMenuActive ? 'text-indigo-200' : 'text-slate-400'}`} />
+                      </div>
                     )}
-                  </div>
-                  
-                  {/* Submenu Chevron */}
-                  {hasSubmenu && isOpen && (
-                    isSubmenuOpen ? (
-                      <MdOutlineKeyboardArrowDown className="w-5 h-5 text-slate-600 flex-shrink-0" />
-                    ) : (
-                      <MdOutlineKeyboardArrowRight className="w-5 h-5 text-slate-600 flex-shrink-0" />
-                    )
+                  </button>
+
+                  {/* Inline Submenu (Expanded Sidebar) */}
+                  {hasSubmenu && isSubmenuOpen && isOpen && (
+                    <div className="mt-1 ml-4 pl-3.5 border-l-2 border-slate-100 space-y-1 animate-in fade-in duration-150">
+                      {item.submenu.map((subitem, subIdx) => {
+                        const isSubActive = activeMenu === subitem.label;
+                        return (
+                          <button
+                            key={subIdx}
+                            onClick={() => handleSelect(subitem.label)}
+                            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-150 cursor-pointer w-full text-left text-xs font-aeonik ${
+                              isSubActive
+                                ? 'bg-indigo-50 text-indigo-700 font-bold shadow-xs'
+                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                            }`}
+                          >
+                            <span className="text-sm">{subitem.icon}</span>
+                            <span className="truncate">{subitem.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
-                </button>
 
-                {/* Inline Submenu (Expanded Sidebar) */}
-                {hasSubmenu && isSubmenuOpen && isOpen && (
-                  <div className="mt-2 ml-6 space-y-2 border-l-2 border-slate-200 pl-3">
-                    {item.submenu.map((subitem, subIdx) => (
-                      <button
-                        key={subIdx}
-                        onClick={() => {
-                          onMenuSelect(subitem.label)
-                        }}
-                        className={`flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all duration-200 cursor-pointer w-full text-left text-sm font-aeonik whitespace-nowrap ${
-                          activeMenu === subitem.label
-                            ? 'bg-indigo-50 text-indigo-600 font-semibold'
-                            : 'text-slate-400 hover:bg-white hover:text-slate-600'
-                        }`}
-                      >
-                        <span>{subitem.icon}</span>
-                        <span>{subitem.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Floating Submenu (Collapsed Sidebar) */}
-                {hasSubmenu && isSubmenuOpen && !isOpen && (
-                  <div className="absolute left-full top-0 ml-2 w-56 bg-white border border-slate-200 rounded-lg shadow-xl py-3 z-50 animate-in fade-in slide-in-from-left-2 duration-200">
-                    <div className="px-4 py-2 border-b border-slate-100 mb-2">
-                       <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{item.label}</span>
+                  {/* Floating Submenu (Collapsed Sidebar) */}
+                  {hasSubmenu && isSubmenuOpen && !isOpen && (
+                    <div className="absolute left-full top-0 ml-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-left-2 duration-200">
+                      <div className="px-3.5 py-1.5 border-b border-slate-100 mb-1">
+                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</span>
+                      </div>
+                      <div className="px-1.5 space-y-0.5">
+                        {item.submenu.map((subitem, subIdx) => (
+                          <button
+                            key={subIdx}
+                            onClick={() => {
+                              handleSelect(subitem.label)
+                              setExpandedSubmenu(null)
+                            }}
+                            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all duration-150 cursor-pointer w-full text-left text-xs font-aeonik ${
+                              activeMenu === subitem.label
+                                ? 'bg-indigo-50 text-indigo-700 font-bold'
+                                : 'text-slate-600 hover:bg-slate-50 font-medium'
+                            }`}
+                          >
+                            <span className="w-5 text-sm">{subitem.icon}</span>
+                            <span>{subitem.label}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="px-2 space-y-1">
-                      {item.submenu.map((subitem, subIdx) => (
-                        <button
-                          key={subIdx}
-                          onClick={() => {
-                            onMenuSelect(subitem.label)
-                            setExpandedSubmenu(null) // Close floating menu after selection
-                          }}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer w-full text-left text-sm font-aeonik whitespace-nowrap ${
-                            activeMenu === subitem.label
-                              ? 'bg-indigo-50 text-indigo-600 font-semibold'
-                              : 'text-slate-400 hover:bg-indigo-50/50 hover:text-slate-600'
-                          }`}
-                        >
-                          <span className="w-5">{subitem.icon}</span>
-                          <span>{subitem.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </nav>
-      </div>
-      
-      {/* Footer */}
-      <div className="border-t-[0.50px] border-slate-200 py-4 px-2.5">
-        <div className="flex flex-col gap-3">
+                  )}
+                </div>
+              )
+            })}
+          </nav>
+        </div>
+        
+        {/* Footer */}
+        <div className="border-t border-slate-100 p-3 flex flex-col gap-1.5">
           {/* Tooltip/Info Box */}
           {isOpen && (
-            <div className="p-3 bg-slate-900 rounded-lg">
-              <p className="text-white text-xs font-medium font-aeonik">💡 Boosted listings are promoted properties paid for by hosts.</p>
+            <div className="p-3 bg-gradient-to-br from-slate-900 to-indigo-950 rounded-xl mb-1 shadow-xs">
+              <p className="text-slate-200 text-[11px] font-medium font-aeonik leading-relaxed">
+                💡 <span className="font-bold text-white">LUNEST Admin</span> • Real-time platform management &amp; escrow controls.
+              </p>
             </div>
           )}
           
           {/* Profile Button */}
           <button 
-            onClick={() => onMenuSelect('Profile')}
-            className={`flex items-center gap-3 px-2.5 py-2 rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-600 w-full cursor-pointer ${
+            onClick={() => handleSelect('Profile')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer w-full text-left font-aeonik text-xs font-bold ${
               activeMenu === 'Profile'
-                ? 'bg-white text-slate-900 shadow-sm border border-slate-200 font-semibold'
-                : 'hover:bg-white'
-            }`}
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            } ${isOpen ? '' : 'justify-center'}`}
           >
-            <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-slate-600">
+            <div className={`w-5 h-5 flex items-center justify-center flex-shrink-0 ${
+              activeMenu === 'Profile' ? 'text-white' : 'text-slate-400'
+            }`}>
               <ProfileIcon />
             </div>
-            {isOpen && <span className="text-sm font-medium font-aeonik">Profile</span>}
+            {isOpen && <span className="truncate">Profile</span>}
           </button>
           
           {/* Logout Button */}
           <button 
             onClick={() => setShowLogoutModal(true)}
-            className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 text-slate-400 hover:text-red-600 w-full cursor-pointer"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-rose-50 hover:text-rose-700 transition-all duration-200 text-slate-400 cursor-pointer w-full text-left font-aeonik text-xs font-bold ${
+              isOpen ? '' : 'justify-center'
+            }`}
           >
-            <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-slate-600">
+            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 text-current">
               <LogoutIcon />
             </div>
-            {isOpen && <span className="text-sm font-medium font-aeonik">Logout</span>}
+            {isOpen && <span className="truncate">Logout</span>}
           </button>
         </div>
-      </div>
 
-      <LogoutModal 
-        isOpen={showLogoutModal}
-        onClose={() => setShowLogoutModal(false)}
-        onConfirm={async () => {
-          try {
-            await logoutUser();
-            window.location.href = '/login';
-          } catch (err) {
-            console.error('Logout failed:', err);
-            // Fallback: clear token and redirect anyway
-            localStorage.removeItem('authToken');
-            window.location.href = '/login';
-          }
-        }}
-      />
-    </div>
+        <LogoutModal 
+          isOpen={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={async () => {
+            try {
+              await logoutUser();
+              window.location.href = '/login';
+            } catch (err) {
+              console.error('Logout failed:', err);
+              localStorage.removeItem('authToken');
+              window.location.href = '/login';
+            }
+          }}
+        />
+      </aside>
+    </>
   )
 }
 

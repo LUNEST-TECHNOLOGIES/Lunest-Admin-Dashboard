@@ -1229,31 +1229,38 @@ const FinancialManagement = () => {
             )}
 
             {/* Stats Cards - Main Financials */}
-            <div className="mb-3">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">Financial Overview</h2>
+            <div className="mb-2.5">
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Financial Overview</h2>
             </div>
             {/* Compact Main Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 mb-5">
               {mainStats.map((stat, index) => (
-                <div key={index} className={`bg-white rounded-xl shadow-xs border ${stat.critical && !stat.integrity ? 'border-red-300 bg-red-50/20' : 'border-slate-200/80'} p-3 hover:shadow-md transition-all relative flex flex-col justify-between`}>
+                <div 
+                  key={index} 
+                  className={`bg-white rounded-2xl shadow-xs border ${
+                    stat.critical && !stat.integrity 
+                      ? 'border-rose-300 bg-rose-50/20' 
+                      : 'border-slate-100 hover:border-slate-200'
+                  } p-3.5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 relative flex flex-col justify-between group`}
+                >
                   {stat.critical && (
-                    <div className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${stat.integrity ? 'bg-green-500' : 'bg-red-500'}`} title={stat.integrity ? 'Data Integrity OK' : 'Data Integrity Issue'}></div>
+                    <div className={`absolute top-2.5 right-2.5 w-2 h-2 rounded-full ${stat.integrity ? 'bg-emerald-500' : 'bg-rose-500 animate-ping'}`} title={stat.integrity ? 'Data Integrity OK' : 'Data Integrity Issue'}></div>
                   )}
                   
                   <div className="flex items-start justify-between gap-1 mb-2">
-                    <div className={`w-6 h-6 ${stat.critical && !stat.integrity ? 'bg-red-50' : 'bg-blue-50/80'} rounded-lg flex items-center justify-center text-xs shadow-xs shrink-0`}>
+                    <div className={`w-7 h-7 ${stat.critical && !stat.integrity ? 'bg-rose-50' : 'bg-indigo-50/80'} rounded-xl flex items-center justify-center text-xs shadow-xs shrink-0 group-hover:scale-105 transition-transform`}>
                       {stat.icon}
                     </div>
                     <span className={`text-[10px] font-bold ${stat.changeColor} text-right leading-tight break-words`}>{stat.change}</span>
                   </div>
                   <div>
-                    <h3 className="text-slate-500 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5">{stat.title}</h3>
+                    <h3 className="text-slate-400 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5">{stat.title}</h3>
                     <p className="text-sm sm:text-base font-black text-slate-900 font-mono leading-none my-1">{stat.value}</p>
                     <p className="text-[9px] text-slate-400 leading-tight break-words mt-0.5">{stat.changeText}</p>
                     
                     {stat.critical && !stat.integrity && (
-                      <div className="mt-1 text-[9px] text-red-600 font-bold">
-                        ⚠️ Issue
+                      <div className="mt-1 text-[9px] text-rose-600 font-bold">
+                        ⚠️ Data Issue
                       </div>
                     )}
                   </div>
@@ -1263,23 +1270,23 @@ const FinancialManagement = () => {
 
             {/* Compact Cancellations & Refunds Section */}
             <div className="mb-2">
-              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">Cancellations &amp; Refunds</h2>
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Cancellations &amp; Refunds</h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-5">
               {cancellationStats.map((stat, index) => (
-                <div key={index} className={`bg-white rounded-xl shadow-xs border ${stat.borderColor} p-3 hover:shadow-md transition-all flex flex-col justify-between`}>
+                <div key={index} className={`bg-white rounded-2xl shadow-xs border ${stat.borderColor} p-3.5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between group`}>
                   <div className="flex items-center justify-between gap-1 mb-1.5">
-                    <div className={`w-6 h-6 ${stat.bgColor} rounded-lg flex items-center justify-center text-xs shrink-0`}>
+                    <div className={`w-7 h-7 ${stat.bgColor} rounded-xl flex items-center justify-center text-xs shrink-0 group-hover:scale-105 transition-transform`}>
                       {stat.icon}
                     </div>
                     {stat.count !== null && (
-                      <span className="text-[9px] font-bold text-slate-500 bg-slate-100 rounded-md px-1.5 py-0.2">
+                      <span className="text-[9px] font-bold text-slate-600 bg-slate-100/80 rounded-md px-1.5 py-0.5">
                         {stat.count} {stat.countLabel}
                       </span>
                     )}
                   </div>
                   <div>
-                    <h3 className="text-slate-500 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5">{stat.title}</h3>
+                    <h3 className="text-slate-400 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5">{stat.title}</h3>
                     <p className={`text-sm sm:text-base font-black ${stat.changeColor} font-mono leading-none my-1`}>{stat.value}</p>
                     <p className="text-[9px] text-slate-400 leading-tight break-words mt-0.5">{stat.changeText}</p>
                   </div>
@@ -1289,14 +1296,14 @@ const FinancialManagement = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-                <p className="text-red-700 text-xs font-bold">⚠️ {error}</p>
+              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-2xl">
+                <p className="text-rose-700 text-xs font-bold">⚠️ {error}</p>
               </div>
             )}
 
             {/* Transactions Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
-              <div className="flex flex-wrap gap-1.5 p-2.5 bg-slate-50 border-b border-slate-200/80">
+            <div className="bg-white rounded-2xl shadow-xs border border-slate-100 overflow-hidden">
+              <div className="flex flex-wrap gap-1.5 p-2.5 bg-slate-50/80 border-b border-slate-100">
                 {tabs.map((tab) => (
                   <button
                     key={tab}
@@ -1304,10 +1311,10 @@ const FinancialManagement = () => {
                       setActiveTab(tab);
                       setPagination(prev => ({ ...prev, page: 1 }));
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === tab
-                        ? 'bg-blue-900 text-white shadow-xs'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/60'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100/80 border border-slate-200/60'
                     }`}
                   >
                     {tab}
@@ -1326,7 +1333,7 @@ const FinancialManagement = () => {
                     }}
                     className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
                       statusFilter === status
-                        ? 'bg-blue-600 text-white shadow-xs'
+                        ? 'bg-indigo-600 text-white shadow-xs'
                         : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
                     }`}
                   >

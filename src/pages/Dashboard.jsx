@@ -93,35 +93,43 @@ export default function Dashboard() {
     const activeListings = (dashboardStats?.listings?.active) ?? (dashboardStats?.activeListings) ?? listings.filter(l => l.status === 'AVAILABLE').length;
     const pendingListings = (dashboardStats?.listings?.pending) ?? (dashboardStats?.pendingListings) ?? listings.filter(l => l.status === 'PENDING').length;
     const totalListings = (dashboardStats?.listings?.total) ?? (dashboardStats?.totalListings) ?? listings.length;
-
-
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex min-h-screen bg-slate-50/50 font-aeonik antialiased selection:bg-indigo-500 selection:text-white">
             {/* Sidebar */}
-            <Sidebar activeMenu={activeMenu} onMenuSelect={setActiveMenu} />
+            <Sidebar 
+                activeMenu={activeMenu} 
+                onMenuSelect={setActiveMenu} 
+                isMobileOpen={isMobileOpen}
+                setIsMobileOpen={setIsMobileOpen}
+            />
             
             {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Navbar - Pass active menu */}
-                <Navbar activeMenu={activeMenu} onMenuSelect={setActiveMenu} />
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                {/* Navbar */}
+                <Navbar 
+                    activeMenu={activeMenu} 
+                    onMenuSelect={setActiveMenu} 
+                    onToggleMobileMenu={() => setIsMobileOpen(!isMobileOpen)}
+                />
 
                 {/* Scrollable Content */}
                 <main className="flex-1 overflow-y-auto">
-                    <div className="p-4 sm:p-6 lg:p-7">
+                    <div className="p-3.5 sm:p-5 lg:p-7 max-w-[1600px] mx-auto w-full">
                         {loading && (
-                            <div className="flex items-center justify-center py-12">
-                                <div className="text-center">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                                    <p className="mt-4 text-gray-600">Loading dashboard...</p>
+                            <div className="flex items-center justify-center py-16">
+                                <div className="text-center bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+                                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-600 border-t-transparent mx-auto"></div>
+                                    <p className="mt-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Loading dashboard data...</p>
                                 </div>
                             </div>
                         )}
                         
                         {error && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                                <p className="text-red-800 font-semibold">Error</p>
-                                <p className="text-red-700 text-sm">{error}</p>
+                            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-4 text-rose-800 animate-in fade-in">
+                                <p className="font-bold text-xs uppercase tracking-wider">Error Encountered</p>
+                                <p className="text-xs text-rose-700 mt-0.5">{error}</p>
                             </div>
                         )}
                         

@@ -29,31 +29,35 @@ export default function AlertCard({
   variant = 'orange',
   onClick,
 }) {
-  // Color variants
+  // Enhanced Color variants
   const variants = {
     orange: {
-      bg: 'bg-rose-50/30',
-      border: 'border-orange-600',
-      iconBg: 'bg-orange-500',
-      badge: 'bg-orange-600',
+      bg: 'bg-gradient-to-r from-amber-50/60 to-white',
+      border: 'border-amber-200/80 hover:border-amber-300',
+      iconBg: 'bg-amber-500 text-white',
+      badge: 'bg-amber-500 text-white shadow-xs',
+      dot: 'bg-amber-400',
     },
     blue: {
-      bg: 'bg-indigo-50/30',
-      border: 'border-blue-600',
-      iconBg: 'bg-indigo-600',
-      badge: 'bg-blue-600',
+      bg: 'bg-gradient-to-r from-indigo-50/60 to-white',
+      border: 'border-indigo-200/80 hover:border-indigo-300',
+      iconBg: 'bg-indigo-600 text-white',
+      badge: 'bg-indigo-600 text-white shadow-xs',
+      dot: 'bg-indigo-400',
     },
     green: {
-      bg: 'bg-lime-50/30',
-      border: 'border-green-600',
-      iconBg: 'bg-green-600',
-      badge: 'bg-green-600',
+      bg: 'bg-gradient-to-r from-emerald-50/60 to-white',
+      border: 'border-emerald-200/80 hover:border-emerald-300',
+      iconBg: 'bg-emerald-600 text-white',
+      badge: 'bg-emerald-600 text-white shadow-xs',
+      dot: 'bg-emerald-400',
     },
     red: {
-      bg: 'bg-red-50/30',
-      border: 'border-red-600',
-      iconBg: 'bg-red-600',
-      badge: 'bg-red-600',
+      bg: 'bg-gradient-to-r from-rose-50/60 to-white',
+      border: 'border-rose-200/80 hover:border-rose-300',
+      iconBg: 'bg-rose-600 text-white',
+      badge: 'bg-rose-600 text-white shadow-xs',
+      dot: 'bg-rose-400',
     },
   };
 
@@ -61,26 +65,22 @@ export default function AlertCard({
 
   return (
     <div
-      className={`p-4 ${colorVariant.bg} border-2 ${colorVariant.border} rounded-lg flex items-start justify-between cursor-pointer hover:shadow-md transition`}
+      className={`p-3.5 sm:p-4 ${colorVariant.bg} border ${colorVariant.border} rounded-2xl flex items-center justify-between cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 gap-3.5 group`}
       onClick={onClick}
     >
       {/* Left Section */}
-      <div className="flex items-start gap-4">
-        {/* Icon */}
-        {icon ? (
-          <div className={`w-6 h-6 ${colorVariant.iconBg} rounded-lg flex-shrink-0 mt-1`}>
-            {icon}
-          </div>
-        ) : (
-          <div className={`w-6 h-6 ${colorVariant.iconBg} rounded-lg flex-shrink-0 mt-1`} />
-        )}
+      <div className="flex items-center gap-3 min-w-0">
+        {/* Icon Squircle */}
+        <div className={`w-8 h-8 ${colorVariant.iconBg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform`}>
+          {icon || <span className="w-2 h-2 rounded-full bg-white" />}
+        </div>
 
         {/* Text Content */}
-        <div>
-          <p className="font-aeonik font-medium text-slate-900">
+        <div className="min-w-0">
+          <p className="font-aeonik font-bold text-xs sm:text-sm text-slate-900 truncate">
             {title}
           </p>
-          <p className="font-aeonik font-normal text-slate-400 text-sm">
+          <p className="font-aeonik font-medium text-slate-400 text-[11px] sm:text-xs truncate">
             {description}
           </p>
         </div>
@@ -88,8 +88,9 @@ export default function AlertCard({
 
       {/* Badge */}
       {count !== undefined && (
-        <div className={`${colorVariant.badge} text-white px-3 py-1 rounded-full text-sm font-aeonik font-medium flex-shrink-0`}>
-          {count}
+        <div className={`${colorVariant.badge} px-2.5 py-0.5 rounded-full text-xs font-aeonik font-bold flex-shrink-0 flex items-center gap-1.5`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${colorVariant.dot} animate-pulse`} />
+          <span>{count}</span>
         </div>
       )}
     </div>
@@ -103,7 +104,7 @@ export default function AlertCard({
 // Alert List - Multiple alerts
 export function AlertList({ alerts = [] }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {alerts.map((alert, index) => (
         <AlertCard
           key={alert.id || index}
@@ -112,6 +113,7 @@ export function AlertList({ alerts = [] }) {
           count={alert.count}
           variant={alert.variant}
           onClick={alert.onClick}
+          icon={alert.icon}
         />
       ))}
     </div>
@@ -128,18 +130,18 @@ export function AlertContainer({ tabs = [], activeTab = 0, onTabChange, onAddCat
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-stone-300 p-7 space-y-6">
+    <div className="bg-white rounded-2xl shadow-xs border border-slate-100 p-5 sm:p-6 space-y-4">
       {/* Tab Navigation */}
       {tabs.length > 0 && (
-        <div className="bg-gray-50 rounded-lg p-3 flex gap-4 border border-gray-200 overflow-x-auto items-center">
+        <div className="bg-slate-50/80 rounded-xl p-1.5 flex gap-2 border border-slate-100 overflow-x-auto items-center">
           {tabs.map((tab, index) => (
             <button
               key={index}
               onClick={() => handleTabChange(index)}
-              className={`px-3 py-2 text-sm font-aeonik font-medium rounded-lg transition whitespace-nowrap cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-aeonik font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
                 localActiveTab === index
-                  ? 'bg-white text-sky-900 shadow-sm'
-                  : 'text-zinc-700 hover:bg-white'
+                  ? 'bg-white text-indigo-900 shadow-xs border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
               {tab}
@@ -147,16 +149,18 @@ export function AlertContainer({ tabs = [], activeTab = 0, onTabChange, onAddCat
           ))}
           
           {/* Add New Category Button */}
-          <div className="flex items-center gap-2 ml-2">
-            <button
-              onClick={onAddCategory}
-              className="p-1.5 rounded-lg transition text-sky-600 hover:bg-sky-50 cursor-pointer"
-              title="Add new category"
-            >
-              <PlusIcon />
-            </button>
-            <span className="text-xs font-medium text-slate-600 cursor-pointer" onClick={onAddCategory}>Add new category</span>
-          </div>
+          {onAddCategory && (
+            <div className="flex items-center gap-1.5 ml-auto pr-2">
+              <button
+                onClick={onAddCategory}
+                className="p-1 rounded-lg transition text-indigo-600 hover:bg-indigo-50 cursor-pointer flex items-center gap-1 text-xs font-bold font-aeonik"
+                title="Add new category"
+              >
+                <PlusIcon />
+                <span>Add category</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

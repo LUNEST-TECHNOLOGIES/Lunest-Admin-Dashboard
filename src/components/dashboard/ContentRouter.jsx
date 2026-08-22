@@ -61,40 +61,40 @@ export const DashboardContent = ({ stats }) => {
   };
 
   return (
-    <div className="space-y-6 lg:space-y-7">
-      {/* Stats Cards - Row 1 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <StatsCard icon={<TotalUsersIcon />} label="Total Users" value={stats.totalUsers || 0} description="all registered" bgColor="blue" iconColor="blue" />
-        <StatsCard icon={<GuestsIcon />} label="Active Guests" value={stats.totalGuests || 0} description="active users" bgColor="green" iconColor="green" />
-        <StatsCard icon={<UsersIcon />} label="Active Hosts" value={stats.activeHosts || 0} description="new this month" bgColor="violet" iconColor="indigo" />
-        <StatsCard icon={<BookingsIcon />} label="Total Bookings" value={stats.totalBookings || 0} description="since last month" bgColor="violet" iconColor="indigo" />
+    <div className="space-y-5 sm:space-y-6">
+      {/* Dynamic Key Performance Indicators Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
+        <StatsCard icon={<TotalUsersIcon />} label="Total Users" value={stats.totalUsers || 0} description="registered accounts" bgColor="blue" iconColor="blue" />
+        <StatsCard icon={<GuestsIcon />} label="Active Guests" value={stats.totalGuests || 0} description="verified guests" bgColor="green" iconColor="green" />
+        <StatsCard icon={<UsersIcon />} label="Active Hosts" value={stats.activeHosts || 0} description="verified hosts" bgColor="violet" iconColor="indigo" />
+        <StatsCard icon={<BookingsIcon />} label="Total Bookings" value={stats.totalBookings || 0} description="lifetime reservations" bgColor="indigo" iconColor="indigo" />
+        <StatsCard icon={<Banknote />} label="Total Revenue" value={stats.totalRevenue || 0} description="platform fee + tax" bgColor="violet" iconColor="indigo" isCurrency={true} />
+        <StatsCard icon={<Wallet />} label="Total Escrow Balance" value={stats.totalEscrowFunds || 0} description="host earnings + deposits" bgColor="amber" iconColor="orange" isCurrency={true} />
+        <StatsCard icon={<KycIcon />} label="Pending KYC" value={stats.pendingKYC || 0} description="requires verification" bgColor="orange" iconColor="orange" />
+        <StatsCard icon={<ListingsIcon />} label="Pending Listings" value={stats.pendingListings || 0} description="awaiting moderation" bgColor="amber" iconColor="orange" />
+        <StatsCard icon={<DisputesIcon />} label="Open Disputes" value={stats.openDisputes || 0} description="active claims" bgColor="red" iconColor="red" />
       </div>
-      {/* Stats Cards - Row 2 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <StatsCard icon={<Banknote />} label="Total Revenue" value={stats.totalRevenue || 0} description="fees + VAT" bgColor="violet" iconColor="indigo" isCurrency={true} />
-        <StatsCard icon={<Wallet />} label="Total Escrow Balance" value={stats.totalEscrowFunds || 0} description="pending earnings + deposits" bgColor="amber" iconColor="orange" isCurrency={true} />
-        <StatsCard icon={<KycIcon />} label="Pending KYC" value={stats.pendingKYC || 0} description="needs review" bgColor="orange" iconColor="orange" />
-        <StatsCard icon={<ListingsIcon />} label="Pending Listings" value={stats.pendingListings || 0} description="awaiting approval" bgColor="orange" iconColor="orange" />
-      </div>
-      {/* Stats Cards - Row 3 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <StatsCard icon={<DisputesIcon />} label="Open Disputes" value={stats.openDisputes || 0} description="since last month" bgColor="red" iconColor="red" />
-      </div>
-      {/* Alerts */}
-      <div className="overflow-x-auto">
-        <AlertContainer tabs={['Review Listings', 'Open Tickets', 'Process Payouts']} alerts={[]} onAddCategory={() => console.log('Add new category')} />
-      </div>
-      {/* Activity Summary */}
-      <div className="overflow-x-auto">
-        {loading ? (
-          <div className="bg-white rounded-lg shadow-md border border-stone-300 p-7">
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+
+      {/* Action Center & Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2">
+          <AlertContainer 
+            tabs={['Review Listings', 'Open Tickets', 'Process Payouts']} 
+            alerts={[]} 
+            onAddCategory={() => console.log('Add new category')} 
+          />
+        </div>
+        
+        {/* Activity Summary */}
+        <div className="lg:col-span-1">
+          {loading ? (
+            <div className="bg-white rounded-2xl shadow-xs border border-slate-100 p-6 flex items-center justify-center min-h-[220px]">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent"></div>
             </div>
-          </div>
-        ) : (
-          <ChatCard title="Activity Summary" activities={activities} />
-        )}
+          ) : (
+            <ChatCard title="Recent Activities" activities={activities} />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -698,7 +698,7 @@ export const FinancialManagementContent = () => {
       )}
 
       {/* Stats Cards - Premium Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
         <StatsCard icon={<Banknote />} label="Gross Revenue" value={financeStats.totalRevenue} description="fees + VAT" bgColor="violet" iconColor="indigo" isCurrency={true} />
         <StatsCard icon={<Wallet />} label="Net App Fees" value={financeStats.appFees} description="excluding tax" bgColor="blue" iconColor="blue" isCurrency={true} />
         <StatsCard icon={<CreditCard />} label="Host Earnings" value={financeStats.hostPayments} description="processed funds" bgColor="green" iconColor="green" isCurrency={true} />

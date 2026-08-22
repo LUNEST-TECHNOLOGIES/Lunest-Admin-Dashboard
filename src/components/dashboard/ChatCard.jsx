@@ -38,9 +38,9 @@ export default function ChatCard({
 
   // Priority color mapping
   const priorityColors = {
-    High: { bg: 'bg-red-600', dot: 'bg-red-600' },
-    Medium: { bg: 'bg-orange-600', dot: 'bg-orange-600' },
-    Low: { bg: 'bg-green-600', dot: 'bg-green-600' },
+    High: { bg: 'bg-rose-50 text-rose-700 border-rose-200/60', dot: 'bg-rose-500' },
+    Medium: { bg: 'bg-amber-50 text-amber-700 border-amber-200/60', dot: 'bg-amber-500' },
+    Low: { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', dot: 'bg-emerald-500' },
   };
 
   const getPriorityColor = (priority) => {
@@ -49,74 +49,71 @@ export default function ChatCard({
 
   if (!activities || activities.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md border border-stone-300 p-7">
-        <h3 className="text-indigo-900 text-lg font-bold font-aeonik">{title}</h3>
-        <p className="text-slate-500 text-sm mt-4">No activities yet</p>
+      <div className="bg-white rounded-2xl shadow-xs border border-slate-100 p-5 sm:p-6">
+        <h3 className="text-slate-900 text-base font-bold font-aeonik tracking-tight">{title}</h3>
+        <p className="text-slate-400 text-xs font-medium mt-3">No recent activities to display</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-stone-300 p-7">
+    <div className="bg-white rounded-2xl shadow-xs border border-slate-100 p-5 sm:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6 pb-6 border-b border-neutral-200">
-        <h3 className="text-indigo-900 text-lg font-bold font-aeonik">{title}</h3>
+      <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+        <h3 className="text-slate-900 text-base font-bold font-aeonik tracking-tight">{title}</h3>
         {showPriority && (
-          <span className="text-indigo-900 text-sm font-medium font-aeonik">Priority</span>
+          <span className="text-slate-400 text-xs font-bold font-aeonik uppercase tracking-wider">Priority</span>
         )}
       </div>
 
       {/* Activity Items */}
-      <div className="space-y-6">
+      <div className="divide-y divide-slate-100">
         {displayedActivities.map((activity, index) => {
-          const isLast = index === displayedActivities.length - 1;
           const priorityColor = getPriorityColor(activity.priority);
 
           return (
             <div
               key={activity.id || index}
-              className={`flex items-center justify-between ${!isLast ? 'pb-6 border-b border-neutral-300' : ''}`}
+              className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/60 px-2 rounded-xl transition-colors"
             >
               {/* Left Section - User Info */}
-              <div className="flex items-start gap-4 flex-1">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 {/* Avatar */}
-                <div className="w-7 h-7 bg-slate-900 rounded-full flex items-center justify-center text-white text-sm font-bold font-aeonik flex-shrink-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-slate-900 to-indigo-950 rounded-xl flex items-center justify-center text-white text-xs font-bold font-aeonik flex-shrink-0 shadow-xs">
                   {activity.initials}
                 </div>
 
                 {/* Activity Details */}
-                <div className="flex flex-col">
-                  {/* Name and Action */}
-                  <div className="flex items-center gap-2">
-                    <p className="font-aeonik font-medium text-black text-sm">
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-aeonik font-bold text-slate-900 text-xs truncate">
                       {activity.name}
-                    </p>
-                    <span className="font-aeonik font-normal text-black text-xs">
+                    </span>
+                    <span className="font-aeonik font-normal text-slate-500 text-xs truncate">
                       {activity.action}
                     </span>
                   </div>
 
-                  {/* Timestamp */}
-                  <p className="font-aeonik font-normal text-neutral-500 text-xs mt-1">
+                  <span className="font-aeonik font-medium text-slate-400 text-[10px] mt-0.5">
                     {activity.time}
-                  </p>
+                  </span>
                 </div>
               </div>
 
               {/* Right Section - Category & Priority */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 shrink-0">
                 {/* Category Badge */}
-                <div className="px-3 py-1 border border-black rounded-full font-aeonik text-xs font-medium">
-                  {activity.category}
-                </div>
+                {activity.category && (
+                  <span className="px-2 py-0.5 bg-slate-50 border border-slate-200 rounded-lg font-aeonik text-[10px] font-bold text-slate-600 uppercase tracking-tighter">
+                    {activity.category}
+                  </span>
+                )}
 
                 {/* Priority Indicator */}
-                {showPriority && (
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded ${priorityColor.dot}`} />
-                    <span className="font-aeonik text-xs font-medium">
-                      {activity.priority}
-                    </span>
+                {showPriority && activity.priority && (
+                  <div className={`px-2 py-0.5 rounded-full border text-[10px] font-bold flex items-center gap-1.5 ${priorityColor.bg}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${priorityColor.dot}`} />
+                    <span>{activity.priority}</span>
                   </div>
                 )}
               </div>
