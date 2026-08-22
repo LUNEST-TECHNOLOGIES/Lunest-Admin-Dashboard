@@ -712,12 +712,14 @@ const FinancialManagement = () => {
   const deduplicateTransactions = (txns) => {
     if (!txns || txns.length === 0) return txns;
 
-    // For Caution Fees tab: group by bookingId and keep only the most meaningful row
+    // For Caution Fees tab: group by bookingId and keep only the single authoritative row per booking
     if (activeTab === 'Caution Fees') {
       const byBooking = {};
       const standalone = [];
 
       txns.forEach(txn => {
+        if (txn.metadata?.isDisclosure) return; // Skip internal disclosure transactions
+
         const bId = txn.bookingId?._id || txn.bookingId || txn.metadata?.bookingId;
         if (!bId) {
           standalone.push(txn);
@@ -737,33 +739,17 @@ const FinancialManagement = () => {
           return;
         }
 
-        // Pick the primary row: prefer the one with reconciliation status,
-        // otherwise the DEBIT (original hold), then fallback to first
+        // Pick the single most authoritative row:
+        // 1. Prefer completed resolution row with reconciliation metadata
+        // 2. Or active disputed row
+        // 3. Or primary completed/held row
         const withReconciliation = group.find(t => t.metadata?.reconciliation?.cautionFeeStatus);
+        const disputedRow = group.find(t => t.status === 'DISPUTED');
+        const primaryCompleted = group.find(t => t.status === 'COMPLETED' && !t.metadata?.isDisclosure);
         const primaryDebit = group.find(t => t.type === 'DEBIT' && !t.metadata?.isDisclosure);
-        const primary = withReconciliation || primaryDebit || group[0];
+        const primary = withReconciliation || disputedRow || primaryCompleted || primaryDebit || group[0];
 
-        // Mark remaining as sub-rows
-        const others = group.filter(t => t !== primary);
-        deduped.push({
-          ...primary,
-          _isBookingParent: true,
-          _bookingRef: primary.reference,
-          _relatedCount: others.length,
-          _relatedTransactions: others
-        });
-
-        // If expanded, add sub-rows
-        if (expandedBookings[primary.reference]) {
-          others.forEach((sub, idx) => {
-            deduped.push({
-              ...sub,
-              _isRelated: true,
-              _parentRef: primary.reference,
-              _relatedIndex: idx
-            });
-          });
-        }
+        deduped.push(primary);
       });
 
       return [...deduped, ...standalone];
