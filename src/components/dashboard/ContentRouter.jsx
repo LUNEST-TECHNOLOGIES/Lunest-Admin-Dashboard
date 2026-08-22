@@ -1497,18 +1497,18 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
   const [isExpanded, setIsExpanded] = useState(false);
   
   // Check if this is a booking transaction that should show breakdown
-  // Expanded detection for LUNEST_ reference prefix as confirmed in user data
-  // Exclude PLATFORM_FEE, VAT, HOST_EARNING, RENT, and SERVICE_CHARGE as they don't need a breakdown themselves
-  // Also exclude RENT_AND_SERVICE to prevent showing duplicates
+  // Expanded detection for booking transactions
+  // Exclude TOP_UP, ADDED_FUNDS, WITHDRAWAL, COUPON_PAYMENT, PLATFORM_FEE, VAT, HOST_EARNING, RENT, SERVICE_CHARGE
   const isBookingTransaction = 
-    (tx.category === 'BOOKING' || tx.reference?.startsWith('LUNEST_') || tx.bookingId) && 
-    !['PLATFORM_FEE', 'VAT', 'HOST_EARNING', 'RENT', 'SERVICE_CHARGE', 'RENT_AND_SERVICE'].includes(tx.category);
+    (tx.category === 'BOOKING' || (tx.bookingId && !['TOP_UP', 'ADDED_FUNDS', 'WITHDRAWAL', 'COUPON_PAYMENT'].includes(tx.category))) && 
+    !['PLATFORM_FEE', 'VAT', 'HOST_EARNING', 'RENT', 'SERVICE_CHARGE', 'RENT_AND_SERVICE', 'TOP_UP', 'ADDED_FUNDS', 'WITHDRAWAL', 'COUPON_PAYMENT'].includes(tx.category);
 
   // Function to render a single row of the transaction table
   const renderRow = (transaction, isSubRow = false, subType = '') => {
     const isBooking = transaction.category === 'BOOKING';
     const isFee = transaction.category === 'PLATFORM_FEE';
     const isVat = transaction.category === 'VAT';
+    const isTopUp = transaction.category === 'TOP_UP' || transaction.type === 'TOP_UP' || transaction.category === 'ADDED_FUNDS';
 
     // Determine displayed amount based on activeTab for bundled bookings
     let displayAmount = transaction.amount || 0;
@@ -1537,7 +1537,7 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
             <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-black text-slate-700 font-mono shadow-sm group-hover:border-blue-200 group-hover:bg-blue-50/50 transition-colors">
               {transaction.reference || 'N/A'}
             </span>
-            {transaction.bookingId && !isSubRow && (
+            {transaction.bookingId && !isSubRow && !isTopUp && (
               <span className="text-[10px] text-blue-500 font-bold mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Linked to Booking</span>
             )}
             {isSubRow && (
@@ -1575,12 +1575,13 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
             <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border whitespace-nowrap ${
               isFee ? 'bg-blue-50 text-blue-600 border-blue-100' :
               isVat ? 'bg-purple-50 text-purple-600 border-purple-100' :
+              isTopUp ? 'bg-cyan-50 text-cyan-700 border-cyan-200' :
               transaction.category === 'CANCELLATION_PENALTY' ? 'bg-amber-50 text-amber-700 border-amber-200' :
               transaction.category === 'CANCELLATION_REFUND' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
               transaction.category === 'CANCELLATION_CREDIT' ? 'bg-purple-50 text-purple-700 border-purple-200' :
               'bg-slate-100 text-slate-500 border-slate-200/50'
             }`}>
-              {transaction.category?.replace(/_/g, ' ')}
+              {isTopUp ? 'Wallet Funding' : transaction.category?.replace(/_/g, ' ')}
             </span>
             {isBundledDisplay && (
               <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[8px] font-black uppercase tracking-tighter shadow-sm animate-pulse">
