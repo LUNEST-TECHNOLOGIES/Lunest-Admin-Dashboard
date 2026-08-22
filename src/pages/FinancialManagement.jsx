@@ -645,64 +645,44 @@ const FinancialManagement = () => {
     const grouped = {};
     
     transactions.forEach(txn => {
-      // Extract booking reference from metadata or reference
-      let bookingRef = txn.metadata?.bookingReference;
-      let bookingId = txn.metadata?.bookingId;
+      // Primary grouping key: Booking ID
+      const bId = (txn.bookingId?._id || txn.bookingId || txn.metadata?.bookingId)?.toString();
       
-      // For BOOKING category, extract base reference to match with related transactions
-      if (txn.category === 'BOOKING' || txn.category === 'RENT' || txn.category === 'SERVICE_CHARGE') {
-        if (bookingRef) {
-          // Use metadata bookingReference if available
-          bookingId = bookingId || txn._id;
-        } else if (txn.reference) {
-          // Extract base reference (e.g., "GUEST_PAYSTACK_abc123_SUMMARY" -> "GUEST_PAYSTACK_abc123")
-          const parts = txn.reference.split('_');
-          if (parts.length >= 3 && parts[0] === 'GUEST') {
-            bookingRef = parts.slice(0, 3).join('_');
-          } else if (parts.length >= 2 && parts[0] === 'HOST') {
-            bookingRef = parts.slice(0, 2).join('_');
-          } else {
-            bookingRef = txn.reference;
-          }
-          bookingId = bookingId || txn._id;
-        }
+      // Fallback: extract booking code from description like #LUNMSXQC7XJ4PILW3
+      let descRef = null;
+      if (txn.description) {
+        const match = txn.description.match(/#([A-Z0-9]{8,})/i);
+        if (match) descRef = match[1].toUpperCase();
       }
       
-      // For related transactions (PLATFORM_FEE, VAT, etc.), link to their parent booking
-      if (!bookingRef && txn.reference) {
-        // Try multiple patterns to extract booking reference
-        // Pattern 1: "GUEST_PAYSTACK_abc123_FEE" -> "GUEST_PAYSTACK_abc123"
-        const parts = txn.reference.split('_');
-        if (parts.length >= 3 && parts[0] === 'GUEST') {
-          bookingRef = parts.slice(0, 3).join('_');
-        }
-        // Pattern 2: "HOST_EARN_abc123" -> extract base
-        else if (parts.length >= 2 && parts[0] === 'HOST') {
-          bookingRef = parts.slice(0, 2).join('_');
-        }
-        // Pattern 3: Use bookingId from metadata if available
-        else if (bookingId) {
-          bookingRef = `BOOKING_${bookingId}`;
-        }
+      const groupKey = bId || descRef || txn.metadata?.bookingReference || txn.reference;
+      
+      if (!grouped[groupKey]) {
+        grouped[groupKey] = {
+          booking: null,
+          relatedTransactions: [],
+          bookingId: bId,
+          groupKey: groupKey
+        };
       }
       
-      if (bookingRef) {
-        if (!grouped[bookingRef]) {
-          grouped[bookingRef] = {
-            booking: null,
-            relatedTransactions: [],
-            bookingId: bookingId
-          };
-        }
-        
-        // Categorize as parent if it's a main booking-related transaction
-        // EXCLUDE COUPON_PAYMENT from parent categories - no breakdown shown
-        const isParentCategory = ['BOOKING', 'RENT', 'SERVICE_CHARGE'].includes(txn.category);
-        if (isParentCategory) {
-          grouped[bookingRef].booking = txn;
+      // The parent row should be the primary guest BOOKING payment
+      if (txn.category === 'BOOKING' || (txn.type === 'DEBIT' && txn.description?.toLowerCase().includes('booking payment'))) {
+        if (!grouped[groupKey].booking) {
+          grouped[groupKey].booking = txn;
         } else {
-          grouped[bookingRef].relatedTransactions.push(txn);
+          grouped[groupKey].relatedTransactions.push(txn);
         }
+      } else {
+        grouped[groupKey].relatedTransactions.push(txn);
+      }
+    });
+
+    // If no explicit BOOKING parent was found for a group, pick the first transaction as parent
+    Object.values(grouped).forEach(g => {
+      if (!g.booking && g.relatedTransactions.length > 0) {
+        g.booking = g.relatedTransactions[0];
+        g.relatedTransactions = g.relatedTransactions.slice(1);
       }
     });
     
