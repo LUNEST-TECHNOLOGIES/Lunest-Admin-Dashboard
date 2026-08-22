@@ -1217,31 +1217,28 @@ const FinancialManagement = () => {
             <div className="mb-3">
               <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">Financial Overview</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+            {/* Compact Main Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-5">
               {mainStats.map((stat, index) => (
-                <div key={index} className={`bg-white rounded-lg shadow-md border ${stat.critical && !stat.integrity ? 'border-red-300' : 'border-gray-200'} p-6 hover:shadow-lg transition-shadow relative`}>
-                  {/* Integrity Indicator for Critical Cards */}
+                <div key={index} className={`bg-white rounded-xl shadow-xs border ${stat.critical && !stat.integrity ? 'border-red-300 bg-red-50/20' : 'border-slate-200/80'} p-3 hover:shadow-md transition-all relative flex flex-col justify-between`}>
                   {stat.critical && (
-                    <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${stat.integrity ? 'bg-green-500' : 'bg-red-500'}`} title={stat.integrity ? 'Data Integrity OK' : 'Data Integrity Issue'}></div>
+                    <div className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${stat.integrity ? 'bg-green-500' : 'bg-red-500'}`} title={stat.integrity ? 'Data Integrity OK' : 'Data Integrity Issue'}></div>
                   )}
                   
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 ${stat.critical && !stat.integrity ? 'bg-red-50' : 'bg-blue-50'} rounded-full flex items-center justify-center text-xl`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={`w-7 h-7 ${stat.critical && !stat.integrity ? 'bg-red-50' : 'bg-blue-50/80'} rounded-lg flex items-center justify-center text-xs shadow-xs`}>
                       {stat.icon}
                     </div>
+                    <span className={`text-[10px] font-bold ${stat.changeColor} truncate ml-1`}>{stat.change}</span>
                   </div>
                   <div>
-                    <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">{stat.title}</h3>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                    <div className="mt-2 flex flex-col items-start gap-1">
-                      <span className={`text-xs font-bold ${stat.changeColor}`}>{stat.change}</span>
-                      <span className="text-xs text-gray-400">{stat.changeText}</span>
-                    </div>
+                    <h3 className="text-slate-500 text-[10px] font-bold uppercase tracking-wider truncate mb-0.5" title={stat.title}>{stat.title}</h3>
+                    <p className="text-sm sm:text-base font-black text-slate-900 font-mono truncate">{stat.value}</p>
+                    <p className="text-[9px] text-slate-400 truncate mt-0.5" title={stat.changeText}>{stat.changeText}</p>
                     
-                    {/* Critical Data Warning */}
                     {stat.critical && !stat.integrity && (
-                      <div className="mt-2 text-xs text-red-600 font-medium">
-                        ⚠️ Data Integrity Issue
+                      <div className="mt-1 text-[9px] text-red-600 font-bold">
+                        ⚠️ Issue
                       </div>
                     )}
                   </div>
@@ -1249,50 +1246,42 @@ const FinancialManagement = () => {
               ))}
             </div>
 
-            {/* Cancellations & Refunds Section */}
-            <div className="mb-3">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-1">Cancellations &amp; Refunds</h2>
-              <p className="text-xs text-gray-400 mb-4">Breakdown of cancellation penalties, cash refunds, and credit refunds within the selected date range.</p>
+            {/* Compact Cancellations & Refunds Section */}
+            <div className="mb-2">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">Cancellations &amp; Refunds</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
               {cancellationStats.map((stat, index) => (
-                <div key={index} className={`bg-white rounded-lg shadow-md border ${stat.borderColor} p-6 hover:shadow-lg transition-shadow`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className={`w-12 h-12 ${stat.bgColor} rounded-full flex items-center justify-center text-xl`}>
+                <div key={index} className={`bg-white rounded-xl shadow-xs border ${stat.borderColor} p-3 hover:shadow-md transition-all flex flex-col justify-between`}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className={`w-7 h-7 ${stat.bgColor} rounded-lg flex items-center justify-center text-xs`}>
                       {stat.icon}
                     </div>
                     {stat.count !== null && (
-                      <span className="text-xs font-semibold text-gray-400 bg-gray-100 rounded-full px-2 py-1">
+                      <span className="text-[10px] font-bold text-slate-500 bg-slate-100 rounded-md px-1.5 py-0.5">
                         {stat.count} {stat.countLabel}
                       </span>
                     )}
                   </div>
-                  <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">{stat.title}</h3>
-                  <p className={`text-2xl font-bold ${stat.changeColor}`}>{stat.value}</p>
-                  <p className="text-xs text-gray-400 mt-2">{stat.changeText}</p>
-                  <button
-                    className="mt-3 text-xs font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer"
-                    onClick={() => {
-                      setActiveTab('Cancellations');
-                      setPagination(prev => ({ ...prev, page: 1 }));
-                    }}
-                  >
-                    View transactions →
-                  </button>
+                  <div>
+                    <h3 className="text-slate-500 text-[10px] font-bold uppercase tracking-wider truncate mb-0.5">{stat.title}</h3>
+                    <p className={`text-sm sm:text-base font-black ${stat.changeColor} font-mono truncate`}>{stat.value}</p>
+                    <p className="text-[9px] text-slate-400 truncate mt-0.5">{stat.changeText}</p>
+                  </div>
                 </div>
               ))}
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 font-semibold">⚠️ {error}</p>
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                <p className="text-red-700 text-xs font-bold">⚠️ {error}</p>
               </div>
             )}
 
             {/* Transactions Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="flex flex-wrap gap-2 p-4 bg-slate-50 border-b border-slate-100">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+              <div className="flex flex-wrap gap-1.5 p-2.5 bg-slate-50 border-b border-slate-200/80">
                 {tabs.map((tab) => (
                   <button
                     key={tab}
@@ -1300,10 +1289,10 @@ const FinancialManagement = () => {
                       setActiveTab(tab);
                       setPagination(prev => ({ ...prev, page: 1 }));
                     }}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       activeTab === tab
-                        ? 'bg-blue-900 text-white'
-                        : 'bg-white text-slate-600 hover:bg-slate-100'
+                        ? 'bg-blue-900 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/60'
                     }`}
                   >
                     {tab}
@@ -1312,7 +1301,7 @@ const FinancialManagement = () => {
               </div>
 
               {/* Status Filter */}
-              <div className="flex flex-wrap gap-2 p-4 bg-slate-50 border-b border-slate-100">
+              <div className="flex flex-wrap gap-1.5 p-2 bg-white border-b border-slate-100">
                 {statusOptions.map((status) => (
                   <button
                     key={status}
@@ -1320,10 +1309,10 @@ const FinancialManagement = () => {
                       setStatusFilter(status);
                       setPagination(prev => ({ ...prev, page: 1 }));
                     }}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
                       statusFilter === status
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-slate-600 border border-slate-300 hover:bg-slate-100'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
                     }`}
                   >
                     {status === 'All' ? 'All Status' : status.replace(/_/g, ' ')}
@@ -1331,34 +1320,34 @@ const FinancialManagement = () => {
                 ))}
               </div>
 
-              <div className="p-4 border-b border-slate-100">
-                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                  <div className="flex-1 max-w-md">
+              <div className="p-3 border-b border-slate-100 bg-white">
+                <div className="flex flex-col sm:flex-row gap-2.5 items-center justify-between">
+                  <div className="flex-1 max-w-sm w-full">
                     <div className="relative">
                       <input
                         type="text"
-                        placeholder="Search reference or description and press Enter"
+                        placeholder="Search ref or description..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={handleSearch}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-text"
+                        className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-text"
                       />
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="absolute left-2.5 top-1/2 transform -translate-y-1/2">
+                        <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2 relative">
+                  <div className="flex flex-wrap gap-1.5 items-center w-full sm:w-auto justify-end">
                     <button 
                       onClick={() => setShowDatePicker(!showDatePicker)}
-                      className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 text-slate-700 text-xs font-semibold rounded-full hover:bg-slate-50 cursor-pointer transition-colors shadow-xs"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      {new Date(dateRange.startDate).toLocaleDateString()} - {new Date(dateRange.endDate).toLocaleDateString()}
+                      {new Date(dateRange.startDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })} - {new Date(dateRange.endDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
                     </button>
                     
                     {showDatePicker && (
@@ -1427,36 +1416,36 @@ const FinancialManagement = () => {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-indigo-50/50">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-slate-100/80 border-b border-slate-200 text-[11px] uppercase tracking-wider font-black text-slate-600">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Reference</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">User Details</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Category</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Description</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider min-w-[200px]">Actions</th>
+                      <th className="px-3.5 py-2.5 min-w-[130px]">Reference</th>
+                      <th className="px-3.5 py-2.5 min-w-[160px]">User Details</th>
+                      <th className="px-3 py-2.5 min-w-[110px]">Category</th>
+                      <th className="px-3 py-2.5 min-w-[90px]">Amount</th>
+                      <th className="px-3.5 py-2.5 min-w-[160px]">Description</th>
+                      <th className="px-3.5 py-2.5 min-w-[110px]">Date</th>
+                      <th className="px-3 py-2.5 min-w-[80px]">Status</th>
+                      <th className="px-3.5 py-2.5 text-right min-w-[100px]">Actions</th>
                     </tr>
                   </thead>
 
-                  <tbody className="divide-y divide-slate-100 text-sm">
+                  <tbody className="divide-y divide-slate-100 text-xs">
                     {loading ? (
                       <tr>
-                        <td colSpan="8" className="px-6 py-8 text-center text-gray-500">Loading transactions...</td>
+                        <td colSpan="8" className="px-4 py-8 text-center text-slate-400 font-medium">Loading transactions...</td>
                       </tr>
                     ) : displayTransactions.length === 0 ? (
                       <tr>
-                        <td colSpan="8" className="px-6 py-20 text-center">
+                        <td colSpan="8" className="px-4 py-12 text-center">
                           <div className="flex flex-col items-center justify-center text-slate-400">
-                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
                             </div>
-                            <p className="text-lg font-semibold text-slate-600">No {activeTab} Found</p>
-                            <p className="text-sm">There are no transactions matching your current filters and date range.</p>
+                            <p className="text-sm font-bold text-slate-600">No {activeTab} Found</p>
+                            <p className="text-xs">There are no transactions matching your current filters.</p>
                             <button 
                               onClick={() => {
                                 setDateRange({
@@ -1464,9 +1453,9 @@ const FinancialManagement = () => {
                                   endDate: new Date().toISOString().split('T')[0]
                                 });
                               }}
-                              className="mt-4 text-blue-600 font-medium hover:underline text-sm"
+                              className="mt-3 text-blue-600 font-bold hover:underline text-xs"
                             >
-                              Try expanding the date range
+                              Expand date range
                             </button>
                           </div>
                         </td>
@@ -1475,8 +1464,8 @@ const FinancialManagement = () => {
                       displayTransactions.map((transaction, index) => (
                         <tr 
                           key={index} 
-                          className={`hover:bg-slate-50/80 transition-colors ${
-                            transaction._isRelated ? 'bg-slate-50/50' : ''
+                          className={`hover:bg-slate-50/90 transition-colors ${
+                            transaction._isRelated ? 'bg-slate-50/60' : ''
                           } ${transaction._isBookingParent ? 'cursor-pointer' : ''}`}
                           onClick={() => {
                             if (transaction._isBookingParent && hasBreakdown) {
@@ -1484,19 +1473,19 @@ const FinancialManagement = () => {
                             }
                           }}
                         >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
+                          <td className="px-3.5 py-2">
+                            <div className="flex items-center gap-1.5">
                               {transaction._isBookingParent && hasBreakdown && (
                                 <button 
-                                  className="text-gray-500 hover:text-blue-600 transition-colors"
+                                  className="text-slate-400 hover:text-blue-600 transition-colors p-0.5"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     toggleBookingExpansion(transaction._bookingRef);
                                   }}
                                 >
                                   <svg 
-                                    className={`w-4 h-4 transform transition-transform ${
-                                      expandedBookings[transaction._bookingRef] ? 'rotate-90' : ''
+                                    className={`w-3.5 h-3.5 transform transition-transform ${
+                                      expandedBookings[transaction._bookingRef] ? 'rotate-90 text-blue-600' : ''
                                     }`} 
                                     fill="none" 
                                     stroke="currentColor" 
@@ -1507,55 +1496,49 @@ const FinancialManagement = () => {
                                 </button>
                               )}
                               {transaction._isRelated && (
-                                <span className="w-4"></span>
+                                <span className="w-3"></span>
                               )}
-                              <span className={`px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-full text-xs font-bold text-indigo-700 font-mono ${
-                                transaction._isRelated ? 'opacity-75' : ''
+                              <span className={`px-2 py-0.5 bg-indigo-50 border border-indigo-200/80 rounded-md text-[10px] font-bold text-indigo-700 font-mono tracking-tight ${
+                                transaction._isRelated ? 'opacity-80' : ''
                               }`}>
                                 {transaction.reference || 'N/A'}
                               </span>
                               {transaction._isBookingParent && transaction._relatedCount > 0 && (
-                                <span className="text-xs text-blue-600 font-medium">
-                                  ({transaction._relatedCount} related)
+                                <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.2 rounded">
+                                  +{transaction._relatedCount}
                                 </span>
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="font-bold text-slate-900">{transaction.userId?.fullName || 'N/A'}</span>
-                              <span className="text-xs text-slate-500">{transaction.userId?.emailAddress || 'N/A'}</span>
-                              <span className="text-[10px] text-slate-400 font-mono mt-0.5">User ID: {transaction.userId?._id || transaction.userId?.id || transaction.userId || 'N/A'}</span>
+                          <td className="px-3.5 py-2">
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-slate-900 text-xs truncate max-w-[180px]">{transaction.userId?.fullName || 'N/A'}</span>
+                              <span className="text-[10px] text-slate-400 truncate max-w-[180px]">{transaction.userId?.emailAddress || 'N/A'}</span>
                               {transaction.category === 'SECURITY_DEPOSIT' && transaction.metadata?.reconciliation?.cautionFeeStatus && transaction.metadata?.reconciliation?.cautionFeeStatus !== 'ON_HOLD' && (
-                                <div className="flex flex-col gap-1 mt-1">
-                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block w-fit ${
-                                    transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_GUEST' ? 'bg-green-50 text-green-600 border border-green-100' :
-                                    transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_HOST' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' :
-                                    transaction.metadata.reconciliation.cautionFeeStatus === 'DISPUTED' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-gray-50 text-gray-600 border border-gray-100'
+                                <div className="flex flex-col gap-0.5 mt-0.5">
+                                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md inline-block w-fit ${
+                                    transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_GUEST' ? 'bg-green-50 text-green-600 border border-green-200' :
+                                    transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_HOST' ? 'bg-indigo-50 text-indigo-600 border border-indigo-200' :
+                                    transaction.metadata.reconciliation.cautionFeeStatus === 'DISPUTED' ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-gray-50 text-gray-600 border border-gray-200'
                                   }`}>
                                     {transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_GUEST' ? 'Released to Guest' :
                                      transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_HOST' ? 'Released to Host' :
                                      transaction.metadata.reconciliation.cautionFeeStatus === 'DISPUTED' ? 'Caution Disputed' : 
                                      transaction.metadata.reconciliation.cautionFeeStatus}
                                   </span>
-                                  {transaction.metadata?.reconciliation?.resolutionReason && (
-                                    <p className="text-[10px] text-slate-500 italic leading-tight break-words mt-1 border-t border-slate-50 pt-1" title={transaction.metadata.reconciliation.resolutionReason}>
-                                      Note: {transaction.metadata.reconciliation.resolutionReason}
-                                    </p>
-                                  )}
                                 </div>
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          <td className="px-3 py-2">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${
                               transaction.category === 'CANCELLATION_PENALTY' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                               transaction.category === 'CANCELLATION_REFUND' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                               transaction.category === 'CANCELLATION_CREDIT' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                               transaction.category === 'TOP_UP' || transaction.type === 'TOP_UP' ? 'bg-cyan-50 text-cyan-700 border-cyan-200' :
                               transaction._isRelated 
-                                ? 'bg-blue-50 text-blue-700 border-blue-100' 
-                                : 'bg-gray-100 text-gray-800 border-gray-200'
+                                ? 'bg-blue-50/70 text-blue-700 border-blue-100' 
+                                : 'bg-slate-100 text-slate-700 border-slate-200'
                             }`}>
                               {transaction.category === 'TOP_UP' || transaction.type === 'TOP_UP' || transaction.category === 'ADDED_FUNDS'
                                 ? 'Wallet Funding'
@@ -1563,32 +1546,31 @@ const FinancialManagement = () => {
                                   ? 'Caution Fee Refund' 
                                   : (transaction.category?.replace(/_/g, ' ') || transaction.type)}
                               {transaction._bookingRef && (
-                                <span className="ml-1 text-blue-600 font-semibold">
-                                  (#{transaction._bookingRef.slice(-8)})
+                                <span className="ml-1 text-blue-600 font-semibold text-[9px]">
+                                  (#{transaction._bookingRef.slice(-6)})
                                 </span>
                               )}
                             </span>
                           </td>
-                          <td className={`px-6 py-4 font-bold ${
+                          <td className={`px-3 py-2 font-mono font-black text-xs ${
                             transaction.metadata?.isDisclosure ? 'text-slate-400' :
                             transaction._isRelated ? 'text-slate-600' : 'text-slate-900'
                           }`}>
                             {transaction.metadata?.isDisclosure ? '' : (transaction.type === 'CREDIT' ? '+' : transaction.type === 'DEBIT' ? '-' : '')} 
                             {formatCurrency(transaction.amount)}
                           </td>
-                          <td className={`px-6 py-4 text-sm break-words min-w-[200px] ${
-                            transaction._isRelated ? 'text-slate-400' : 'text-slate-500'
-                          }`}>{transaction.description}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-3.5 py-2 text-[11px] text-slate-600 max-w-[200px] truncate" title={transaction.description}>
+                            {transaction.description}
+                          </td>
+                          <td className="px-3.5 py-2">
                             <div className="flex flex-col">
-                              <span className="text-xs font-semibold text-slate-700">
+                              <span className="text-[11px] font-bold text-slate-700">
                                 {new Date(transaction.createdAt || transaction.timestamp).toLocaleDateString('en-NG', {
-                                  year: 'numeric',
                                   month: 'short',
                                   day: 'numeric'
                                 })}
                               </span>
-                              <span className="text-[11px] text-slate-400 font-mono">
+                              <span className="text-[9px] text-slate-400 font-mono">
                                 {new Date(transaction.createdAt || transaction.timestamp).toLocaleTimeString('en-NG', {
                                   hour: '2-digit',
                                   minute: '2-digit',
@@ -1598,12 +1580,12 @@ const FinancialManagement = () => {
                               </span>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                          <td className="px-3 py-2">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(transaction.status)}`}>
                               {transaction.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-3.5 py-2 text-right">
                             {!transaction._isRelated && (
                               <FinancialTransactionActions 
                                 transaction={transaction}

@@ -1532,47 +1532,47 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
 
     return (
       <tr key={transaction._id || `${index}-${subType}`} className={`group hover:bg-blue-50/30 transition-all duration-200 ${isSubRow ? 'bg-slate-50/50' : ''}`}>
-        <td className="px-6 py-5">
+        <td className="px-3.5 py-2.5">
           <div className="flex flex-col">
-            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-black text-slate-700 font-mono shadow-sm group-hover:border-blue-200 group-hover:bg-blue-50/50 transition-colors">
+            <span className="px-2 py-0.5 bg-white border border-slate-200 rounded-md text-[10px] font-black text-slate-700 font-mono shadow-xs group-hover:border-blue-200 group-hover:bg-blue-50/50 transition-colors">
               {transaction.reference || 'N/A'}
             </span>
             {transaction.bookingId && !isSubRow && !isTopUp && (
-              <span className="text-[10px] text-blue-500 font-bold mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Linked to Booking</span>
+              <span className="text-[9px] text-blue-500 font-bold mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Linked to Booking</span>
             )}
             {isSubRow && (
-              <span className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">{subType}</span>
+              <span className="text-[9px] text-slate-400 font-bold mt-0.5 uppercase tracking-wider">{subType}</span>
             )}
           </div>
         </td>
-        <td className="px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
+        <td className="px-3.5 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-500 shrink-0">
               {(transaction.userId?.fullName || transaction.metadata?.fullName || 'U').charAt(0).toUpperCase()}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-bold text-slate-900 truncate">
+              <span className="font-bold text-slate-900 text-xs truncate max-w-[150px]">
                 {transaction.userId?.fullName || (transaction.metadata?.fullName) || (typeof transaction.userId === 'string' ? 'User' : 'Unknown')}
               </span>
-              <span className="text-[11px] text-slate-400 truncate">
+              <span className="text-[10px] text-slate-400 truncate max-w-[150px]">
                 {transaction.userId?.emailAddress || transaction.metadata?.email || 'No email registered'}
               </span>
             </div>
           </div>
         </td>
-        <td className="px-6 py-5">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+        <td className="px-3 py-2.5">
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
             transaction.type === 'CREDIT' 
               ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
               : 'bg-rose-50 text-rose-600 border border-rose-100'
           }`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${transaction.type === 'CREDIT' ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
+            <div className={`w-1 h-1 rounded-full ${transaction.type === 'CREDIT' ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
             {transaction.type}
           </span>
         </td>
-        <td className="px-6 py-5">
-          <div className="flex items-center gap-2">
-            <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border whitespace-nowrap ${
+        <td className="px-3 py-2.5">
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-flex px-2 py-0.5 rounded-md text-[9px] font-bold border whitespace-nowrap ${
               isFee ? 'bg-blue-50 text-blue-600 border-blue-100' :
               isVat ? 'bg-purple-50 text-purple-600 border-purple-100' :
               isTopUp ? 'bg-cyan-50 text-cyan-700 border-cyan-200' :
@@ -1584,49 +1584,49 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
               {isTopUp ? 'Wallet Funding' : transaction.category?.replace(/_/g, ' ')}
             </span>
             {isBundledDisplay && (
-              <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[8px] font-black uppercase tracking-tighter shadow-sm animate-pulse">
+              <span className="px-1 py-0.2 bg-blue-600 text-white rounded text-[7px] font-black uppercase tracking-tighter shadow-xs">
                 Bundled
               </span>
             )}
             {isBookingTransaction && !isSubRow && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 rounded-lg text-[10px] font-black uppercase transition-all shadow-sm border border-blue-100/50 cursor-pointer"
+                className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 rounded-md text-[9px] font-black uppercase transition-all shadow-xs border border-blue-100 cursor-pointer"
               >
                 {isExpanded ? '▼' : '▶'} Breakdown
               </button>
             )}
           </div>
         </td>
-        <td className="px-6 py-5">
-           <span className={`text-[14px] font-black ${transaction.type === 'CREDIT' ? 'text-emerald-700' : (isBundledDisplay ? 'text-blue-700' : 'text-slate-900')}`}>
+        <td className="px-3 py-2.5">
+           <span className={`text-xs font-black font-mono ${transaction.type === 'CREDIT' ? 'text-emerald-700' : (isBundledDisplay ? 'text-blue-700' : 'text-slate-900')}`}>
              {transaction.type === 'CREDIT' ? '+' : '-'}₦{Math.abs(displayAmount).toLocaleString('en-NG', { minimumFractionDigits: 2 })}
            </span>
         </td>
-        <td className="px-6 py-5">
-           <span className="text-slate-500 font-medium">₦{(transaction.fee || 0).toLocaleString()}</span>
+        <td className="px-3 py-2.5">
+           <span className="text-slate-500 font-mono text-[11px]">₦{(transaction.fee || 0).toLocaleString()}</span>
         </td>
-        <td className="px-6 py-5">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter bg-slate-50 px-2 py-1 rounded border border-slate-100">{transaction.channel || 'WALLET'}</span>
+        <td className="px-3 py-2.5">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{transaction.channel || 'WALLET'}</span>
         </td>
-        <td className="px-6 py-5">
+        <td className="px-3 py-2.5">
           <div className="flex flex-col">
-            <span className="text-[12px] font-bold text-slate-700">
+            <span className="text-[11px] font-bold text-slate-700">
               {new Date(transaction.createdAt || transaction.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
             </span>
-            <span className="text-[10px] text-slate-400 font-mono font-medium">
+            <span className="text-[9px] text-slate-400 font-mono font-medium">
               {new Date(transaction.createdAt || transaction.timestamp).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
             </span>
           </div>
         </td>
-        <td className="px-6 py-5">
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(transaction.status)}`}>
+        <td className="px-3 py-2.5">
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${getStatusColor(transaction.status)}`}>
             {transaction.status}
           </span>
         </td>
-        <td className="px-6 py-5 text-right">
+        <td className="px-3 py-2.5 text-right">
           {!isSubRow && (
-            <div className="flex justify-end gap-2 items-center">
+            <div className="flex justify-end gap-1.5 items-center">
               {transaction.status === 'PENDING' && transaction.channel === 'PAYSTACK' && (
                 <button 
                   onClick={async () => {
@@ -1638,7 +1638,7 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
                       alert("Verification failed: " + e.message);
                     }
                   }}
-                  className="px-3 py-1.5 bg-blue-600 text-white text-[10px] font-black uppercase rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-100 cursor-pointer"
+                  className="px-2 py-1 bg-blue-600 text-white text-[9px] font-black uppercase rounded-md hover:bg-blue-700 transition-all shadow-xs cursor-pointer"
                 >
                   Verify
                 </button>
