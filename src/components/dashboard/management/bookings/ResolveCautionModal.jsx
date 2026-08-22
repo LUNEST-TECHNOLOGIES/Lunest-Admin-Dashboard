@@ -6,13 +6,52 @@ import { resolveCautionFee } from '../../../../services/adminService';
 const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
   const notify = useNotification();
   const [reason, setReason] = useState('');
-  const [action, setAction] = useState('RELEASE_TO_GUEST'); // Default action
-  const [claimAmount, setClaimAmount] = useState(booking?.cautionFeeRaw || 0);
-  const [isProcessing, setIsProcessing] = useState(false);
-
+  const [action, setAction] = useState('RELEASE_TO_GUEST'); // 'RELEASE_TO_GUEST' | 'RELEASE_TO_HOST' | 'PARTIAL_SPLIT'
+  
   const cautionAmount = booking?.cautionFeeRaw || 0;
   const currency = booking?.currency || 'NGN';
   const symbol = currency === 'USD' ? '$' : currency === 'GHC' ? '₵' : '₦';
+
+  // State for Partial Split
+  const [hostSplitAmount, setHostSplitAmount] = useState(Math.round(cautionAmount / 2));
+  const [guestSplitAmount, setGuestSplitAmount] = useState(cautionAmount - Math.round(cautionAmount / 2));
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Identify who raised the dispute (GUEST vs HOST)
+  const disputeOrigin = (
+    booking?.disputedBy ||
+    booking?.disputeInitiator ||
+    booking?.raisedBy ||
+    booking?.securityDepositDispute?.raisedBy ||
+    (booking?.securityDepositResolution?.resolvedBy === 'HOST' ? 'HOST' : 
+     booking?.securityDepositResolution?.resolvedBy === 'GUEST' ? 'GUEST' : 
+     booking?.disputeType ? 'GUEST' : null)
+  );
+
+  const isDisputed = Boolean(
+    booking?.isDisputed || 
+    booking?.disputeRaised || 
+    booking?.status === 'DISPUTED' || 
+    booking?.securityDepositStatus === 'DISPUTED' ||
+    disputeOrigin ||
+    booking?.disputeReason
+  );
+
+  const guestName = booking?.guestName || booking?.userName || booking?.user?.fullName || booking?.bookedBy?.fullName || 'Guest';
+  const hostName = booking?.hostName || booking?.host?.fullName || booking?.listing?.host?.fullName || 'Host';
+
+  // Handle bidirectional split balance
+  const handleHostAmountChange = (val) => {
+    const num = Math.max(0, Math.min(cautionAmount, Number(val) || 0));
+    setHostSplitAmount(num);
+    setGuestSplitAmount(Math.max(0, cautionAmount - num));
+  };
+
+  const handleGuestAmountChange = (val) => {
+    const num = Math.max(0, Math.min(cautionAmount, Number(val) || 0));
+    setGuestSplitAmount(num);
+    setHostSplitAmount(Math.max(0, cautionAmount - num));
+  };
 
   // Check if caution fee is already resolved / settled
   const isAlreadyResolved = 
@@ -52,20 +91,42 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
       return;
     }
 
-    if (action === 'RELEASE_TO_HOST' && (claimAmount <= 0 || claimAmount > cautionAmount)) {
-      notify.error('Invalid Amount', `Claim amount must be between 1 and ${symbol}${cautionAmount.toLocaleString()}.`);
-      return;
+    if (action === 'PARTIAL_SPLIT') {
+      if (hostSplitAmount <= 0 || guestSplitAmount <= 0 || (hostSplitAmount + guestSplitAmount !== cautionAmount)) {
+        notify.error('Invalid Split', `Host and Guest amounts must sum to the full caution deposit of ${symbol}${cautionAmount.toLocaleString()}.`);
+        return;
+      }
     }
 
     setIsProcessing(true);
     try {
       const bookingRef = booking?.referenceCode || booking?.id;
-      const response = await resolveCautionFee(bookingRef, action, reason.trim(), action === 'RELEASE_TO_HOST' ? claimAmount : cautionAmount);
+      
+      // Determine effective backend action and claimAmount
+      let backendAction = action;
+      let effectiveClaim = cautionAmount;
+
+      if (action === 'RELEASE_TO_GUEST') {
+        backendAction = 'RELEASE_TO_GUEST';
+        effectiveClaim = 0;
+      } else if (action === 'RELEASE_TO_HOST') {
+        backendAction = 'RELEASE_TO_HOST';
+        effectiveClaim = cautionAmount;
+      } else if (action === 'PARTIAL_SPLIT') {
+        backendAction = 'PARTIAL_SPLIT';
+        effectiveClaim = hostSplitAmount;
+      }
+
+      const response = await resolveCautionFee(bookingRef, backendAction, reason.trim(), effectiveClaim);
 
       if (response.success) {
+        const actionLabel = action === 'PARTIAL_SPLIT' 
+          ? `split between Host (${symbol}${hostSplitAmount.toLocaleString()}) and Guest (${symbol}${guestSplitAmount.toLocaleString()})`
+          : action.toLowerCase().replace(/_/g, ' ');
+
         notify.success(
           'Caution Resolved',
-          `Caution fee for booking ${bookingRef} has been ${action.toLowerCase().replace(/_/g, ' ')}.`
+          `Caution fee for booking ${bookingRef} has been ${actionLabel}.`
         );
         if (onResolve) onResolve();
         onClose();
@@ -82,16 +143,16 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[9999] p-3 sm:p-6 overflow-y-auto">
-      <div className="w-full max-w-[560px] max-h-[90vh] relative bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-[620px] max-h-[92vh] relative bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header - Sticky */}
         <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-20">
           <div>
             <h2 className="text-slate-900 text-lg font-bold font-aeonik tracking-tight">
-              {isAlreadyResolved ? 'Caution Settlement Details' : 'Resolve Caution Fee'}
+              {isAlreadyResolved ? 'Caution Settlement Details' : 'Resolve Caution Fee & Dispute'}
             </h2>
             <p className="text-slate-400 text-xs font-medium">
-              {isAlreadyResolved ? 'Escrow settlement outcome & receipt' : 'Manage security deposit escrow settlement'}
+              {isAlreadyResolved ? 'Escrow settlement outcome & transaction receipt' : 'Adjudicate caution deposit escrow and damage claims'}
             </p>
           </div>
           <button
@@ -106,6 +167,40 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
         {/* Modal Scrollable Body */}
         <div className="p-5 sm:p-6 flex-1 overflow-y-auto flex flex-col gap-4">
           
+          {/* Dispute Origin Banner */}
+          {isDisputed && !isAlreadyResolved && (
+            <div className={`p-4 rounded-xl border flex items-start gap-3.5 ${
+              disputeOrigin === 'HOST'
+                ? 'bg-purple-50/80 border-purple-200 text-purple-950'
+                : 'bg-blue-50/80 border-blue-200 text-blue-950'
+            }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${
+                disputeOrigin === 'HOST' ? 'bg-purple-600 text-white' : 'bg-blue-600 text-white'
+              }`}>
+                {disputeOrigin === 'HOST' ? 'H' : 'G'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-xs uppercase tracking-wider">
+                    Dispute Raised By:
+                  </span>
+                  <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase ${
+                    disputeOrigin === 'HOST' 
+                      ? 'bg-purple-200 text-purple-900' 
+                      : 'bg-blue-200 text-blue-900'
+                  }`}>
+                    {disputeOrigin === 'HOST' ? `Host (${hostName})` : `Guest (${guestName})`}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-700 mt-1 leading-relaxed">
+                  {disputeOrigin === 'HOST'
+                    ? `Host ${hostName} submitted a property damage or rule violation claim on the security deposit.`
+                    : `Guest ${guestName} initiated a caution fee refund request / dispute.`}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* If already resolved, show clean settled status banner */}
           {isAlreadyResolved && (
             <div className={`p-4 rounded-xl border flex items-center gap-3.5 ${
@@ -128,14 +223,25 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-600 mt-0.5">
-                  This deposit has already been settled and processed through the escrow system.
+                  This caution deposit has already been settled and processed through the escrow system.
                 </p>
               </div>
             </div>
           )}
 
           {/* Booking Info Summary */}
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2.5">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2.5">
+            <div className="grid grid-cols-2 gap-2 text-xs pb-2 border-b border-slate-200/60">
+              <div>
+                <span className="text-slate-400 text-[10px] uppercase font-bold block">Guest</span>
+                <span className="text-slate-800 font-bold">{guestName}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[10px] uppercase font-bold block">Host</span>
+                <span className="text-slate-800 font-bold">{hostName}</span>
+              </div>
+            </div>
+
             <div className="flex justify-between items-center">
               <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider font-aeonik">Booking Reference</span>
               <span className="text-slate-900 font-bold text-sm font-aeonik font-mono">
@@ -143,7 +249,7 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider font-aeonik">Caution Deposit Amount</span>
+              <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider font-aeonik">Caution Deposit In Escrow</span>
               <span className="text-slate-900 font-black text-base font-aeonik font-mono">
                 {symbol}{cautionAmount.toLocaleString()}
               </span>
@@ -175,7 +281,7 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
             {(resolvedReason || booking?.disputeReason) && (
               <div className="pt-2 border-t border-slate-200/60 mt-1">
                 <span className="text-slate-700 text-[11px] font-bold font-aeonik uppercase tracking-wider block mb-1">
-                  {isAlreadyResolved ? 'Settlement Reason / Notes:' : `Submitted Dispute Reason (${resolvedBy}):`}
+                  {isAlreadyResolved ? 'Settlement Reason / Notes:' : `Submitted Dispute Reason (${disputeOrigin || resolvedBy}):`}
                 </span>
                 <p className="text-slate-800 text-xs font-medium bg-white p-2.5 rounded-lg border border-slate-200 leading-relaxed">
                   {resolvedReason || booking?.disputeReason}
@@ -184,6 +290,14 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
             )}
           </div>
           
+          {/* Fee & VAT Clarification Notice */}
+          <div className="bg-slate-100/70 border border-slate-200/80 p-3 rounded-xl flex items-start gap-2.5">
+            <span className="text-slate-400 font-black text-sm">ℹ</span>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              <strong className="text-slate-800 font-semibold">Accounting Note:</strong> The platform App Fee (5%) and VAT (7.5%) collected at initial booking covered platform transaction processing. Caution fee release allocates the deposit principal held in escrow.
+            </p>
+          </div>
+
           {/* Zero Caution Fee Message */}
           {!isAlreadyResolved && cautionAmount === 0 && (
             <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-xl flex items-center gap-3">
@@ -198,72 +312,136 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
           {/* Interactive Resolution Section (Only visible if NOT already resolved) */}
           {!isAlreadyResolved && (
             <>
-              {/* Action Selection */}
+              {/* Action Selection (3-Way Choice) */}
               <div className="space-y-2">
                 <label className="text-slate-800 text-xs font-bold font-aeonik uppercase tracking-wider">
-                  Resolution Action
+                  Select Resolution Action
                 </label>
-                <div className={`grid grid-cols-2 gap-3 ${cautionAmount === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className={`grid grid-cols-3 gap-2.5 ${cautionAmount === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+                  
+                  {/* 1. Release to Guest */}
                   <button
                     type="button"
                     onClick={() => setAction('RELEASE_TO_GUEST')}
                     disabled={cautionAmount === 0}
-                    className={`py-3.5 px-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                    className={`py-3 px-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer text-center ${
                       action === 'RELEASE_TO_GUEST'
-                        ? 'border-slate-900 bg-slate-900 text-white shadow-md'
+                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-md'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                     }`}
                   >
-                    <span className="font-bold text-sm font-aeonik">Release to Guest</span>
-                    <span className={`text-[10px] text-center line-clamp-2 ${action === 'RELEASE_TO_GUEST' ? 'text-slate-300' : 'text-slate-400'}`}>
-                      Full refund of deposit to guest wallet.
+                    <span className="font-bold text-xs font-aeonik">100% to Guest</span>
+                    <span className={`text-[10px] leading-tight ${action === 'RELEASE_TO_GUEST' ? 'text-emerald-100' : 'text-slate-400'}`}>
+                      Full refund
                     </span>
                   </button>
-                  
+
+                  {/* 2. Release to Host */}
                   <button
                     type="button"
                     onClick={() => setAction('RELEASE_TO_HOST')}
                     disabled={cautionAmount === 0}
-                    className={`py-3.5 px-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                    className={`py-3 px-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer text-center ${
                       action === 'RELEASE_TO_HOST'
+                        ? 'border-purple-600 bg-purple-600 text-white shadow-md'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                    }`}
+                  >
+                    <span className="font-bold text-xs font-aeonik">100% to Host</span>
+                    <span className={`text-[10px] leading-tight ${action === 'RELEASE_TO_HOST' ? 'text-purple-100' : 'text-slate-400'}`}>
+                      Full damage claim
+                    </span>
+                  </button>
+
+                  {/* 3. Partial Split */}
+                  <button
+                    type="button"
+                    onClick={() => setAction('PARTIAL_SPLIT')}
+                    disabled={cautionAmount === 0}
+                    className={`py-3 px-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer text-center ${
+                      action === 'PARTIAL_SPLIT'
                         ? 'border-indigo-600 bg-indigo-600 text-white shadow-md'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                     }`}
                   >
-                    <span className="font-bold text-sm font-aeonik">Release to Host</span>
-                    <span className={`text-[10px] text-center line-clamp-2 ${action === 'RELEASE_TO_HOST' ? 'text-indigo-100' : 'text-slate-400'}`}>
-                      Transfer claim to host for damages.
+                    <span className="font-bold text-xs font-aeonik">Partial Split</span>
+                    <span className={`text-[10px] leading-tight ${action === 'PARTIAL_SPLIT' ? 'text-indigo-100' : 'text-slate-400'}`}>
+                      Custom allocation
                     </span>
                   </button>
+
                 </div>
               </div>
 
-              {/* Partial Claim Input (Visible only for Host Release) */}
-              {action === 'RELEASE_TO_HOST' && (
-                <div className="flex flex-col gap-1.5 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 animate-in fade-in duration-200">
+              {/* Partial Split Interactive Sliders & Inputs */}
+              {action === 'PARTIAL_SPLIT' && (
+                <div className="flex flex-col gap-3 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 animate-in fade-in duration-200">
                   <div className="flex justify-between items-center">
-                    <label className="text-indigo-950 text-xs font-bold font-aeonik">
-                      Claim Amount to Host
-                    </label>
-                    <span className="text-[11px] font-bold text-indigo-600">
-                      Max: {symbol}{cautionAmount.toLocaleString()}
+                    <span className="text-indigo-950 text-xs font-bold font-aeonik">
+                      Custom Split Allocation
+                    </span>
+                    <span className="text-[11px] font-bold text-indigo-700 font-mono">
+                      Total: {symbol}{cautionAmount.toLocaleString()}
                     </span>
                   </div>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{symbol}</span>
-                    <input
-                      type="number"
-                      value={claimAmount}
-                      onChange={(e) => setClaimAmount(Number(e.target.value))}
-                      max={cautionAmount}
-                      className="w-full h-10 rounded-lg border border-indigo-200 pl-8 pr-3 text-slate-800 text-sm font-bold font-aeonik bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
-                    />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Host Amount Input */}
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-purple-900 block">
+                        Host Damage Claim
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">{symbol}</span>
+                        <input
+                          type="number"
+                          value={hostSplitAmount}
+                          onChange={(e) => handleHostAmountChange(e.target.value)}
+                          max={cautionAmount}
+                          min={0}
+                          className="w-full h-9 rounded-lg border border-purple-200 pl-7 pr-2 text-slate-800 text-xs font-bold font-mono bg-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Guest Amount Input */}
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-emerald-900 block">
+                        Guest Refund Amount
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">{symbol}</span>
+                        <input
+                          type="number"
+                          value={guestSplitAmount}
+                          onChange={(e) => handleGuestAmountChange(e.target.value)}
+                          max={cautionAmount}
+                          min={0}
+                          className="w-full h-9 rounded-lg border border-emerald-200 pl-7 pr-2 text-slate-800 text-xs font-bold font-mono bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  {claimAmount < cautionAmount && (
-                    <p className="text-[11px] text-indigo-700 font-medium">
-                      * Remaining {symbol}{(cautionAmount - claimAmount).toLocaleString()} will be automatically refunded to guest.
-                    </p>
-                  )}
+
+                  {/* Split Visual Progress Bar */}
+                  <div className="space-y-1">
+                    <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden flex">
+                      <div 
+                        style={{ width: `${(hostSplitAmount / cautionAmount) * 100}%` }}
+                        className="bg-purple-600 h-full transition-all duration-300"
+                        title={`Host: ${symbol}${hostSplitAmount.toLocaleString()}`}
+                      />
+                      <div 
+                        style={{ width: `${(guestSplitAmount / cautionAmount) * 100}%` }}
+                        className="bg-emerald-600 h-full transition-all duration-300"
+                        title={`Guest: ${symbol}${guestSplitAmount.toLocaleString()}`}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                      <span className="text-purple-700">Host: {Math.round((hostSplitAmount / cautionAmount) * 100)}%</span>
+                      <span className="text-emerald-700">Guest: {Math.round((guestSplitAmount / cautionAmount) * 100)}%</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -275,7 +453,7 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Explain the outcome of this dispute resolution..."
+                  placeholder="Explain the outcome of this dispute resolution for records and receipts..."
                   className="w-full h-20 rounded-xl border border-slate-200 p-3 text-slate-800 text-xs font-normal font-inter placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none transition-all"
                 />
               </div>
@@ -300,7 +478,11 @@ const ResolveCautionModal = ({ booking, onClose, onResolve }) => {
               onClick={handleResolve}
               disabled={isProcessing || cautionAmount === 0}
               className={`px-5 py-2 rounded-xl text-white text-xs font-bold font-aeonik shadow-md transition-all cursor-pointer disabled:opacity-50 ${
-                action === 'RELEASE_TO_GUEST' ? 'bg-slate-900 hover:bg-slate-800' : 'bg-indigo-600 hover:bg-indigo-700'
+                action === 'RELEASE_TO_GUEST' 
+                  ? 'bg-emerald-600 hover:bg-emerald-700' 
+                  : action === 'RELEASE_TO_HOST' 
+                    ? 'bg-purple-600 hover:bg-purple-700' 
+                    : 'bg-indigo-600 hover:bg-indigo-700'
               }`}
             >
               {isProcessing ? (
