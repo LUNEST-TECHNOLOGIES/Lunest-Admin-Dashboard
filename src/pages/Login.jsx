@@ -48,7 +48,7 @@ export default function Login() {
           const userObj = { ...response.body.user };
           // If returned email looks encrypted (det:... or hex/colons) or is missing, use login input email
           if (!userObj.emailAddress || userObj.emailAddress.startsWith('det:') || userObj.emailAddress.includes(':') || userObj.emailAddress.length > 55) {
-            userObj.emailAddress = formData.emailAddress.trim().toLowerCase();
+            userObj.emailAddress = email.trim().toLowerCase();
           }
           localStorage.setItem("adminUser", JSON.stringify(userObj));
           console.log("User data stored:", userObj);
