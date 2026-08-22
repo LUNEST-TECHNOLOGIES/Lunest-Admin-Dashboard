@@ -930,14 +930,23 @@ const FinancialManagement = () => {
     // Add any transactions that couldn't be grouped (show them as standalone)
     const groupedTxnIds = new Set();
     Object.values(grouped).forEach(data => {
-      if (data.booking) groupedTxnIds.add(data.booking._id || data.booking.reference);
-      data.relatedTransactions.forEach(rt => groupedTxnIds.add(rt._id || rt.reference));
+      if (data.booking) {
+        if (data.booking._id) groupedTxnIds.add(data.booking._id.toString());
+        if (data.booking.reference) groupedTxnIds.add(data.booking.reference);
+      }
+      (data.relatedTransactions || []).forEach(rt => {
+        if (rt._id) groupedTxnIds.add(rt._id.toString());
+        if (rt.reference) groupedTxnIds.add(rt.reference);
+      });
     });
     
     transactions.forEach(txn => {
-      const txnId = txn._id || txn.reference;
-      if (!groupedTxnIds.has(txnId)) {
-        // EXCLUDE COUPON_PAYMENT, TOP_UP, and ADDED_FUNDS from showing breakdown
+      const txnIdStr = txn._id?.toString();
+      const isAlreadyGrouped = (txnIdStr && groupedTxnIds.has(txnIdStr)) || (txn.reference && groupedTxnIds.has(txn.reference));
+      const hasBookingLink = txn.bookingId || txn.metadata?.bookingId || txn.metadata?.bookingReference;
+      
+      // Only include non-booking standalone transactions (e.g. Wallet Funding) to prevent fees/VAT appearing on separate rows
+      if (!isAlreadyGrouped && !hasBookingLink) {
         const isExcluded = txn.category === 'COUPON_PAYMENT' || 
                            txn.category === 'TOP_UP' || 
                            txn.type === 'TOP_UP' ||
