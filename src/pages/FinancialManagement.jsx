@@ -973,6 +973,7 @@ const FinancialManagement = () => {
     
     transactions.forEach(txn => {
       const txnId = txn._id || txn.reference;
+      if (!groupedTxnIds.has(txnId)) {
         // EXCLUDE COUPON_PAYMENT, TOP_UP, and ADDED_FUNDS from showing breakdown
         const isExcluded = txn.category === 'COUPON_PAYMENT' || 
                            txn.category === 'TOP_UP' || 
