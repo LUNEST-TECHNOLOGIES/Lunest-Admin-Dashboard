@@ -402,20 +402,35 @@ const FinancialManagement = () => {
     console.log(`[FinancialManagement] Action ${action} executed on transaction:`, transaction);
     
     try {
-      // For security deposit transactions, use the new ResolveCautionModal
-      if ((action === 'RELEASE_TO_GUEST' || action === 'RELEASE_TO_HOST') && 
+      // For security deposit transactions, use ResolveCautionModal
+      if ((action === 'RELEASE_TO_GUEST' || action === 'RELEASE_TO_HOST' || action === 'VIEW_DETAILS') && 
           transaction.category === 'SECURITY_DEPOSIT') {
         
         console.log(`[FinancialManagement] Opening caution resolution modal for:`, transaction);
         
-        // Construct a 'mini-booking' object that the modal expects
+        const reconciliation = transaction.metadata?.reconciliation || {};
+        const isResolved = reconciliation.cautionFeeStatus === 'RELEASED_TO_HOST' || 
+                           reconciliation.cautionFeeStatus === 'RELEASED_TO_GUEST' ||
+                           (transaction.status === 'COMPLETED' && transaction.category === 'SECURITY_DEPOSIT' && transaction.type === 'CREDIT');
+
         const mockBooking = {
-          id: transaction.metadata?.bookingId || transaction.reference,
+          id: transaction.metadata?.bookingReference || transaction.metadata?.bookingId || transaction.reference,
           referenceCode: transaction.metadata?.bookingReference || 
                          transaction.metadata?.referenceCode ||
                          (transaction.metadata?.bookingId ? `LNS-${transaction.metadata.bookingId.slice(-8).toUpperCase()}` : transaction.reference),
-          cautionFeeRaw: transaction.amount || 0,
-          currency: 'NGN' // Default
+          cautionFeeRaw: transaction.metadata?.escrowBreakdown?.originalDeposit || transaction.amount || 0,
+          currency: 'NGN',
+          isResolved: isResolved,
+          cautionFeeStatus: reconciliation.cautionFeeStatus || (transaction.type === 'CREDIT' ? 'RELEASED_TO_HOST' : 'PENDING'),
+          securityDepositResolution: {
+            status: reconciliation.cautionFeeStatus || (transaction.type === 'CREDIT' ? 'RELEASED_TO_HOST' : 'PENDING'),
+            cautionFeeStatus: reconciliation.cautionFeeStatus || (transaction.type === 'CREDIT' ? 'RELEASED_TO_HOST' : 'PENDING'),
+            reason: reconciliation.resolutionReason || transaction.description,
+            resolvedAt: reconciliation.resolvedAt || transaction.createdAt,
+            resolvedBy: 'ADMIN',
+            claimAmount: transaction.amount || 0
+          },
+          disputeReason: reconciliation.resolutionReason || transaction.description
         };
         
         setSelectedBookingForCaution(mockBooking);
@@ -1422,7 +1437,7 @@ const FinancialManagement = () => {
                       <th className="px-3.5 py-2.5 min-w-[130px]">Reference</th>
                       <th className="px-3.5 py-2.5 min-w-[150px]">User Details</th>
                       <th className="px-3 py-2.5 min-w-[100px]">Category</th>
-                      <th className="px-3 py-2.5 min-w-[90px]">Amount</th>
+                      <th className="px-3 py-2.5 text-center min-w-[95px]">Amount</th>
                       <th className="px-3.5 py-2.5 min-w-[160px]">Description</th>
                       <th className="px-4 py-2.5 min-w-[145px]">Date</th>
                       <th className="px-2 py-2.5 text-center w-20">Status</th>
@@ -1557,7 +1572,7 @@ const FinancialManagement = () => {
                               )}
                             </span>
                           </td>
-                          <td className={`px-3 py-2 font-mono font-black text-xs whitespace-nowrap ${
+                          <td className={`px-3 py-2 text-center font-mono font-black text-xs whitespace-nowrap ${
                             transaction.metadata?.isDisclosure ? 'text-slate-400' :
                             transaction._isRelated ? 'text-slate-600' : 'text-slate-900'
                           }`}>

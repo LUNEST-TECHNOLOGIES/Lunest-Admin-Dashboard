@@ -157,8 +157,12 @@ const BookingActionButton = ({ booking, refresh, isLastItems }) => {
         <div className={`absolute right-0 ${isLastItems ? 'bottom-full mb-2' : 'top-full mt-2'} bg-white rounded-xl border border-slate-200 shadow-2xl shadow-slate-900/10 z-[100] p-1.5 w-52 animate-in fade-in zoom-in-95 duration-150`}>
           <div className="flex flex-col gap-0.5">
             
-            {/* Refund Action - Only available when a refund has been explicitly requested and has not been processed */}
-            {(booking.refundRequested || booking.rawStatus === 'REFUND_REQUESTED') && !booking.isRefunded && (
+            {/* Refund Action - Only available when a refund has been explicitly requested, not processed, and booking is NOT completed */}
+            {(booking.refundRequested || booking.rawStatus === 'REFUND_REQUESTED') && 
+              !booking.isRefunded && 
+              booking.rawStatus !== 'COMPLETED' && 
+              booking.status !== 'Completed' && 
+              booking.status !== 'complete' && (
               <button
                 onClick={handleRefund}
                 className="w-full px-3 py-2 rounded-lg flex justify-start items-center gap-3 hover:bg-rose-50 hover:text-rose-700 transition-all group cursor-pointer"

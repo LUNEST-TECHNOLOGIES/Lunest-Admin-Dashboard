@@ -31,8 +31,13 @@ const FinancialTransactionActions = ({ transaction, onActionComplete }) => {
     const status = transaction.status?.toUpperCase();
     const isPending = status === 'ON_HOLD' || status === 'PENDING';
 
+    const isCautionResolved = 
+      transaction.metadata?.reconciliation?.cautionFeeStatus === 'RELEASED_TO_HOST' ||
+      transaction.metadata?.reconciliation?.cautionFeeStatus === 'RELEASED_TO_GUEST' ||
+      (status === 'COMPLETED' && (category === 'security_deposit' || transaction.metadata?.isEscrow) && transaction.type === 'CREDIT');
+
     if (category === 'security_deposit' || category.includes('caution') || category.includes('deposit')) {
-      if (!isPending) return [{ label: 'View', icon: <Icons.Eye />, styleClass: 'bg-slate-50 text-slate-700 hover:bg-slate-100', action: 'VIEW_DETAILS' }];
+      if (isCautionResolved || !isPending) return [{ label: 'Settlement', icon: <Icons.Eye />, styleClass: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100', action: 'VIEW_DETAILS' }];
       return [
         { label: 'To Guest', icon: <Icons.ArrowLeft />, styleClass: 'bg-green-50 text-green-700 hover:bg-green-100', action: 'RELEASE_TO_GUEST' },
         { label: 'To Host', icon: <Icons.ArrowRight />, styleClass: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100', action: 'RELEASE_TO_HOST' },

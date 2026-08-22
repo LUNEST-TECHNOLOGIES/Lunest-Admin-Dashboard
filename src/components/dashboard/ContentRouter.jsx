@@ -866,16 +866,16 @@ export const FinancialManagementContent = () => {
             {/* Table Header */}
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction Ref</th>
-                <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">User Details</th>
-                <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</th>
-                <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
-                <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</th>
-                <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Commission</th>
-                <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Method</th>
-                <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
-                <th className="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[200px]">Actions</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[130px]">Transaction Ref</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[150px]">User Details</th>
+                <th className="px-3 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[80px]">Type</th>
+                <th className="px-3 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[100px]">Category</th>
+                <th className="px-3 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[95px]">Amount</th>
+                <th className="px-3 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[95px]">Commission</th>
+                <th className="px-3 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[80px]">Method</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[145px]">Date</th>
+                <th className="px-2 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest w-20">Status</th>
+                <th className="px-3 py-3 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest w-24">Actions</th>
               </tr>
             </thead>
 
@@ -1598,12 +1598,12 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
             )}
           </div>
         </td>
-        <td className="px-3 py-2.5">
+        <td className="px-3 py-2.5 text-center">
            <span className={`text-xs font-black font-mono ${transaction.type === 'CREDIT' ? 'text-emerald-700' : (isBundledDisplay ? 'text-blue-700' : 'text-slate-900')}`}>
              {transaction.type === 'CREDIT' ? '+' : '-'}₦{Math.abs(displayAmount).toLocaleString('en-NG', { minimumFractionDigits: 2 })}
            </span>
         </td>
-        <td className="px-3 py-2.5">
+        <td className="px-3 py-2.5 text-center">
            <span className="text-slate-500 font-mono text-[11px]">₦{(transaction.fee || 0).toLocaleString()}</span>
         </td>
         <td className="px-3 py-2.5">
