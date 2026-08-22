@@ -1579,8 +1579,24 @@ const FinancialManagement = () => {
                           <td className={`px-6 py-4 text-sm break-words min-w-[200px] ${
                             transaction._isRelated ? 'text-slate-400' : 'text-slate-500'
                           }`}>{transaction.description}</td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
-                            {new Date(transaction.createdAt || transaction.timestamp).toLocaleDateString()}
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-semibold text-slate-700">
+                                {new Date(transaction.createdAt || transaction.timestamp).toLocaleDateString('en-NG', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-mono">
+                                {new Date(transaction.createdAt || transaction.timestamp).toLocaleTimeString('en-NG', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  second: '2-digit',
+                                  hour12: true
+                                })}
+                              </span>
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
