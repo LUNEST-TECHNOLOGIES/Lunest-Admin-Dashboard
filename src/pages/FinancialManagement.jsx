@@ -1511,11 +1511,11 @@ const FinancialManagement = () => {
                             </div>
                           </td>
                           <td className="px-3.5 py-2">
-                            <div className="flex flex-col min-w-0">
-                              <span className="font-bold text-slate-900 text-xs truncate max-w-[180px]">{transaction.userId?.fullName || 'N/A'}</span>
-                              <span className="text-[10px] text-slate-400 truncate max-w-[180px]">{transaction.userId?.emailAddress || 'N/A'}</span>
+                            <div className="flex flex-col min-w-0 max-w-[200px]">
+                              <span className="font-bold text-slate-900 text-[11px] leading-tight break-words">{transaction.userId?.fullName || 'N/A'}</span>
+                              <span className="text-[10px] text-slate-500 leading-tight break-words mt-0.5">{transaction.userId?.emailAddress || 'N/A'}</span>
                               {transaction.category === 'SECURITY_DEPOSIT' && transaction.metadata?.reconciliation?.cautionFeeStatus && transaction.metadata?.reconciliation?.cautionFeeStatus !== 'ON_HOLD' && (
-                                <div className="flex flex-col gap-0.5 mt-0.5">
+                                <div className="flex flex-col gap-0.5 mt-1">
                                   <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md inline-block w-fit ${
                                     transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_GUEST' ? 'bg-green-50 text-green-600 border border-green-200' :
                                     transaction.metadata.reconciliation.cautionFeeStatus === 'RELEASED_TO_HOST' ? 'bg-indigo-50 text-indigo-600 border border-indigo-200' :
@@ -1526,11 +1526,16 @@ const FinancialManagement = () => {
                                      transaction.metadata.reconciliation.cautionFeeStatus === 'DISPUTED' ? 'Caution Disputed' : 
                                      transaction.metadata.reconciliation.cautionFeeStatus}
                                   </span>
+                                  {transaction.metadata?.reconciliation?.resolutionReason && (
+                                    <span className="text-[9px] text-slate-500 italic leading-tight break-words mt-0.5">
+                                      Note: {transaction.metadata.reconciliation.resolutionReason}
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </div>
                           </td>
-                          <td className="px-3 py-2">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${
                               transaction.category === 'CANCELLATION_PENALTY' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                               transaction.category === 'CANCELLATION_REFUND' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
@@ -1552,22 +1557,23 @@ const FinancialManagement = () => {
                               )}
                             </span>
                           </td>
-                          <td className={`px-3 py-2 font-mono font-black text-xs ${
+                          <td className={`px-3 py-2 font-mono font-black text-xs whitespace-nowrap ${
                             transaction.metadata?.isDisclosure ? 'text-slate-400' :
                             transaction._isRelated ? 'text-slate-600' : 'text-slate-900'
                           }`}>
                             {transaction.metadata?.isDisclosure ? '' : (transaction.type === 'CREDIT' ? '+' : transaction.type === 'DEBIT' ? '-' : '')} 
                             {formatCurrency(transaction.amount)}
                           </td>
-                          <td className="px-3.5 py-2 text-[11px] text-slate-600 max-w-[200px] truncate" title={transaction.description}>
+                          <td className="px-3.5 py-2 text-[11px] text-slate-600 max-w-[260px] leading-snug break-words">
                             {transaction.description}
                           </td>
-                          <td className="px-3.5 py-2">
+                          <td className="px-3.5 py-2 whitespace-nowrap">
                             <div className="flex flex-col">
-                              <span className="text-[11px] font-bold text-slate-700">
+                              <span className="text-[10px] font-bold text-slate-700">
                                 {new Date(transaction.createdAt || transaction.timestamp).toLocaleDateString('en-NG', {
                                   month: 'short',
-                                  day: 'numeric'
+                                  day: 'numeric',
+                                  year: 'numeric'
                                 })}
                               </span>
                               <span className="text-[9px] text-slate-400 font-mono">
@@ -1580,7 +1586,7 @@ const FinancialManagement = () => {
                               </span>
                             </div>
                           </td>
-                          <td className="px-3 py-2">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(transaction.status)}`}>
                               {transaction.status}
                             </span>

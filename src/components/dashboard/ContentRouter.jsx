@@ -1550,11 +1550,11 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
             <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-500 shrink-0">
               {(transaction.userId?.fullName || transaction.metadata?.fullName || 'U').charAt(0).toUpperCase()}
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="font-bold text-slate-900 text-xs truncate max-w-[150px]">
+            <div className="flex flex-col min-w-0 max-w-[180px]">
+              <span className="font-bold text-slate-900 text-[11px] leading-tight break-words">
                 {transaction.userId?.fullName || (transaction.metadata?.fullName) || (typeof transaction.userId === 'string' ? 'User' : 'Unknown')}
               </span>
-              <span className="text-[10px] text-slate-400 truncate max-w-[150px]">
+              <span className="text-[10px] text-slate-400 leading-tight break-words mt-0.5">
                 {transaction.userId?.emailAddress || transaction.metadata?.email || 'No email registered'}
               </span>
             </div>
