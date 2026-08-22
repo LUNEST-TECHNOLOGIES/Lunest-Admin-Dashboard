@@ -1654,49 +1654,6 @@ const TransactionRow = ({ tx, index, activeTab, onActionComplete, manualVerifyTr
     );
   };
 
-  // Check if this is an old-style booking transaction that needs visual splitting
-  const isOldBooking = tx.category === 'BOOKING' && tx.metadata?.guestSide && !tx.metadata?.isSplit;
-  
-  if (isOldBooking) {
-    const total = tx.amount || 0;
-    const appFee = total * 0.05;
-    const vat = appFee * 0.075;
-    const net = total - appFee - vat;
-
-    return (
-      <React.Fragment>
-        {renderRow({ ...tx, amount: net, description: `Booking Payment (Net)` }, false, 'Net Payment')}
-        {renderRow({ ...tx, category: 'PLATFORM_FEE', amount: appFee, description: `App Fee` }, true, 'App Fee')}
-        {renderRow({ ...tx, category: 'VAT', amount: vat, description: `VAT Charge` }, true, 'VAT')}
-        
-        {/* Expanded breakdown row */}
-        {isExpanded && (
-          <tr className="bg-blue-50/30">
-            <td colSpan="10" className="px-6 py-4">
-              <div className="space-y-2">
-                <div className="text-[11px] font-bold text-blue-700 mb-3">Historical Booking Breakdown (Estimated):</div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="bg-white rounded-lg p-3 border border-blue-100">
-                    <div className="text-[10px] text-slate-500">Rent + Service Charge + Caution</div>
-                    <div className="text-[12px] font-bold text-slate-900">₦{net.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-blue-100">
-                    <div className="text-[10px] text-slate-500">App Fee (5%)</div>
-                    <div className="text-[12px] font-bold text-blue-600">₦{appFee.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-blue-100">
-                    <div className="text-[10px] text-slate-500">VAT on App Fee (7.5%)</div>
-                    <div className="text-[12px] font-bold text-purple-600">₦{vat.toLocaleString()}</div>
-                  </div>
-                </div>
-              </div>
-            </td>
-          </tr>
-        )}
-      </React.Fragment>
-    );
-  }
-
   return (
     <React.Fragment>
       {renderRow(tx)}
