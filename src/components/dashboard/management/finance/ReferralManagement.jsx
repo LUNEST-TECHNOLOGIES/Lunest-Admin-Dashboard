@@ -270,11 +270,13 @@ const ReferralManagement = () => {
                                         <span className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {log.user?._id || log.user?.id || log.user || 'N/A'}</span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-slate-900">
-                                    <div className="flex items-center gap-1.5 font-semibold">
-                                        <MdOutlineMonetizationOn className="w-4 h-4 text-amber-500" />
-                                        {log.point} Points
-                                    </div>
+                                <td className="px-6 py-4">
+                                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold ${
+                                        Number(log.point) > 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    }`}>
+                                        <MdOutlineMonetizationOn className="w-3.5 h-3.5" />
+                                        {Number(log.point) > 0 ? `+${log.point}` : log.point} Points
+                                    </span>
                                 </td>
                                 <td className="px-6 py-4 text-slate-600">{log.description || '-'}</td>
                             </tr>
@@ -344,7 +346,7 @@ const ReferralManagement = () => {
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-1.5 font-semibold text-slate-900">
                                         <MdOutlineMonetizationOn className="w-4 h-4 text-amber-500" />
-                                        {user.totalEarnedPoints} Points
+                                        {user.totalEarnedPoints || 0} Points
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-right">
@@ -388,7 +390,7 @@ const ReferralManagement = () => {
                     <thead className="bg-indigo-50/50">
                         <tr>
                             <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">User Details</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Total Points</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Available Points</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Pending Points</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Converted to Cash</th>
                             <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Coupons Earned</th>
@@ -406,18 +408,34 @@ const ReferralManagement = () => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className="flex items-center gap-1.5 font-semibold text-slate-900">
-                                        <MdOutlineMonetizationOn className="w-4 h-4 text-amber-500" />
-                                        {user.totalPoints} Points
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                                            <MdOutlineMonetizationOn className="w-4 h-4 text-amber-500" />
+                                            {user.availablePoints !== undefined ? user.availablePoints : (user.totalPoints || 0)} Points
+                                        </div>
+                                        <span className="text-[11px] text-slate-400 font-medium">
+                                            ({user.totalPoints || 0} total earned)
+                                        </span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-1.5 text-slate-600">
                                         <MdOutlineAccountBalanceWallet className="w-4 h-4 text-slate-400" />
-                                        {user.pendingPoints} Pending
+                                        {user.pendingPoints || 0} Pending
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-indigo-600 font-bold">₦{(user.convertedCash || 0).toLocaleString()}</td>
+                                <td className="px-6 py-4">
+                                    <div className="flex flex-col">
+                                        <span className="text-indigo-600 font-bold font-mono">
+                                            ₦{(user.convertedCash || 0).toLocaleString()}
+                                        </span>
+                                        {user.totalRedeemed > 0 && (
+                                            <span className="text-[11px] text-slate-400 font-medium">
+                                                ({user.totalRedeemed} pts redeemed)
+                                            </span>
+                                        )}
+                                    </div>
+                                </td>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-1.5 font-semibold text-blue-600">
                                         <MdOutlineConfirmationNumber className="w-4 h-4" />

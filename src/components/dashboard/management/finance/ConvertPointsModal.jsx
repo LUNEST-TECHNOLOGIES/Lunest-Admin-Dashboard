@@ -16,7 +16,7 @@ const ConvertPointsModal = ({ isOpen, onClose, user, onConvert }) => {
 
     if (!isOpen || !user) return null;
 
-    const availablePoints = Number(user.totalPoints || 0);
+    const availablePoints = Number(user.availablePoints !== undefined ? user.availablePoints : (user.totalPoints || 0));
     const numericPoints = parseInt(points) || 0;
     const nairaAmount = numericPoints * 1; // 1 point = ₦1
 

@@ -21,6 +21,8 @@ const SystemHealth = () => {
   const [cronScope, setCronScope] = useState('all'); // 'all' or 'individual'
 
   // Individual user search & population state
+  const [allUsers, setAllUsers] = useState([]);
+  const [loadingAllUsers, setLoadingAllUsers] = useState(false);
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchingUser, setIsSearchingUser] = useState(false);
@@ -28,20 +30,43 @@ const SystemHealth = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const searchDropdownRef = useRef(null);
 
-  // Debounced user search
+  // Fetch all users when switching to individual scope
   useEffect(() => {
-    if (cronScope !== 'individual') {
+    if (cronScope === 'individual') {
+      if (allUsers.length === 0) {
+        fetchAllUsersForCron();
+      } else {
+        setSearchResults(allUsers);
+      }
+    } else {
       setSelectedUserData(null);
       setSelectedUser('');
       setUserSearchQuery('');
       setSearchResults([]);
       setShowDropdown(false);
-      return;
     }
+  }, [cronScope]);
 
-    if (!userSearchQuery.trim() || userSearchQuery.trim().length < 2) {
-      setSearchResults([]);
-      setShowDropdown(false);
+  const fetchAllUsersForCron = async () => {
+    setLoadingAllUsers(true);
+    try {
+      const res = await getUsers({ limit: 150 });
+      const usersList = res?.body?.users || res?.users || (Array.isArray(res) ? res : []);
+      setAllUsers(usersList);
+      setSearchResults(usersList);
+    } catch (err) {
+      console.error('Failed to fetch all users for cron scope:', err);
+    } finally {
+      setLoadingAllUsers(false);
+    }
+  };
+
+  // Filter or search users when search query changes
+  useEffect(() => {
+    if (cronScope !== 'individual') return;
+
+    if (!userSearchQuery.trim()) {
+      setSearchResults(allUsers);
       return;
     }
 
@@ -50,22 +75,36 @@ const SystemHealth = () => {
       return;
     }
 
-    const timer = setTimeout(async () => {
-      setIsSearchingUser(true);
-      try {
-        const res = await getUsers({ search: userSearchQuery.trim() });
-        const usersList = res?.body?.users || res?.users || (Array.isArray(res) ? res : []);
-        setSearchResults(usersList.slice(0, 8));
-        setShowDropdown(true);
-      } catch (err) {
-        console.error('Error searching users for cron:', err);
-      } finally {
-        setIsSearchingUser(false);
-      }
-    }, 300);
+    const q = userSearchQuery.toLowerCase().trim();
+    const localMatches = allUsers.filter(u => {
+      const name = (u.fullName || `${u.firstName || ''} ${u.lastName || ''}`).toLowerCase();
+      const email = (u.emailAddress || u.email || '').toLowerCase();
+      const userId = (u.userID || u._id || '').toLowerCase();
+      return name.includes(q) || email.includes(q) || userId.includes(q);
+    });
 
-    return () => clearTimeout(timer);
-  }, [userSearchQuery, cronScope, selectedUserData]);
+    if (localMatches.length > 0) {
+      setSearchResults(localMatches);
+      setShowDropdown(true);
+    } else if (q.length >= 2) {
+      const timer = setTimeout(async () => {
+        setIsSearchingUser(true);
+        try {
+          const res = await getUsers({ search: q });
+          const usersList = res?.body?.users || res?.users || (Array.isArray(res) ? res : []);
+          setSearchResults(usersList);
+          setShowDropdown(true);
+        } catch (err) {
+          console.error('Error searching users for cron:', err);
+        } finally {
+          setIsSearchingUser(false);
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    } else {
+      setSearchResults([]);
+    }
+  }, [userSearchQuery, cronScope, selectedUserData, allUsers]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -90,7 +129,7 @@ const SystemHealth = () => {
     setSelectedUserData(null);
     setSelectedUser('');
     setUserSearchQuery('');
-    setSearchResults([]);
+    setSearchResults(allUsers);
     setShowDropdown(false);
   };
 
@@ -400,19 +439,19 @@ const SystemHealth = () => {
                       onChange={(e) => {
                         setUserSearchQuery(e.target.value);
                         if (selectedUserData) setSelectedUserData(null);
+                        setShowDropdown(true);
                       }}
-                      onFocus={() => {
-                        if (searchResults.length > 0) setShowDropdown(true);
-                      }}
-                      placeholder="Search user by name, email, or User ID (e.g. Tayo, tayo@gmail.com, LNT...)"
-                      className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                      onClick={() => setShowDropdown(true)}
+                      onFocus={() => setShowDropdown(true)}
+                      placeholder="Click to select a user or search by name, email, or User ID..."
+                      className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm cursor-pointer"
                     />
-                    {isSearchingUser ? (
+                    {isSearchingUser || loadingAllUsers ? (
                       <RefreshCw className="w-4 h-4 text-indigo-600 animate-spin absolute right-3" />
                     ) : userSearchQuery ? (
                       <button
                         onClick={handleClearUser}
-                        className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 absolute right-3"
+                        className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 absolute right-3 cursor-pointer"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -420,50 +459,76 @@ const SystemHealth = () => {
                   </div>
 
                   {/* Autocomplete Results Dropdown */}
-                  {showDropdown && searchResults.length > 0 && (
-                    <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-72 overflow-y-auto divide-y divide-slate-100">
-                      {searchResults.map((user) => {
-                        const name = user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unnamed User';
-                        const email = user.emailAddress || user.email || 'No email';
-                        const userId = user.userID || user._id;
-                        const role = user.userType || 'GUEST';
-                        const isKyc = user.verified || user.kycStatus === 'VERIFIED';
+                  {showDropdown && (
+                    <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-80 overflow-y-auto divide-y divide-slate-100 font-aeonik">
+                      <div className="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider sticky top-0 z-20">
+                        <span>All Registered Users ({searchResults.length})</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fetchAllUsersForCron();
+                          }}
+                          className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 lowercase font-medium cursor-pointer"
+                        >
+                          <RefreshCw className={`w-3 h-3 ${loadingAllUsers ? 'animate-spin' : ''}`} />
+                          reload
+                        </button>
+                      </div>
 
-                        return (
-                          <div
-                            key={user._id || userId}
-                            onClick={() => handleSelectUser(user)}
-                            className="p-3 hover:bg-indigo-50/70 cursor-pointer transition-colors flex items-center justify-between gap-3"
-                          >
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-semibold flex items-center justify-center text-sm shrink-0">
-                                {user.avatar ? (
-                                  <img src={user.avatar} alt={name} className="w-9 h-9 rounded-full object-cover" />
-                                ) : (
-                                  name.charAt(0).toUpperCase()
-                                )}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-sm text-slate-900 truncate">{name}</span>
-                                  {isKyc && (
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 shrink-0 whitespace-nowrap">
-                                      <ShieldCheck className="w-3 h-3 mr-0.5" /> Verified
-                                    </span>
+                      {loadingAllUsers ? (
+                        <div className="p-6 text-center text-sm text-slate-400 flex items-center justify-center gap-2">
+                          <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" />
+                          Loading all users...
+                        </div>
+                      ) : searchResults.length === 0 ? (
+                        <div className="p-6 text-center text-sm text-slate-400">
+                          No users found matching "{userSearchQuery}"
+                        </div>
+                      ) : (
+                        searchResults.map((user) => {
+                          const name = user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unnamed User';
+                          const email = user.emailAddress || user.email || 'No email';
+                          const userId = user.userID || user._id;
+                          const role = user.userType || 'GUEST';
+                          const isKyc = user.verified || user.kycStatus === 'VERIFIED';
+
+                          return (
+                            <div
+                              key={user._id || userId}
+                              onClick={() => handleSelectUser(user)}
+                              className="p-3 hover:bg-indigo-50/70 cursor-pointer transition-colors flex items-center justify-between gap-3"
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-semibold flex items-center justify-center text-sm shrink-0">
+                                  {user.avatar ? (
+                                    <img src={user.avatar} alt={name} className="w-9 h-9 rounded-full object-cover" />
+                                  ) : (
+                                    name.charAt(0).toUpperCase()
                                   )}
                                 </div>
-                                <div className="text-xs text-slate-500 truncate flex items-center gap-2 mt-0.5">
-                                  <span className="truncate">{email}</span>
-                                  {user.userID && <span className="text-slate-400 font-mono shrink-0">ID: {user.userID}</span>}
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-sm text-slate-900 truncate">{name}</span>
+                                    {isKyc && (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 shrink-0 whitespace-nowrap">
+                                        <ShieldCheck className="w-3 h-3 mr-0.5" /> Verified
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-slate-500 truncate flex items-center gap-2 mt-0.5">
+                                    <span className="truncate">{email}</span>
+                                    {user.userID && <span className="text-slate-400 font-mono shrink-0">ID: {user.userID}</span>}
+                                  </div>
                                 </div>
                               </div>
+                              <span className="shrink-0 px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-700 uppercase whitespace-nowrap">
+                                {role}
+                              </span>
                             </div>
-                            <span className="shrink-0 px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-700 uppercase whitespace-nowrap">
-                              {role}
-                            </span>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      )}
                     </div>
                   )}
                 </div>
