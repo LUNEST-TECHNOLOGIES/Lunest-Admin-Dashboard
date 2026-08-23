@@ -29,6 +29,7 @@ import {
     getReferralTree,
     getManualRewardLogs,
     adminCreditPoints,
+    adminConvertPoints,
     getCreditBonusUsers,
     getPromoImpact
 } from '../../../../services/adminService';
@@ -590,9 +591,16 @@ const ReferralManagement = () => {
                 isOpen={isConvertModalOpen}
                 onClose={() => setIsConvertModalOpen(false)}
                 user={selectedUser}
-                onConvert={(data) => {
-                    notify.success('Points Converted', `Conversion of ${data.points} points approved for ${selectedUser?.name}.`);
-                    setIsConvertModalOpen(false);
+                onConvert={async (data) => {
+                    try {
+                        const res = await adminConvertPoints(data.userId, data.points, data.targetType);
+                        notify.success('Points Converted', res?.message || `Successfully converted ${data.points} points for ${selectedUser?.name}.`);
+                        setIsConvertModalOpen(false);
+                        fetchStats();
+                        fetchTabData();
+                    } catch (err) {
+                        notify.error('Error', err.message || 'Failed to convert points');
+                    }
                 }}
             />
             <ReferrerDetailsModal

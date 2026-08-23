@@ -787,6 +787,11 @@ export const adminCreditPoints = async (userId, points, reason) => {
     return response.data;
 };
 
+export const adminConvertPoints = async (userId, points, targetType = 'WALLET') => {
+    const response = await apiClient.post('/admin/referrals/convert-points', { userId, points, targetType });
+    return response.data;
+};
+
 export const assignCustomReferralCode = async (identifier, customCode) => {
     const payload = (typeof identifier === 'string' && identifier.includes('@'))
         ? { emailAddress: identifier, customCode }
