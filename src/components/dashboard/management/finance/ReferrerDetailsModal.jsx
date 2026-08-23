@@ -212,14 +212,16 @@ const ReferrerDetailsModal = ({ isOpen, onClose, referrer, onEditCustomCode }) =
                                                 </td>
 
                                                 <td className="px-5 py-3.5">
-                                                    {u.hasBooked ? (
+                                                    {u.guestBookingCount > 0 || u.hasBooked ? (
                                                         <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 rounded-md text-xs font-bold">
                                                             <MdOutlineCheckCircle className="w-3.5 h-3.5 text-green-600" />
-                                                            Booked
+                                                            {u.guestBookingCount > 0 
+                                                                ? `${u.guestBookingCount} ${u.guestBookingCount === 1 ? 'Booking' : 'Bookings'}`
+                                                                : 'Booked'}
                                                         </span>
                                                     ) : (
                                                         <span className="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-md text-xs font-medium">
-                                                            No Bookings
+                                                            0 Bookings
                                                         </span>
                                                     )}
                                                 </td>

@@ -329,7 +329,9 @@ const ReferralManagement = () => {
                                 <td className="px-6 py-4">
                                     <div className="flex flex-col">
                                         <span className="font-bold text-slate-900">{user.guestsOnboarded || 0}</span>
-                                        <span className="text-xs text-green-600 font-medium">({user.guestsBooked || 0} booked)</span>
+                                        <span className="text-xs text-green-600 font-medium">
+                                            ({user.guestsBooked || 0} booked{user.totalGuestBookings > 0 ? ` • ${user.totalGuestBookings} ${user.totalGuestBookings === 1 ? 'stay' : 'stays'}` : ''})
+                                        </span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
