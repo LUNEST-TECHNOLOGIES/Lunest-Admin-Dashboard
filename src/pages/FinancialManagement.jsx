@@ -489,6 +489,30 @@ const FinancialManagement = () => {
     }).format(numericAmount).replace('NGN', '₦');
   };
 
+  // Compact abbreviation for stats cards: Billions (B), Millions (M), Thousands (K) to 2DP in Naira
+  const formatCompactCurrency = (amount) => {
+    if (amount === null || amount === undefined || isNaN(Number(amount))) {
+      return '₦0.00';
+    }
+    const num = Number(amount);
+    const absVal = Math.abs(num);
+    const sign = num < 0 ? '-' : '';
+
+    if (absVal >= 1_000_000_000) {
+      const formatted = (absVal / 1_000_000_000).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `${sign}₦${formatted}B`;
+    }
+    if (absVal >= 1_000_000) {
+      const formatted = (absVal / 1_000_000).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `${sign}₦${formatted}M`;
+    }
+    if (absVal >= 1_000) {
+      const formatted = (absVal / 1_000).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `${sign}₦${formatted}K`;
+    }
+    return `${sign}₦${absVal.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
   const formatWalletId = (wallet) => {
     // Handle different wallet ID formats
     if (!wallet) return 'N/A';
@@ -976,7 +1000,8 @@ const FinancialManagement = () => {
   const mainStats = [
     {
       title: 'Gross Revenue',
-      value: formatCurrency(financeMetrics?.grossRevenue || 0),
+      value: formatCompactCurrency(financeMetrics?.grossRevenue || 0),
+      fullValue: formatCurrency(financeMetrics?.grossRevenue || 0),
       change: 'Platform Total',
       changeText: 'Fees + VAT (Full Inflow)',
       changeColor: 'text-indigo-600',
@@ -986,7 +1011,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Net Revenue',
-      value: formatCurrency(financeMetrics?.netRevenue || 0),
+      value: formatCompactCurrency(financeMetrics?.netRevenue || 0),
+      fullValue: formatCurrency(financeMetrics?.netRevenue || 0),
       change: financeMetrics?.grossRevenue > 0 
         ? `${Math.round((financeMetrics?.netRevenue / financeMetrics?.grossRevenue) * 100)}% of Gross` 
         : 'N/A',
@@ -998,7 +1024,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'VAT Collected',
-      value: formatCurrency(financeMetrics?.taxCollected || 0),
+      value: formatCompactCurrency(financeMetrics?.taxCollected || 0),
+      fullValue: formatCurrency(financeMetrics?.taxCollected || 0),
       change: '7.5% Tax',
       changeText: `₦${(financeMetrics?.guestVatRevenue || 0).toLocaleString()} Guest + ₦${(financeMetrics?.hostVatRevenue || 0).toLocaleString()} Host`,
       changeColor: 'text-purple-600',
@@ -1008,7 +1035,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Booking App Fees',
-      value: formatCurrency(financeMetrics?.bookingAppFees || 0),
+      value: formatCompactCurrency(financeMetrics?.bookingAppFees || 0),
+      fullValue: formatCurrency(financeMetrics?.bookingAppFees || 0),
       change: financeMetrics?.bookingAppFees > 0 && financeMetrics?.netRevenue > 0
         ? `${Math.round((financeMetrics?.bookingAppFees / financeMetrics?.netRevenue) * 100)}% of App Fees` 
         : '0%',
@@ -1020,7 +1048,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Booking VAT',
-      value: formatCurrency(financeMetrics?.bookingVAT || 0),
+      value: formatCompactCurrency(financeMetrics?.bookingVAT || 0),
+      fullValue: formatCurrency(financeMetrics?.bookingVAT || 0),
       change: financeMetrics?.bookingVAT > 0 && financeMetrics?.taxCollected > 0
         ? `${Math.round((financeMetrics?.bookingVAT / financeMetrics?.taxCollected) * 100)}% of Total VAT` 
         : '0%',
@@ -1033,6 +1062,7 @@ const FinancialManagement = () => {
     {
       title: 'Guest App Fee Count',
       value: financeMetrics?.guestAppFeeCount || 0,
+      fullValue: `${financeMetrics?.guestAppFeeCount || 0} Transactions`,
       isNumerical: true,
       change: financeMetrics?.guestAppFees > 0 && financeMetrics?.netRevenue > 0
         ? `${Math.round((financeMetrics?.guestAppFees / financeMetrics?.netRevenue) * 100)}% of Total` 
@@ -1046,6 +1076,7 @@ const FinancialManagement = () => {
     {
       title: 'Host App Fee Count',
       value: financeMetrics?.hostAppFeeCount || 0,
+      fullValue: `${financeMetrics?.hostAppFeeCount || 0} Transactions`,
       isNumerical: true,
       change: financeMetrics?.hostAppFees > 0 && financeMetrics?.netRevenue > 0
         ? `${Math.round((financeMetrics?.hostAppFees / financeMetrics?.netRevenue) * 100)}% of Total` 
@@ -1059,6 +1090,7 @@ const FinancialManagement = () => {
     {
       title: 'Guest VAT Count',
       value: financeMetrics?.guestVatCount || 0,
+      fullValue: `${financeMetrics?.guestVatCount || 0} Transactions`,
       isNumerical: true,
       change: financeMetrics?.guestVatRevenue > 0 && financeMetrics?.taxCollected > 0
         ? `${Math.round((financeMetrics?.guestVatRevenue / financeMetrics?.taxCollected) * 100)}% of VAT` 
@@ -1072,6 +1104,7 @@ const FinancialManagement = () => {
     {
       title: 'Host VAT Count',
       value: financeMetrics?.hostVatCount || 0,
+      fullValue: `${financeMetrics?.hostVatCount || 0} Transactions`,
       isNumerical: true,
       change: financeMetrics?.hostVatRevenue > 0 && financeMetrics?.taxCollected > 0
         ? `${Math.round((financeMetrics?.hostVatRevenue / financeMetrics?.taxCollected) * 100)}% of VAT` 
@@ -1084,7 +1117,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Host Payouts',
-      value: formatCurrency(financeMetrics?.hostEarnings || 0),
+      value: formatCompactCurrency(financeMetrics?.hostEarnings || 0),
+      fullValue: formatCurrency(financeMetrics?.hostEarnings || 0),
       change: financeMetrics?.hostCautionEarnings > 0 
         ? `${formatCurrency(financeMetrics?.hostRentEarnings || 0)} Rent + ${formatCurrency(financeMetrics?.hostCautionEarnings || 0)} Caution`
         : `${formatCurrency(financeMetrics?.hostRentEarnings || 0)} Rent Payouts`,
@@ -1096,7 +1130,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Platform Escrow Balance',
-      value: formatCurrency(financeMetrics?.escrowedFunds || 0),
+      value: formatCompactCurrency(financeMetrics?.escrowedFunds || 0),
+      fullValue: formatCurrency(financeMetrics?.escrowedFunds || 0),
       change: 'Active Holds',
       changeText: 'Pending earnings + Security deposits',
       changeColor: 'text-amber-600',
@@ -1106,7 +1141,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Coupon Discounts',
-      value: formatCurrency(financeMetrics?.couponValue || 0),
+      value: formatCompactCurrency(financeMetrics?.couponValue || 0),
+      fullValue: formatCurrency(financeMetrics?.couponValue || 0),
       change: 'Marketing Cost',
       changeText: 'Value redeemed by users',
       changeColor: 'text-pink-600',
@@ -1117,6 +1153,7 @@ const FinancialManagement = () => {
     {
       title: 'Failed Trans.',
       value: financeMetrics?.failedTransactions || 0,
+      fullValue: `${financeMetrics?.failedTransactions || 0} Transactions`,
       isNumerical: true,
       change: formatCurrency(financeMetrics?.failedAmount || 0),
       changeText: 'Value of failed payments',
@@ -1127,7 +1164,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Resolution Revenue',
-      value: formatCurrency((financeMetrics?.escrowAppFees || 0) + (financeMetrics?.escrowVatRevenue || 0)),
+      value: formatCompactCurrency((financeMetrics?.escrowAppFees || 0) + (financeMetrics?.escrowVatRevenue || 0)),
+      fullValue: formatCurrency((financeMetrics?.escrowAppFees || 0) + (financeMetrics?.escrowVatRevenue || 0)),
       change: `${formatCurrency(financeMetrics?.escrowAppFees || 0)} Fees`,
       changeText: `${formatCurrency(financeMetrics?.escrowVatRevenue || 0)} VAT (Resolution Claims)`,
       changeColor: 'text-emerald-700',
@@ -1141,7 +1179,8 @@ const FinancialManagement = () => {
   const cancellationStats = [
     {
       title: 'Cash Refunds Issued',
-      value: formatCurrency(allTimeFinanceMetrics?.totalRefunds || 0),
+      value: formatCompactCurrency(allTimeFinanceMetrics?.totalRefunds || 0),
+      fullValue: formatCurrency(allTimeFinanceMetrics?.totalRefunds || 0),
       count: allTimeFinanceMetrics?.refundCount || 0,
       countLabel: 'refund transactions',
       changeText: 'Total cash returned to guest wallets',
@@ -1152,7 +1191,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Penalties Collected',
-      value: formatCurrency(allTimeFinanceMetrics?.totalPenalties || 0),
+      value: formatCompactCurrency(allTimeFinanceMetrics?.totalPenalties || 0),
+      fullValue: formatCurrency(allTimeFinanceMetrics?.totalPenalties || 0),
       count: allTimeFinanceMetrics?.penaltyCount || 0,
       countLabel: 'penalty transactions',
       changeText: 'Cancellation penalties deducted from guests',
@@ -1163,7 +1203,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Penalty Platform Revenue',
-      value: formatCurrency(allTimeFinanceMetrics?.totalPenaltyRevenue || 0),
+      value: formatCompactCurrency(allTimeFinanceMetrics?.totalPenaltyRevenue || 0),
+      fullValue: formatCurrency(allTimeFinanceMetrics?.totalPenaltyRevenue || 0),
       count: null,
       countLabel: null,
       changeText: 'Portion of penalties retained by platform',
@@ -1174,7 +1215,8 @@ const FinancialManagement = () => {
     },
     {
       title: 'Credit Refunds Issued',
-      value: formatCurrency(allTimeFinanceMetrics?.totalCouponRefunds || 0),
+      value: formatCompactCurrency(allTimeFinanceMetrics?.totalCouponRefunds || 0),
+      fullValue: formatCurrency(allTimeFinanceMetrics?.totalCouponRefunds || 0),
       count: allTimeFinanceMetrics?.couponRefundCount || 0,
       countLabel: 'credit coupon refunds',
       changeText: 'Refunds issued as LUNEST credit coupons',
@@ -1243,11 +1285,11 @@ const FinancialManagement = () => {
                     <h3 className="text-slate-400 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5 truncate" title={stat.title}>{stat.title}</h3>
                     <p 
                       className={`font-black text-slate-900 font-mono leading-tight my-0.5 truncate ${
-                        String(stat.value).length > 15 ? 'text-xs sm:text-sm' : 
-                        String(stat.value).length > 12 ? 'text-xs sm:text-base' : 
+                        String(stat.value).length > 14 ? 'text-xs sm:text-sm' : 
+                        String(stat.value).length > 10 ? 'text-xs sm:text-base' : 
                         'text-sm sm:text-base'
                       }`} 
-                      title={String(stat.value)}
+                      title={stat.fullValue || String(stat.value)}
                     >
                       {stat.value}
                     </p>
@@ -1284,11 +1326,11 @@ const FinancialManagement = () => {
                     <h3 className="text-slate-400 text-[10px] font-bold uppercase tracking-wider leading-tight mb-0.5 truncate" title={stat.title}>{stat.title}</h3>
                     <p 
                       className={`font-black ${stat.changeColor} font-mono leading-tight my-0.5 truncate ${
-                        String(stat.value).length > 15 ? 'text-xs sm:text-sm' : 
-                        String(stat.value).length > 12 ? 'text-xs sm:text-base' : 
+                        String(stat.value).length > 14 ? 'text-xs sm:text-sm' : 
+                        String(stat.value).length > 10 ? 'text-xs sm:text-base' : 
                         'text-sm sm:text-base'
                       }`} 
-                      title={String(stat.value)}
+                      title={stat.fullValue || String(stat.value)}
                     >
                       {stat.value}
                     </p>

@@ -673,9 +673,22 @@ export const FinancialManagementContent = () => {
           <p className="text-slate-500 text-sm mt-1">Monitor revenue, platform fees and transaction history</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-xl">
+          <div 
+            className="px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-xl cursor-default"
+            title={`₦${(financeStats.processedVolume || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          >
             <span className="text-xs font-semibold text-indigo-600 block uppercase tracking-wider">Processed Volume</span>
-            <span className="text-lg font-bold text-indigo-900">₦{financeStats.processedVolume?.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+            <span className="text-lg font-bold text-indigo-900 font-mono">
+              {(() => {
+                const val = Number(financeStats.processedVolume || 0);
+                const absVal = Math.abs(val);
+                const sign = val < 0 ? '-' : '';
+                if (absVal >= 1_000_000_000) return `${sign}₦${(absVal / 1_000_000_000).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
+                if (absVal >= 1_000_000) return `${sign}₦${(absVal / 1_000_000).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
+                if (absVal >= 1_000) return `${sign}₦${(absVal / 1_000).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}K`;
+                return `${sign}₦${absVal.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+              })()}
+            </span>
           </div>
         </div>
       </div>

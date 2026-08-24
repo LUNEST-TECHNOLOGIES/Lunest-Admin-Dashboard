@@ -38,33 +38,58 @@ export default function StatsCard({
 
   const currentStyle = colorStyles[bgColor] || colorStyles.indigo;
 
-  const formattedValue = typeof value === 'number' 
+  // Exact full formatted value for tooltip
+  const fullFormattedValue = typeof value === 'number' 
     ? (isCurrency 
         ? `₦${value.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
         : value.toLocaleString('en-NG'))
     : String(value ?? '0');
 
-  // Dynamic responsive font scaling based on character length so long figures/amounts never overflow
+  // Compact abbreviation: Billions (B), Millions (M), Thousands (K) to 2DP in Naira
+  const formatDisplayValue = (val) => {
+    if (typeof val !== 'number') return String(val ?? '0');
+    if (!isCurrency) return val.toLocaleString('en-NG');
+
+    const absVal = Math.abs(val);
+    const sign = val < 0 ? '-' : '';
+
+    if (absVal >= 1_000_000_000) {
+      const formatted = (absVal / 1_000_000_000).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `${sign}₦${formatted}B`;
+    }
+    if (absVal >= 1_000_000) {
+      const formatted = (absVal / 1_000_000).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `${sign}₦${formatted}M`;
+    }
+    if (absVal >= 1_000) {
+      const formatted = (absVal / 1_000).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `${sign}₦${formatted}K`;
+    }
+    return `${sign}₦${absVal.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const displayValue = formatDisplayValue(value);
+
+  // Compact, sleek font sizing so numbers never crowd or clip
   const getFontSizeClass = (str) => {
     const len = str?.length || 0;
-    if (len > 18) return 'text-xs sm:text-sm lg:text-base';
-    if (len > 14) return 'text-sm sm:text-base lg:text-lg xl:text-xl';
-    if (len > 11) return 'text-base sm:text-lg lg:text-xl xl:text-2xl';
-    return 'text-lg sm:text-xl lg:text-2xl xl:text-3xl';
+    if (len > 14) return 'text-xs sm:text-sm lg:text-base';
+    if (len > 10) return 'text-sm sm:text-base lg:text-lg';
+    return 'text-base sm:text-lg lg:text-xl';
   };
 
   return (
     <div 
       onClick={onClick}
-      className={`group relative bg-white p-4 sm:p-5 rounded-2xl border border-slate-100/90 shadow-xs hover:shadow-lg hover:shadow-slate-900/[0.03] hover:border-slate-200 transition-all duration-300 flex items-center gap-3.5 sm:gap-4 overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
+      className={`group relative bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-100/90 shadow-xs hover:shadow-lg hover:shadow-slate-900/[0.03] hover:border-slate-200 transition-all duration-300 flex items-center gap-3 sm:gap-3.5 overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
     >
       {/* Subtle top edge highlight */}
       <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-slate-200/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
       {/* Modern Squircle Icon Container */}
       {icon && (
-        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl border ${currentStyle.bg} flex items-center justify-center flex-shrink-0 shadow-xs transition-transform duration-300 group-hover:scale-105 ring-1 ${currentStyle.ring}`}>
-          <div className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center">
+        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl border ${currentStyle.bg} flex items-center justify-center flex-shrink-0 shadow-xs transition-transform duration-300 group-hover:scale-105 ring-1 ${currentStyle.ring}`}>
+          <div className="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center">
             {icon}
           </div>
         </div>
@@ -72,14 +97,14 @@ export default function StatsCard({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="font-aeonik font-bold text-[11px] uppercase tracking-wider text-slate-400 mb-0.5 truncate" title={label}>
+        <p className="font-aeonik font-bold text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-400 mb-0.5 truncate" title={label}>
           {label}
         </p>
         <h3 
-          title={formattedValue}
-          className={`font-aeonik font-black text-slate-900 tracking-tight leading-tight my-0.5 ${getFontSizeClass(formattedValue)} ${isCurrency ? 'font-mono' : ''} truncate`}
+          title={fullFormattedValue}
+          className={`font-aeonik font-black text-slate-900 tracking-tight leading-tight my-0.5 ${getFontSizeClass(displayValue)} ${isCurrency ? 'font-mono' : ''} truncate`}
         >
-          {formattedValue}
+          {displayValue}
         </h3>
         
         {showGrowth && (growth || description) && (
