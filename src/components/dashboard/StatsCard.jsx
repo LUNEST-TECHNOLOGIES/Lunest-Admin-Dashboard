@@ -38,6 +38,21 @@ export default function StatsCard({
 
   const currentStyle = colorStyles[bgColor] || colorStyles.indigo;
 
+  const formattedValue = typeof value === 'number' 
+    ? (isCurrency 
+        ? `₦${value.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+        : value.toLocaleString('en-NG'))
+    : String(value ?? '0');
+
+  // Dynamic responsive font scaling based on character length so long figures/amounts never overflow
+  const getFontSizeClass = (str) => {
+    const len = str?.length || 0;
+    if (len > 18) return 'text-xs sm:text-sm lg:text-base';
+    if (len > 14) return 'text-sm sm:text-base lg:text-lg xl:text-xl';
+    if (len > 11) return 'text-base sm:text-lg lg:text-xl xl:text-2xl';
+    return 'text-lg sm:text-xl lg:text-2xl xl:text-3xl';
+  };
+
   return (
     <div 
       onClick={onClick}
@@ -57,22 +72,14 @@ export default function StatsCard({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="font-aeonik font-bold text-[11px] uppercase tracking-wider text-slate-400 mb-0.5 truncate">
+        <p className="font-aeonik font-bold text-[11px] uppercase tracking-wider text-slate-400 mb-0.5 truncate" title={label}>
           {label}
         </p>
         <h3 
-          title={typeof value === 'number' 
-            ? (isCurrency 
-                ? `₦${value.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
-                : value.toLocaleString('en-NG'))
-            : String(value)}
-          className={`font-aeonik font-black text-slate-900 tracking-tight break-words text-base sm:text-lg lg:text-xl xl:text-2xl truncate ${isCurrency ? 'font-mono' : ''}`}
+          title={formattedValue}
+          className={`font-aeonik font-black text-slate-900 tracking-tight leading-tight my-0.5 ${getFontSizeClass(formattedValue)} ${isCurrency ? 'font-mono' : ''} truncate`}
         >
-          {typeof value === 'number' 
-            ? (isCurrency 
-                ? `₦${value.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
-                : value.toLocaleString('en-NG'))
-            : value}
+          {formattedValue}
         </h3>
         
         {showGrowth && (growth || description) && (
