@@ -7,10 +7,14 @@
 async function testAdminAPI() {
   console.log('🧪 Testing Admin Transaction API Endpoints...\n');
 
-  const API_BASE = 'http://localhost:8080/v1';
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:3000/v1' 
+    : 'https://api.lunest.app/v1';
+
+  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('token')}`
+    'Authorization': `Bearer ${token}`
   };
 
   try {

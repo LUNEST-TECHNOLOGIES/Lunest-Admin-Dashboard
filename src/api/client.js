@@ -2,17 +2,18 @@ import axios from 'axios';
 
 // Determine API base URL based on environment
 const getAPIBaseURL = () => {
-    // Development: use localhost directly
+    // 1. Explicit env var (allows local dev to point to live API or custom backend)
+    const envUrl = import.meta.env.VITE_API_URL;
+    if (envUrl) {
+        return envUrl.endsWith('/v1') ? envUrl : `${envUrl}/v1`;
+    }
+    
+    // 2. Local development default: use localhost directly
     if (!import.meta.env.PROD) {
         return 'http://localhost:3000/v1';
     }
     
-    // Production: use env var if set, otherwise use Netlify proxy
-    const envUrl = import.meta.env.VITE_API_URL;
-    if (envUrl) {
-        // Ensure /v1 suffix exists
-        return envUrl.endsWith('/v1') ? envUrl : `${envUrl}/v1`;
-    }
+    // 3. Production default: Netlify proxy redirect
     return '/api';  // Netlify proxy adds /v1
 };
 
