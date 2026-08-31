@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MdSearch, MdTune, MdArrowBack, MdArrowForward, MdMoreVert, MdPerson } from 'react-icons/md';
+import { Users, User, ShieldCheck, ShieldAlert, Building2, UserCheck } from 'lucide-react';
 import { resolveImageUrl } from '../../../../utils/imageUtils';
+import StatsCard from '../../StatsCard';
 import BanUserModal from './BanUserModal';
 import FlagUserModal from './FlagUserModal';
 import ApproveHostModal from './ApproveHostModal';
@@ -187,13 +189,36 @@ const UsersManagement = () => {
     }
   };
 
+  // Compute Real-time User Statistics
+  const statsMetrics = useMemo(() => {
+    const totalUsers = users.length;
+    const hostUsers = users.filter(u => u.role === 'Host' || u.rawUserType === 'HOST').length;
+    const guestUsers = users.filter(u => u.role === 'Guests' || u.rawUserType === 'GUEST').length;
+    const verifiedUsers = users.filter(u => u.verified === true || ['VERIFIED', 'APPROVED'].includes((u.kycStatus || '').toUpperCase())).length;
+    const unverifiedUsers = users.filter(u => u.verified !== true && !['VERIFIED', 'APPROVED'].includes((u.kycStatus || '').toUpperCase())).length;
+    const pendingHosts = users.filter(u => u.hostApplicationStatus === 'PENDING').length;
+
+    return {
+      totalUsers,
+      hostUsers,
+      guestUsers,
+      verifiedUsers,
+      unverifiedUsers,
+      pendingHosts
+    };
+  }, [users]);
+
   const filteredUsers = users.filter(user => {
-    // Filter by tab (role)
+    // Filter by tab (role or verification)
     let roleMatch = true;
     if (activeTab === 'hosts') {
-      roleMatch = user.role === 'Host';
+      roleMatch = user.role === 'Host' || user.rawUserType === 'HOST';
     } else if (activeTab === 'guests') {
-      roleMatch = user.role === 'Guests';
+      roleMatch = user.role === 'Guests' || user.rawUserType === 'GUEST';
+    } else if (activeTab === 'verified') {
+      roleMatch = user.verified === true || ['VERIFIED', 'APPROVED'].includes((user.kycStatus || '').toUpperCase());
+    } else if (activeTab === 'unverified') {
+      roleMatch = user.verified !== true && !['VERIFIED', 'APPROVED'].includes((user.kycStatus || '').toUpperCase());
     } else if (activeTab === 'pending-hosts') {
       roleMatch = user.hostApplicationStatus === 'PENDING';
     }
@@ -328,36 +353,109 @@ const UsersManagement = () => {
     );
   }
 
+  const tabs = [
+    { id: 'all', label: 'All Users', count: statsMetrics.totalUsers },
+    { id: 'hosts', label: 'Hosts', count: statsMetrics.hostUsers },
+    { id: 'guests', label: 'Guests', count: statsMetrics.guestUsers },
+    { id: 'verified', label: 'Verified Users', count: statsMetrics.verifiedUsers },
+    { id: 'unverified', label: 'Unverified Users', count: statsMetrics.unverifiedUsers },
+    { id: 'pending-hosts', label: 'Pending Hosts', count: statsMetrics.pendingHosts, isPending: true },
+  ];
+
   return (
-    <div className="p-6 bg-slate-50 min-h-screen font-inter relative">
+    <div className="p-4 sm:p-6 bg-slate-50 min-h-screen font-inter relative">
+      {/* 5 User Management Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4 mb-6">
+        <StatsCard
+          icon={<Users className="w-5 h-5 text-indigo-600" />}
+          label="Total Users"
+          value={statsMetrics.totalUsers}
+          description="Registered accounts"
+          bgColor="indigo"
+          iconColor="indigo"
+          active={activeTab === 'all'}
+          onClick={() => {
+            setActiveTab('all');
+            setCurrentPage(1);
+          }}
+        />
+        <StatsCard
+          icon={<Building2 className="w-5 h-5 text-violet-600" />}
+          label="Host Users"
+          value={statsMetrics.hostUsers}
+          description="Property & stay hosts"
+          bgColor="violet"
+          iconColor="violet"
+          active={activeTab === 'hosts'}
+          onClick={() => {
+            setActiveTab('hosts');
+            setCurrentPage(1);
+          }}
+        />
+        <StatsCard
+          icon={<User className="w-5 h-5 text-emerald-600" />}
+          label="Guest Users"
+          value={statsMetrics.guestUsers}
+          description="Booking travelers"
+          bgColor="green"
+          iconColor="green"
+          active={activeTab === 'guests'}
+          onClick={() => {
+            setActiveTab('guests');
+            setCurrentPage(1);
+          }}
+        />
+        <StatsCard
+          icon={<ShieldCheck className="w-5 h-5 text-teal-600" />}
+          label="Verified Users"
+          value={statsMetrics.verifiedUsers}
+          description="KYC & identity verified"
+          bgColor="blue"
+          iconColor="blue"
+          active={activeTab === 'verified'}
+          onClick={() => {
+            setActiveTab('verified');
+            setCurrentPage(1);
+          }}
+        />
+        <StatsCard
+          icon={<ShieldAlert className="w-5 h-5 text-amber-600" />}
+          label="Unverified Users"
+          value={statsMetrics.unverifiedUsers}
+          description="Pending KYC / unverified"
+          bgColor="amber"
+          iconColor="orange"
+          active={activeTab === 'unverified'}
+          onClick={() => {
+            setActiveTab('unverified');
+            setCurrentPage(1);
+          }}
+        />
+      </div>
+
       {/* Header - Tabs */}
       <div className="p-1.5 bg-white rounded-xl shadow-sm border border-slate-100 inline-flex flex-wrap gap-2 mb-6 transition-all">
-        {[
-          { id: 'all', label: 'All Users' },
-          { id: 'hosts', label: 'Hosts' },
-          { id: 'guests', label: 'Guests' },
-          { id: 'pending-hosts', label: 'Pending Hosts' },
-        ].map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => {
               setActiveTab(tab.id);
               setCurrentPage(1);
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-3.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
               activeTab === tab.id
-                ? 'bg-slate-900 text-white'
+                ? 'bg-slate-900 text-white shadow-xs'
                 : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
-            {tab.label}
-            {tab.id === 'pending-hosts' && (
-              <span className={`ml-2 px-1.5 py-0.5 text-[10px] rounded-full ${
-                activeTab === tab.id ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-600'
-              }`}>
-                {users.filter(u => u.hostApplicationStatus === 'PENDING').length}
-              </span>
-            )}
+            <span>{tab.label}</span>
+            <span className={`px-2 py-0.5 text-[10px] rounded-full font-extrabold transition-colors ${
+              tab.isPending
+                ? activeTab === tab.id ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-600'
+                : activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+            }`}>
+              {tab.count}
+            </span>
           </button>
         ))}
       </div>

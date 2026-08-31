@@ -81,6 +81,8 @@ export default function Dashboard() {
     const totalGuests = (dashboardStats?.users?.guests) ?? (dashboardStats?.totalGuests) ?? 0;
     const totalHosts = (dashboardStats?.users?.hosts) ?? (dashboardStats?.totalHosts) ?? 0;
     const totalAdmins = (dashboardStats?.users?.admins) ?? (dashboardStats?.totalAdmins) ?? 0;
+    const verifiedUsers = (dashboardStats?.users?.verified) ?? (dashboardStats?.verifiedUsers) ?? 0;
+    const unverifiedUsers = (dashboardStats?.users?.unverified) ?? (dashboardStats?.unverifiedUsers) ?? 0;
     const pendingKYC = (dashboardStats?.pendingKYC) ?? 0;
     const pendingHostApplications = (dashboardStats?.pendingHostApplications) ?? 0;
     
@@ -143,6 +145,8 @@ export default function Dashboard() {
                                     totalGuests,
                                     activeHosts: totalHosts,
                                     totalAdmins,
+                                    verifiedUsers,
+                                    unverifiedUsers,
                                     pendingKYC,
                                     pendingHostApplications,
                                     openDisputes,

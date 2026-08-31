@@ -682,6 +682,8 @@ export const getDashboardStats = async() => {
                 totalGuests: (stats.users && stats.users.guests) || 0,
                 totalHosts: (stats.users && stats.users.hosts) || 0,
                 totalAdmins: (stats.users && stats.users.admins) || 0,
+                verifiedUsers: (stats.users && stats.users.verified) || 0,
+                unverifiedUsers: (stats.users && stats.users.unverified) || 0,
                 totalListings: (stats.listings && stats.listings.total) || 0,
                 activeListings: (stats.listings && stats.listings.active) || 0,
                 pendingListings: (stats.listings && stats.listings.pending) || 0,
@@ -716,11 +718,16 @@ const getFallbackStats = async() => {
         const listings = (listingsRes.data && listingsRes.data.body) || [];
         const bookings = (bookingsRes.data && bookingsRes.data.body) || [];
 
+        const verifiedCount = users.filter(u => u.verified === true || ['VERIFIED', 'APPROVED'].includes((u.kycStatus || '').toUpperCase())).length;
+        const unverifiedCount = users.length - verifiedCount;
+
         return {
             totalUsers: users.length,
             totalGuests: users.filter(u => u.userType === 'GUEST').length,
             totalHosts: users.filter(u => u.userType === 'HOST').length,
             totalAdmins: users.filter(u => ['ADMIN', 'SUPERADMIN'].includes(u.userType)).length,
+            verifiedUsers: verifiedCount,
+            unverifiedUsers: unverifiedCount,
             totalListings: listings.length,
             activeListings: listings.filter(l => l.status === 'AVAILABLE').length,
             pendingListings: listings.filter(l => l.status === 'PENDING').length,
@@ -737,6 +744,8 @@ const getFallbackStats = async() => {
             totalGuests: 0,
             totalHosts: 0,
             totalAdmins: 0,
+            verifiedUsers: 0,
+            unverifiedUsers: 0,
             totalListings: 0,
             activeListings: 0,
             pendingListings: 0,

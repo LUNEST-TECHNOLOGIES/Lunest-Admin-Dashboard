@@ -22,7 +22,9 @@ export default function StatsCard({
   iconColor = 'indigo',
   showGrowth = true,
   isCurrency = false,
-  onClick
+  onClick,
+  active = false,
+  className = ''
 }) {
   // Enhanced Background & Gradient mapping
   const colorStyles = {
@@ -81,7 +83,11 @@ export default function StatsCard({
   return (
     <div 
       onClick={onClick}
-      className={`group relative bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-100/90 shadow-xs hover:shadow-lg hover:shadow-slate-900/[0.03] hover:border-slate-200 transition-all duration-300 flex items-center gap-3 sm:gap-3.5 overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
+      className={`group relative bg-white p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 flex items-center gap-3 sm:gap-3.5 overflow-hidden ${
+        active 
+          ? 'border-indigo-600 ring-2 ring-indigo-500/20 shadow-md shadow-indigo-500/5 bg-gradient-to-b from-white to-slate-50/50' 
+          : 'border-slate-100/90 shadow-xs hover:shadow-lg hover:shadow-slate-900/[0.03] hover:border-slate-200'
+      } ${onClick ? 'cursor-pointer' : ''} ${className}`}
     >
       {/* Subtle top edge highlight */}
       <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-slate-200/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
