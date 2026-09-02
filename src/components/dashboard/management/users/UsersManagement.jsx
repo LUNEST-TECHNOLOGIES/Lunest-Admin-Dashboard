@@ -16,7 +16,7 @@ const UsersManagement = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showBanModal, setShowBanModal] = useState(false);
   const [showFlagModal, setShowFlagModal] = useState(false);
@@ -977,9 +977,28 @@ const UsersManagement = () => {
       </div>
 
       {/* Pagination */}
-      <div className="p-6 border-t border-slate-100 flex items-center justify-between font-inter">
-        <div className="text-sm text-slate-500 font-medium">
-          Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredUsers.length)} of {filteredUsers.length} users
+      <div className="p-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 font-inter">
+        <div className="flex items-center gap-3 text-sm text-slate-500 font-medium">
+          <span>
+            Showing {filteredUsers.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredUsers.length)} of {filteredUsers.length} users
+          </span>
+          <div className="flex items-center gap-1.5 ml-2">
+            <span className="text-xs text-slate-400">Rows:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <button
