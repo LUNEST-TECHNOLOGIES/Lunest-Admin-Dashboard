@@ -4,9 +4,9 @@
  * hostnames/IPs in stored URLs with the current backend BASE_URL.
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.lunest.app/v1';
 const BASE_URL = API_URL.replace(/\/v1\/?$/, ''); // Remove /v1 for static uploads access
-const CLOUDFRONT_URL = (import.meta.env.VITE_CLOUDFRONT_URL || 'https://d1eoci8rrogdfp.cloudfront.net').replace(/\/$/, '');
+const CLOUDFRONT_URL = (import.meta.env.VITE_CLOUDFRONT_URL || 'https://dqubv15hbqsuo.cloudfront.net').replace(/\/$/, '');
 const isTemporaryMediaUrl = (value) => /(?:^|\/)(?:blob:|data:|file:|content:)/i.test(String(value || '').trim());
 
 const warnUnresolvableImage = (img) => {
