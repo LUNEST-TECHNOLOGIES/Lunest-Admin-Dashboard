@@ -51,7 +51,8 @@ const SystemHealth = () => {
     setLoadingAllUsers(true);
     try {
       const res = await getUsers({ limit: 150 });
-      const usersList = res?.body?.users || res?.users || (Array.isArray(res) ? res : []);
+      const rawData = res?.body !== undefined ? res.body : (res?.data !== undefined ? res.data : res);
+      const usersList = Array.isArray(rawData) ? rawData : (rawData?.users || (Array.isArray(res) ? res : []));
       setAllUsers(usersList);
       setSearchResults(usersList);
     } catch (err) {
@@ -91,7 +92,8 @@ const SystemHealth = () => {
         setIsSearchingUser(true);
         try {
           const res = await getUsers({ search: q });
-          const usersList = res?.body?.users || res?.users || (Array.isArray(res) ? res : []);
+          const rawData = res?.body !== undefined ? res.body : (res?.data !== undefined ? res.data : res);
+          const usersList = Array.isArray(rawData) ? rawData : (rawData?.users || (Array.isArray(res) ? res : []));
           setSearchResults(usersList);
           setShowDropdown(true);
         } catch (err) {

@@ -870,3 +870,33 @@ export const updateAdminPassword = async (oldPassword, newPassword, confirmPassw
     });
     return response.data;
 };
+
+// ============================================
+// MESSAGING & CONTENT MODERATION (Admin)
+// ============================================
+
+export const getScreenedMessages = async (params = {}) => {
+    const response = await apiClient.get('/admin/moderation/messages', { params });
+    return response.data;
+};
+
+export const overrideMessageStatus = async (messageId, status, adminNotes) => {
+    const response = await apiClient.patch(`/admin/moderation/messages/${messageId}`, { status, adminNotes });
+    return response.data;
+};
+
+export const getModerationReports = async (params = {}) => {
+    const response = await apiClient.get('/admin/moderation/reports', { params });
+    return response.data;
+};
+
+export const resolveModerationReport = async (reportId, action, resolutionNotes) => {
+    const response = await apiClient.post(`/admin/moderation/reports/${reportId}/resolve`, { action, resolutionNotes });
+    return response.data;
+};
+
+export const sendSupportNotice = async (conversationId, content) => {
+    const response = await apiClient.post(`/admin/moderation/conversations/${conversationId}/support-notice`, { content });
+    return response.data;
+};
+

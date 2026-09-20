@@ -15,9 +15,7 @@ async function testAdminDashboard() {
   console.log('🧪 LUNEST ADMIN DASHBOARD - TRANSACTION SYSTEM TEST\n');
   console.log('📊 Testing API endpoints...\n');
 
-  const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? 'http://localhost:3000/v1' 
-    : 'https://api.lunest.app/v1';
+  const BASE_URL = 'https://api.lunest.app/v1';
 
   const token = localStorage.getItem('authToken') || localStorage.getItem('token');
 

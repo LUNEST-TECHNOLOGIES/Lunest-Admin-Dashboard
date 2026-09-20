@@ -27,6 +27,7 @@ import SupportCenter from './management/support/SupportCenter';
 import DisputesReports from './management/support/DisputesReports';
 import FinancialTransactionActions from './management/finance/FinancialTransactionActions';
 import SystemHealth from '../../pages/SystemHealth';
+import ModerationCenter from './management/moderation/ModerationCenter';
 // Libraries loaded via CDN in index.html
 const { jsPDF } = window.jspdf || {};
 const autoTable = window.jspdf?.autoTable;
@@ -1006,20 +1007,14 @@ export const SettingsContent = () => (
   </div>
 );
 
-// Content Moderation
+// Content Moderation & Messaging Oversight
 export const ContentModerationContent = () => (
-  <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-    <h2 className="text-lg font-semibold text-slate-900 font-aeonik mb-4">Content Review</h2>
-    <p className="text-slate-600 font-aeonik">Review and moderate user-generated content.</p>
-  </div>
+  <ModerationCenter />
 );
 
 // Messages Content
 export const MessagesContent = () => (
-  <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-    <h2 className="text-lg font-semibold text-slate-900 font-aeonik mb-4">Message Monitoring</h2>
-    <p className="text-slate-600 font-aeonik">Monitor and manage user communications.</p>
-  </div>
+  <ModerationCenter />
 );
 
 // Audit Logs Content

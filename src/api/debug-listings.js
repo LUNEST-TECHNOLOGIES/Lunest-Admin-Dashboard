@@ -4,9 +4,7 @@
 window.debugListings = async() => {
     console.log('=== LISTINGS DEBUG ===\n');
 
-    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://localhost:3000/v1' 
-        : 'https://api.lunest.app/v1';
+    const API_BASE = 'https://api.lunest.app/v1';
 
     // 1. Check auth token
     const token = localStorage.getItem('authToken') || localStorage.getItem('token');

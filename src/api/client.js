@@ -2,19 +2,14 @@ import axios from 'axios';
 
 // Determine API base URL based on environment
 const getAPIBaseURL = () => {
-    // 1. Explicit env var (allows local dev to point to live API or custom backend)
+    // 1. Explicit env var (allows override if needed)
     const envUrl = import.meta.env.VITE_API_URL;
     if (envUrl) {
         return envUrl.endsWith('/v1') ? envUrl : `${envUrl}/v1`;
     }
     
-    // 2. Local development default: use localhost directly
-    if (!import.meta.env.PROD) {
-        return 'http://localhost:3000/v1';
-    }
-    
-    // 3. Production default: Netlify proxy redirect
-    return '/api';  // Netlify proxy adds /v1
+    // 2. Default to production live API for local testing and deployment
+    return 'https://api.lunest.app/v1';
 };
 
 const API_BASE_URL = getAPIBaseURL();

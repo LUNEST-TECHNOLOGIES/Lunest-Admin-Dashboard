@@ -9,12 +9,13 @@ export default defineConfig({
         port: 5174,
         proxy: {
             '/v1': {
-                target: 'http://localhost:3000',
+                target: 'https://api.lunest.app',
                 changeOrigin: true,
+                secure: true,
                 logLevel: 'debug',
                 // Handle connection errors gracefully
                 onProxyReq: (proxyReq, req, res) => {
-                    console.log(`[Vite Proxy] ${req.method} ${req.url} → http://localhost:3000${req.url}`);
+                    console.log(`[Vite Proxy] ${req.method} ${req.url} → https://api.lunest.app${req.url}`);
                 },
                 onProxyRes: (proxyRes, req, res) => {
                     console.log(`[Vite Proxy] ✅ ${proxyRes.statusCode} ${req.url}`);
@@ -31,7 +32,7 @@ export default defineConfig({
                     res.end(JSON.stringify({
                         error: 'Backend server is not responding',
                         details: err.message,
-                        backend: 'http://localhost:3000',
+                        backend: 'https://api.lunest.app',
                         retryAfter: 5,
                     }));
                 },
