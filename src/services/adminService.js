@@ -900,3 +900,12 @@ export const sendSupportNotice = async (conversationId, content) => {
     return response.data;
 };
 
+export const broadcastNotice = async (content, title, injectIntoConversations = false) => {
+    const response = await apiClient.post('/admin/moderation/broadcast-notice', {
+        content,
+        title,
+        injectIntoConversations
+    });
+    return response.data;
+};
+

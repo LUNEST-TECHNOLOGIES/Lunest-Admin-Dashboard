@@ -19,7 +19,8 @@ import {
   overrideMessageStatus,
   getModerationReports,
   resolveModerationReport,
-  sendSupportNotice
+  sendSupportNotice,
+  broadcastNotice
 } from '../../../../services/adminService';
 
 export default function ModerationCenter() {
@@ -40,8 +41,11 @@ export default function ModerationCenter() {
   const [resolutionNotes, setResolutionNotes] = useState('');
 
   // Support notice state
+  const [noticeMode, setNoticeMode] = useState('conversation'); // 'conversation' | 'broadcast'
   const [targetConvId, setTargetConvId] = useState('');
   const [noticeContent, setNoticeContent] = useState('');
+  const [noticeTitle, setNoticeTitle] = useState('');
+  const [injectIntoConversations, setInjectIntoConversations] = useState(false);
   const [sendingNotice, setSendingNotice] = useState(false);
   const [noticeSuccess, setNoticeSuccess] = useState('');
 
@@ -118,15 +122,31 @@ export default function ModerationCenter() {
 
   const handleSendSupportNotice = async (e) => {
     e.preventDefault();
-    if (!targetConvId.trim() || !noticeContent.trim()) return;
+    if (!noticeContent.trim()) return;
 
     try {
       setSendingNotice(true);
       setNoticeSuccess('');
-      const res = await sendSupportNotice(targetConvId.trim(), noticeContent.trim());
-      if (res.success) {
-        setNoticeSuccess('Official LUNEST Support Notice successfully sent to the conversation thread.');
-        setNoticeContent('');
+
+      if (noticeMode === 'conversation') {
+        if (!targetConvId.trim()) return;
+        const res = await sendSupportNotice(targetConvId.trim(), noticeContent.trim());
+        if (res.success) {
+          setNoticeSuccess('Official LUNEST Support Notice successfully sent to the conversation thread.');
+          setNoticeContent('');
+        }
+      } else {
+        const res = await broadcastNotice(noticeContent.trim(), noticeTitle.trim() || undefined, injectIntoConversations);
+        if (res.success) {
+          const body = res.body || {};
+          setNoticeSuccess(
+            `Broadcast sent to ${body.totalUsersReached || 0} users` +
+            (injectIntoConversations ? ` and ${body.conversationsNotified || 0} active conversations` : '') +
+            '.'
+          );
+          setNoticeContent('');
+          setNoticeTitle('');
+        }
       }
     } catch (err) {
       alert(`Failed to send notice: ${err.message || 'Unknown error'}`);
@@ -480,8 +500,34 @@ export default function ModerationCenter() {
             Dispatch Official LUNEST Support Notice
           </h2>
           <p className="text-xs text-slate-500 mb-4">
-            Send an official notice directly into a conversation thread between a guest and a host. The message will display with the verified LUNEST Support badge.
+            Send an official notice to a specific conversation or broadcast to every LUNEST user.
           </p>
+
+          {/* Mode Toggle */}
+          <div className="flex bg-slate-100 p-1 rounded-xl gap-1 mb-5 w-fit">
+            <button
+              type="button"
+              onClick={() => { setNoticeMode('conversation'); setNoticeSuccess(''); }}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                noticeMode === 'conversation'
+                  ? 'bg-white text-indigo-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Single Conversation
+            </button>
+            <button
+              type="button"
+              onClick={() => { setNoticeMode('broadcast'); setNoticeSuccess(''); }}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                noticeMode === 'broadcast'
+                  ? 'bg-white text-indigo-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Broadcast to All Users
+            </button>
+          </div>
 
           {noticeSuccess && (
             <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg font-medium">
@@ -490,19 +536,52 @@ export default function ModerationCenter() {
           )}
 
           <form onSubmit={handleSendSupportNotice} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
-                Conversation ID
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. 6ab022b6acebbd930b7ed898"
-                value={targetConvId}
-                onChange={(e) => setTargetConvId(e.target.value)}
-                required
-                className="w-full text-sm p-2.5 border border-slate-200 rounded-lg outline-none font-mono"
-              />
-            </div>
+            {noticeMode === 'conversation' ? (
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                  Conversation ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 6ab022b6acebbd930b7ed898"
+                  value={targetConvId}
+                  onChange={(e) => setTargetConvId(e.target.value)}
+                  required
+                  className="w-full text-sm p-2.5 border border-slate-200 rounded-lg outline-none font-mono"
+                />
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                    Notice Title (optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Platform Maintenance, Policy Update..."
+                    value={noticeTitle}
+                    onChange={(e) => setNoticeTitle(e.target.value)}
+                    className="w-full text-sm p-2.5 border border-slate-200 rounded-lg outline-none"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Defaults to "Official LUNEST Notice" if left blank.</p>
+                </div>
+
+                <div className="flex items-start gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <input
+                    type="checkbox"
+                    id="injectConvs"
+                    checked={injectIntoConversations}
+                    onChange={(e) => setInjectIntoConversations(e.target.checked)}
+                    className="mt-0.5 accent-indigo-600"
+                  />
+                  <label htmlFor="injectConvs" className="text-xs text-slate-700 cursor-pointer">
+                    <span className="font-bold">Also inject into all active conversations</span>
+                    <br />
+                    <span className="text-slate-500">The notice will appear as a LUNEST Support message inside every active guest-host conversation thread.</span>
+                  </label>
+                </div>
+              </>
+            )}
 
             <div>
               <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
@@ -520,12 +599,31 @@ export default function ModerationCenter() {
 
             <button
               type="submit"
-              disabled={sendingNotice || !targetConvId.trim() || !noticeContent.trim()}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all disabled:opacity-50"
+              disabled={
+                sendingNotice ||
+                !noticeContent.trim() ||
+                (noticeMode === 'conversation' && !targetConvId.trim())
+              }
+              className={`px-5 py-2.5 font-bold text-xs rounded-xl flex items-center gap-2 transition-all disabled:opacity-50 ${
+                noticeMode === 'broadcast'
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              }`}
             >
               <Send className="w-4 h-4" />
-              {sendingNotice ? 'Dispatching Notice...' : 'Send Official Notice'}
+              {sendingNotice
+                ? 'Dispatching...'
+                : noticeMode === 'broadcast'
+                  ? 'Broadcast to All Users'
+                  : 'Send to Conversation'
+              }
             </button>
+
+            {noticeMode === 'broadcast' && (
+              <p className="text-[11px] text-amber-600 font-medium">
+                ⚠️ This will send a notification to every active LUNEST user. Use with care.
+              </p>
+            )}
           </form>
         </div>
       )}
