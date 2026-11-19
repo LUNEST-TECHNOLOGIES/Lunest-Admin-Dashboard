@@ -1,3 +1,4 @@
+import WebsiteAnalytics from '../components/dashboard/WebsiteAnalytics';
 import { useNavigate } from 'react-router-dom';
 import { getListings, getBookings, getAdminTransactions, getDashboardStats } from '../services/adminService';
 import { useEffect, useState } from 'react';
@@ -135,6 +136,8 @@ export default function Dashboard() {
                             </div>
                         )}
                         
+                        {activeMenu === "Dashboard" && <WebsiteAnalytics />}
+
                         {!loading && (
                             <ContentRouter 
                                 activeMenu={activeMenu} 
