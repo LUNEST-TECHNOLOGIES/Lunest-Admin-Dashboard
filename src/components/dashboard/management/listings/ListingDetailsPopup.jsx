@@ -579,7 +579,7 @@ const ListingDetailsPopup = ({ listing, onClose, onListingUpdated }) => {
                             <MdImage className="w-6 h-6" />
                           </div>
                         ) : (
-                          <img
+                          <img loading="lazy" decoding="async"
                             src={image}
                             alt={`Listing ${index + 1}`}
                             className="w-full h-full object-cover"

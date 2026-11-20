@@ -93,7 +93,7 @@ const EditListing = ({ listing, onClose, onSave, isLoading = false }) => {
             <div className="flex gap-2 flex-wrap">
               {images.map((img, idx) => (
                 <div key={idx} className="relative group">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={resolveImageUrl(img)}
                     alt={`Property ${idx + 1}`}
                     className="w-20 h-20 rounded border object-cover"

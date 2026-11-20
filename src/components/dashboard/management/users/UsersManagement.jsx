@@ -15,6 +15,7 @@ import { getUsers, banUser, unbanUser, approveHostApplication, rejectHostApplica
 
 const UsersManagement = () => {
   const [activeTab, setActiveTab] = useState('all');
+  const [deletionOnly, setDeletionOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -126,6 +127,7 @@ const UsersManagement = () => {
           hostApplicationStatus: user.hostApplicationStatus || 'NONE',
           kycStatus: user.kycStatus || 'NONE',
           canBook: user.canBook !== false,
+          deletionRequestedAt: user.deletionRequestedAt,
           bookingRestrictedReason: user.bookingRestrictedReason || null,
           bookingWhitelisted: user.bookingWhitelisted === true,
           nin: user.nin || user.kycData?.documentNumber || user.idNumber || user.kycData?.decision?.id_verifications?.[0]?.document_number || user.kycData?.webhookPayload?.decision?.id_verifications?.[0]?.document_number || null,
@@ -215,6 +217,7 @@ const UsersManagement = () => {
   }, [users]);
 
   const filteredUsers = users.filter(user => {
+    if (deletionOnly && !user.deletionRequestedAt) return false;
     // Filter by tab (role or verification)
     let roleMatch = true;
     if (activeTab === 'hosts') {
@@ -497,6 +500,7 @@ const UsersManagement = () => {
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col relative">
         {/* Search and Filter Bar */}
         <div className="p-6 border-b border-slate-100 flex flex-col xl:flex-row gap-4 justify-between items-stretch xl:items-center">
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={deletionOnly} onChange={e => { setDeletionOnly(e.target.checked); setCurrentPage(1); }} />Deletion requests</label>
           {/* Search Input */}
           <div className="relative w-full xl:max-w-md">
             <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -719,7 +723,7 @@ const UsersManagement = () => {
                   {/* Avatar */}
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-200">
                     {user.avatar ? (
-                      <img src={resolveImageUrl(user.avatar)} alt={user.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={resolveImageUrl(user.avatar)} alt={user.name} className="w-full h-full object-cover" />
                     ) : (
                       <MdPerson className="w-6 h-6 text-slate-400" />
                     )}
@@ -730,6 +734,7 @@ const UsersManagement = () => {
                     <div className="flex items-center gap-2">
                       <div className="text-slate-900 text-sm font-bold truncate">
                         {user.name}
+                        {user.deletionRequestedAt && <span className="block text-xs text-rose-700">Account deletion requested · {new Date(user.deletionRequestedAt).toLocaleDateString()}</span>}
                       </div>
                       {user.hostApplicationStatus === 'PENDING' && (
                         <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full border border-amber-100">

@@ -83,7 +83,7 @@ const ViewHostApplicationModal = ({ isOpen, onClose, user, onApprove, onReject }
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center p-0.5 overflow-hidden shadow-sm">
                 {user?.avatar ? (
-                    <img src={resolveImageUrl(user.avatar)} alt={user.name} className="w-full h-full object-cover rounded-full" />
+                    <img loading="lazy" decoding="async" src={resolveImageUrl(user.avatar)} alt={user.name} className="w-full h-full object-cover rounded-full" />
                 ) : (
                     <MdPerson className="w-7 h-7 text-slate-200" />
                 )}
@@ -262,7 +262,7 @@ const ViewHostApplicationModal = ({ isOpen, onClose, user, onApprove, onReject }
                         <div className="group space-y-3">
                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valid Identity Document</p>
                            <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm transition-all hover:shadow-md group">
-                              <img 
+                              <img loading="lazy" decoding="async"
                                 src={resolveImageUrl(idImg)} 
                                 alt="Valid ID" 
                                 className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-500"
@@ -285,7 +285,7 @@ const ViewHostApplicationModal = ({ isOpen, onClose, user, onApprove, onReject }
                         <div className="group space-y-3">
                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Landlord Valid ID</p>
                            <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm transition-all hover:shadow-md group">
-                              <img
+                              <img loading="lazy" decoding="async"
                                 src={resolveImageUrl(landlordId)}
                                 alt="Landlord valid ID"
                                 className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-500"
@@ -304,7 +304,7 @@ const ViewHostApplicationModal = ({ isOpen, onClose, user, onApprove, onReject }
                         <div className="group space-y-3">
                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Property Authorization Letter</p>
                            <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm transition-all hover:shadow-md group">
-                              <img 
+                              <img loading="lazy" decoding="async"
                                 src={resolveImageUrl(authLetter)} 
                                 alt="Authorization Letter" 
                                 className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-500"
@@ -329,7 +329,7 @@ const ViewHostApplicationModal = ({ isOpen, onClose, user, onApprove, onReject }
                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                           {images.map((img, idx) => (
                              <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm group">
-                                <img 
+                                <img loading="lazy" decoding="async"
                                   src={resolveImageUrl(img)} 
                                   alt={`Prop ${idx}`} 
                                   className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform duration-500"
@@ -410,7 +410,7 @@ const ViewHostApplicationModal = ({ isOpen, onClose, user, onApprove, onReject }
             >
               <MdClose className="w-8 h-8" />
             </button>
-            <img 
+            <img loading="lazy" decoding="async"
               src={previewImage} 
               alt="Preview" 
               className="max-w-[95%] max-h-[95%] object-contain rounded-xl shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300"

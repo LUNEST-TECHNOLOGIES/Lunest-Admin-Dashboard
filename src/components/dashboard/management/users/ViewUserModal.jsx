@@ -83,7 +83,7 @@ const ViewUserModal = ({ isOpen, onClose, user, onSendKycReminder, sendingKycId 
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center overflow-hidden border-2 border-white shadow-sm ring-1 ring-slate-100">
               {user.avatar ? (
-                <img 
+                <img loading="lazy" decoding="async"
                     src={resolveImageUrl(user.avatar)} 
                     alt={user.name} 
                     className="w-full h-full object-cover"
