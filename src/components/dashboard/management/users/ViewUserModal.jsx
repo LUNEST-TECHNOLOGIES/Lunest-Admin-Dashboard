@@ -163,6 +163,37 @@ const ViewUserModal = ({ isOpen, onClose, user, onSendKycReminder, sendingKycId 
                 <span className="text-slate-900 font-bold">{user.bookings || 0}</span>
               </div>
 
+              {/* Booking Privilege Status */}
+              <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-slate-100">
+                <div>
+                  <span className="text-slate-500 text-sm font-medium block">Booking Privilege</span>
+                  {user.canBook === false && user.bookingRestrictedReason && (
+                    <span className="text-[11px] text-rose-500 font-medium block mt-0.5">
+                      Reason: {user.bookingRestrictedReason}
+                    </span>
+                  )}
+                </div>
+                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                  user.canBook === false
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                }`}>
+                  {user.canBook === false ? 'RESTRICTED' : 'ALLOWED'}
+                </span>
+              </div>
+
+              {/* Booking Whitelist Status */}
+              <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-slate-100">
+                <span className="text-slate-500 text-sm font-medium">Booking Whitelist (Private Access)</span>
+                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                  user.bookingWhitelisted
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-slate-50 text-slate-500 border-slate-200'
+                }`}>
+                  {user.bookingWhitelisted ? 'WHITELISTED' : 'STANDARD'}
+                </span>
+              </div>
+
               {/* KYC Status */}
               <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-slate-100">
                 <span className="text-slate-500 text-sm font-medium">Identification (KYC)</span>

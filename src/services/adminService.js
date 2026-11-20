@@ -909,3 +909,37 @@ export const broadcastNotice = async (content, title, injectIntoConversations = 
     return response.data;
 };
 
+// ============================================
+// SYSTEM SETTINGS & BOOKING CONTROLS
+// ============================================
+
+export const getBookingControls = async () => {
+    const response = await apiClient.get('/admin/settings/booking-control');
+    return response.data;
+};
+
+export const updateBookingControls = async (data) => {
+    const response = await apiClient.patch('/admin/settings/booking-control', data);
+    return response.data;
+};
+
+export const toggleUserBooking = async (userId, canBook, reason = '') => {
+    const response = await apiClient.post(`/admin/users/${userId}/toggle-booking`, {
+        canBook,
+        reason
+    });
+    return response.data;
+};
+
+export const toggleUserWhitelist = async (userId, bookingWhitelisted) => {
+    const response = await apiClient.post(`/admin/users/${userId}/toggle-whitelist`, {
+        bookingWhitelisted
+    });
+    return response.data;
+};
+
+export const getBookingWhitelistedUsers = async () => {
+    const response = await apiClient.get('/admin/users/booking-whitelist');
+    return response.data;
+};
+

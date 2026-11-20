@@ -28,6 +28,7 @@ import DisputesReports from './management/support/DisputesReports';
 import FinancialTransactionActions from './management/finance/FinancialTransactionActions';
 import SystemHealth from '../../pages/SystemHealth';
 import ModerationCenter from './management/moderation/ModerationCenter';
+import BookingControlBar from './management/bookings/BookingControlBar';
 // Libraries loaded via CDN in index.html
 const { jsPDF } = window.jspdf || {};
 const autoTable = window.jspdf?.autoTable;
@@ -995,14 +996,18 @@ export const SubscriptionContent = () => (
 
 // Settings Content
 export const SettingsContent = () => (
-  <div className="space-y-6">
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-      <h2 className="text-lg font-semibold text-slate-900 font-aeonik mb-4">Platform Settings</h2>
-      <p className="text-slate-600 font-aeonik">Configure general platform settings.</p>
+  <div className="space-y-6 p-6 bg-slate-50 min-h-screen">
+    <div>
+      <h2 className="text-xl font-black text-slate-900 font-aeonik">Platform Settings & Controls</h2>
+      <p className="text-xs text-slate-500 mt-0.5">Manage global operational switches, booking policies, and access controls.</p>
     </div>
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-      <h2 className="text-lg font-semibold text-slate-900 font-aeonik mb-4">Access Controls</h2>
-      <p className="text-slate-600 font-aeonik">Manage user roles and permissions.</p>
+
+    {/* Platform Booking Controls */}
+    <BookingControlBar />
+
+    <div className="bg-white p-6 rounded-2xl shadow-xs border border-slate-200">
+      <h3 className="text-sm font-bold text-slate-900 mb-1">Access & Security Controls</h3>
+      <p className="text-xs text-slate-500">Configure administrative access, multi-factor authentication, and API rate limits.</p>
     </div>
   </div>
 );

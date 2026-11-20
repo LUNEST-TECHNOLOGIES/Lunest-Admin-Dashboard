@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MdSearch, MdArrowBack, MdArrowForward, MdTune } from 'react-icons/md';
 import BookingActionButton from './BookingActionButton';
+import BookingControlBar from './BookingControlBar';
 import { getBookings } from '../../../../services/adminService';
 
 // Helper functions moved outside component to prevent re-renders
@@ -44,6 +45,8 @@ const mapBookingStatus = (status) => {
   const statusMap = {
     'CONFIRMED': 'Confirmed',
     'RESERVED': 'Reserved',
+    'PENDING_PAYMENT': 'Pending payment',
+    'DISPUTED': 'Disputed',
     'PENDING': 'Pending',
     'CANCELLED': 'Canceled',
     'COMPLETED': 'Completed',
@@ -90,15 +93,12 @@ const BookingManagement = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isFetchingRef = useRef(false);
 
-  const tabs = ['all', 'confirmed', 'active', 'complete', 'canceled', 'refund'];
   const tabLabels = {
-    all: 'All Booking',
-    confirmed: 'Confirmed',
-    active: 'Active (Ongoing)',
-    complete: 'Complete',
-    canceled: 'Canceled',
-    refund: 'Refunded'
+    all: 'All bookings', PENDING: 'Pending', PENDING_PAYMENT: 'Pending payment',
+    RESERVED: 'Reserved', CONFIRMED: 'Confirmed', ONGOING: 'Active', COMPLETED: 'Completed',
+    CANCELLED: 'Canceled', EXPIRED: 'Expired', DISPUTED: 'Disputed', refund: 'Refunds'
   };
+  const tabs = Object.keys(tabLabels);
 
   const fetchBookings = useCallback(async (isBackground = false) => {
     if (isFetchingRef.current) return;
@@ -137,7 +137,7 @@ const BookingManagement = () => {
         securityDepositResolution: booking.securityDepositResolution || null,
         cancelReason: booking.cancelReason || '',
         cancelNote: booking.cancelNote || '',
-        isRefunded: !!booking.isRefunded || ['CANCELLED', 'REFUNDED', 'EXPIRED', 'FAILED'].includes(booking.status) || booking.refundStatus === 'REFUNDED' || booking.resolutionStatus === 'RESOLVED_BY_ADMIN',
+        isRefunded: !!booking.isRefunded || booking.status === 'REFUNDED' || booking.paymentStatus === 'REFUNDED' || booking.refundStatus === 'REFUNDED',
         refundRequested: booking.status !== 'COMPLETED' && booking.status !== 'Completed' && (booking.status === 'REFUND_REQUESTED' || !!booking.refundRequested || booking.refundStatus === 'REQUESTED'),
         extensionsCount: Array.isArray(booking.extensions) ? booking.extensions.length : 0
       }));
@@ -158,12 +158,8 @@ const BookingManagement = () => {
 
   const filteredBookings = bookings.filter(booking => {
     if (activeTab === 'all') return true;
-    if (activeTab === 'confirmed') return booking.status === 'Confirmed';
-    if (activeTab === 'active') return booking.status === 'Active';
-    if (activeTab === 'complete') return booking.status === 'Completed';
-    if (activeTab === 'canceled') return booking.status === 'Canceled';
-    if (activeTab === 'refund') return booking.status === 'Refunded' || booking.status === 'Refund Requested';
-    return true;
+    if (activeTab === 'refund') return booking.isRefunded || booking.refundRequested;
+    return booking.rawStatus === activeTab;
   }).filter(booking => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -179,19 +175,19 @@ const BookingManagement = () => {
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedBookings = filteredBookings.slice(startIdx, startIdx + itemsPerPage);
 
-  if (isInitialLoad && bookings.length === 0) {
-    return (
-      <div className="w-full h-auto min-h-screen px-6 py-6 bg-gray-50 flex justify-center items-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4"></div>
-          <p className="text-slate-600 font-aeonik">Loading bookings...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 bg-slate-50 min-h-screen font-inter relative">
+      {/* Page Title & Subtitle */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight font-aeonik">Booking Operations & Live Engine</h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Manage live reservations, platform booking availability, escrow releases, and disputes.</p>
+        </div>
+      </div>
+
+      {/* Platform Booking Engine Master Controls */}
+      <BookingControlBar />
+
       <div className="p-1.5 bg-white rounded-xl shadow-sm border border-slate-100 inline-flex flex-wrap gap-2 mb-6 transition-all">
         {tabs.map(tab => (
           <button
@@ -251,7 +247,12 @@ const BookingManagement = () => {
             </div>
 
             <div className="w-full flex flex-col pb-24">
-              {paginatedBookings.length > 0 ? (
+              {isInitialLoad && bookings.length === 0 ? (
+                <div className="w-full py-24 text-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+                  <p className="text-slate-600 text-sm font-bold font-aeonik">Loading live bookings...</p>
+                </div>
+              ) : paginatedBookings.length > 0 ? (
                 paginatedBookings.map((booking, idx) => {
                   const isLastItems = idx >= paginatedBookings.length - 2 && idx >= 3;
                   return (
